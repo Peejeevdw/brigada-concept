@@ -1,19 +1,24 @@
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
-import BrandOrbit from "@/components/BrandOrbit";
-import BrandFooter from "@/components/BrandFooter";
+import CareersCarousel from "@/components/CareersCarousel";
+import CareersFooter from "@/components/CareersFooter";
+import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import { usePageTransition } from "@/components/PageTransition";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Brand page — implemented from Figma (node 308:2369), built in the concept-page
+// Bunny HLS stream that plays full-bleed behind the careers hero text.
+const HERO_HLS_SRC =
+  "https://vz-329506f6-bc3.b-cdn.net/c2b163ea-71a6-4fdd-a960-ac6ac4157268/playlist.m3u8";
+
+// Careers page (v2) — started as a copy of the /brand page, in the concept-page
 // idiom (self-contained, framer-motion, Antarctica, public/ assets via BASE_URL).
-// Reel layer and the trailing "Meet the clients" heading are intentionally left
-// out for now (design not finalised there).
+// Lives standalone at /careers-v2 (its own nav, outside SiteLayout). Content is
+// still the brand copy — to be replaced with careers content from here.
 
 const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -91,13 +96,14 @@ const NavItem = ({
   </div>
 );
 
-// Brand disciplines list (Figma 308:2434).
-const DISCIPLINES = [
-  "Brand strategy & platforms",
-  "Naming, verbal & sonic identity",
-  "Brand identity concept & design",
-  "Motion to spatial identity design",
-  "Brand implementation & management",
+// Open positions — placeholder list (same copy repeated for now).
+const VACANCY_BLURB =
+  "As a Senior Client Manager you will be responsible for leading and delivering complex client projects and mid-size accounts; creating clarity, consistency and momentum while growing your commercial and strategic impact.";
+const VACANCIES = [
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
 ];
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
@@ -134,7 +140,7 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const Brand = () => {
+const CareersV2 = () => {
   const [openLabel, setOpenLabel] = useState<string | null>(null);
   // Hover-intent voor het nav-submenu: korte sluit-vertraging zodat bewegen
   // tussen label en submenu (of net links/rechts van het label) het menu niet
@@ -161,40 +167,17 @@ const Brand = () => {
     else if (sub === "Careers") transitionTo("/careers-v2");
   };
 
-  // Scroll-driven background — the page warms from white to #FEECF2 as you scroll
-  // through the (white) content block, reaching full tint right as the dark orbit
-  // slides over. framer-motion interpolates the hex colour for us.
-  const contentRef = useRef<HTMLDivElement>(null);
-  const scrollP = useMotionValue(0);
-  const bgColor = useTransform(scrollP, [0, 1], ["#FFFFFF", "#FEECF2"]);
-
-  // Smooth scroll — same Lenis setup as /concept, so the orbit + parallax footer
-  // glide instead of stepping with the native wheel. ScrollTrigger is kept in
-  // sync each frame; the background progress follows the same scroll, and
-  // reduced-motion falls back to native scroll.
+  // Smooth scroll — same Lenis setup as /concept, so the carousel + parallax
+  // footer glide instead of stepping with the native wheel. ScrollTrigger is
+  // kept in sync each frame; reduced-motion falls back to native scroll. (The
+  // page background is intentionally static here — no scroll-driven tint.)
   useEffect(() => {
-    // Progress 0→1 across the white content block (top → orbit entering view).
-    const updateProgress = () => {
-      const el = contentRef.current;
-      const range = el ? el.offsetHeight - window.innerHeight : window.innerHeight;
-      scrollP.set(range > 0 ? Math.min(1, Math.max(0, window.scrollY / range)) : 0);
-    };
-    updateProgress();
-    window.addEventListener("resize", updateProgress);
-
     const reduce =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    if (reduce) {
-      window.addEventListener("scroll", updateProgress, { passive: true });
-      return () => {
-        window.removeEventListener("scroll", updateProgress);
-        window.removeEventListener("resize", updateProgress);
-      };
-    }
+    if (reduce) return;
 
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
     lenis.on("scroll", ScrollTrigger.update);
-    lenis.on("scroll", updateProgress);
     let raf = 0;
     const loop = (time: number) => {
       lenis.raf(time);
@@ -204,11 +187,10 @@ const Brand = () => {
     return () => {
       cancelAnimationFrame(raf);
       lenis.destroy();
-      window.removeEventListener("resize", updateProgress);
     };
-  }, [scrollP]);
+  }, []);
   return (
-    <motion.main className="min-h-screen w-full" style={{ fontFamily: SANS, backgroundColor: bgColor }}>
+    <main className="min-h-screen w-full bg-white" style={{ fontFamily: SANS }}>
       <style>{`
         html.lenis, html.lenis body { height: auto; }
         .lenis.lenis-smooth { scroll-behavior: auto !important; }
@@ -261,87 +243,64 @@ const Brand = () => {
 
       {/* Content — full width (gutters only, no centred max-width), like /concept.
           Its height drives the white→#FEECF2 background progress. */}
-      <div ref={contentRef} className="w-full">
-        {/* Intro (Figma 308:2631) */}
-        <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
-          <Reveal>
-            <p
-              className="text-[clamp(22px,2.78vw,40px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
-              style={{ fontWeight: 500, fontStretch: "125%" }}
-            >
-              How we move your brand
-            </p>
-          </Reveal>
-          <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1
-              className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em] text-black"
-              style={{ fontWeight: 400 }}
-            >
-              We craft brands. We give them purpose and personality, and we make
-              them look, sounds and feel like they&rsquo;ve got a pulse.
-            </h1>
-          </Reveal>
+      <div className="w-full">
+        {/* Hero — careers intro text over a full-bleed HLS background video. */}
+        <section
+          className={`relative overflow-hidden ${GUTTER} pt-[clamp(120px,18vw,250px)] pb-[clamp(80px,12vw,160px)]`}
+        >
+          {/* Background video — covers the whole hero, sits behind the nav and text. */}
+          <HlsBackgroundVideo
+            src={HERO_HLS_SRC}
+            className="absolute inset-0 z-0 h-full w-full object-cover"
+          />
+          <div className="relative z-10">
+            <Reveal>
+              <p
+                className="text-[clamp(22px,2.78vw,40px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
+                style={{ fontWeight: 500, fontStretch: "125%" }}
+              >
+                Baby make your move
+              </p>
+            </Reveal>
+            <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
+              <h1
+                className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em] text-black"
+                style={{ fontWeight: 400 }}
+              >
+                We think for ourselves. We want to keep learning and pushing for
+                better, even after a substantial lunch. We make the hard choices
+                and say what needs to be said.
+              </h1>
+            </Reveal>
+          </div>
         </section>
 
         {/* Disciplines (Figma 308:2633) */}
-        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>Brand</SectionLabel>
-              <ul
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                {DISCIPLINES.map((d) => (
-                  <li key={d}>{d}</li>
-                ))}
-              </ul>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* Brand contact (Figma 308:2437–2440) */}
         <section
-          className={`${GUTTER} pt-[clamp(40px,5vw,72px)] pb-[clamp(80px,12vw,180px)]`}
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`}
           style={{ color: INK }}
         >
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-              <SectionLabel>Brand contact</SectionLabel>
-              <div className="flex w-full flex-col gap-8 sm:flex-row sm:items-start sm:gap-[clamp(24px,2.4vw,34px)] md:w-[49%]">
-                <div className="w-[clamp(200px,18vw,262px)] shrink-0 overflow-hidden">
-                  {/* Blur-in on scroll into view */}
-                  <motion.img
-                    src={`${import.meta.env.BASE_URL}brand-mathias.jpg`}
-                    alt="Mathias — Brand Lead"
-                    className="block aspect-[262/362] w-full object-cover"
-                    initial={{ filter: "blur(16px)", scale: 1.06 }}
-                    whileInView={{ filter: "blur(0px)", scale: 1 }}
-                    viewport={{ once: true, margin: "-10% 0px" }}
-                    transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.22 }}
-                  />
-                </div>
-                <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
-                  <p>Mathias is the guy to talk to.</p>
-                  <p className="mt-[18px]">Mathias</p>
-                  <p>Brand Lead</p>
-                  <p>mathias@brigada.be</p>
-                </div>
+          {VACANCIES.map((v, i) => (
+            <Reveal key={i} delay={i * 0.05}>
+              <div className="border-t" style={{ borderColor: INK }} />
+              <div className="mt-[clamp(20px,2vw,26px)] mb-[clamp(28px,3.5vw,52px)] flex flex-col gap-8 md:flex-row md:justify-between">
+                <SectionLabel>{v.title}</SectionLabel>
+                <p className="w-full text-[clamp(15px,1.25vw,18px)] leading-[1.6] md:w-[49%]">
+                  {v.description}
+                </p>
               </div>
-            </div>
-          </Reveal>
+            </Reveal>
+          ))}
         </section>
       </div>
 
-      {/* Branding cases — Osmo "Orbit Tiles Infinite Loop" (full-viewport). */}
-      <BrandOrbit />
+      {/* Careers image carousel (Skiper54 Carousel_006 — expand-on-active). */}
+      <CareersCarousel />
 
-      {/* Footer — parallax reveal, ported from /concept */}
-      <BrandFooter />
-    </motion.main>
+      {/* Footer — parallax reveal, white background + black wordmark */}
+      <CareersFooter />
+    </main>
   );
 };
 
-export default Brand;
+export default CareersV2;

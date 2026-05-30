@@ -601,6 +601,7 @@ const Concept = () => {
                 <span
                   className="cursor-pointer text-[14px] uppercase tracking-[0.1em] opacity-90 transition-opacity hover:opacity-100"
                   style={{ fontFamily: SANS }}
+                  onClick={() => item.label === "Careers" && transitionTo("/careers-v2")}
                 >
                   {item.label}
                 </span>
