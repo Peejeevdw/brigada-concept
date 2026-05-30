@@ -578,7 +578,7 @@ const Concept = () => {
         animate={revealed ? { y: "0%" } : { y: "-100%" }}
         transition={{ duration: 0.6, ease: EASE_OUT, delay: revealed ? 0.45 : 0 }}
       >
-        <div className={`progressive-blur${openIdx !== null ? " is--open" : ""}`} aria-hidden>
+        <div className={`progressive-blur${openIdx !== null && NAV_ITEMS[openIdx].items.length > 0 ? " is--open" : ""}`} aria-hidden>
           <div className="progressive-blur__layer is--1" />
           <div className="progressive-blur__layer is--2" />
           <div className="progressive-blur__layer is--3" />

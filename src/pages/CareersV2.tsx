@@ -214,7 +214,7 @@ const CareersV2 = () => {
         animate={{ y: "0%" }}
         transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.1 }}
       >
-        <div className={`progressive-blur${openLabel !== null ? " is--open" : ""}`} aria-hidden>
+        <div className={`progressive-blur${[...NAV_LEFT, ...NAV_RIGHT].some((i) => i.label === openLabel && i.items.length > 0) ? " is--open" : ""}`} aria-hidden>
           <div className="progressive-blur__layer is--1" />
           <div className="progressive-blur__layer is--2" />
           <div className="progressive-blur__layer is--3" />
