@@ -310,10 +310,15 @@ const Brand = () => {
               <SectionLabel>Brand contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 sm:flex-row sm:items-start sm:gap-[clamp(24px,2.4vw,34px)] md:w-[49%]">
                 <div className="w-[clamp(200px,18vw,262px)] shrink-0 overflow-hidden">
-                  <img
+                  {/* Blur-in on scroll into view */}
+                  <motion.img
                     src={`${import.meta.env.BASE_URL}brand-mathias.jpg`}
                     alt="Mathias — Brand Lead"
                     className="block aspect-[262/362] w-full object-cover"
+                    initial={{ filter: "blur(16px)", scale: 1.06 }}
+                    whileInView={{ filter: "blur(0px)", scale: 1 }}
+                    viewport={{ once: true, margin: "-10% 0px" }}
+                    transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.22 }}
                   />
                 </div>
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">

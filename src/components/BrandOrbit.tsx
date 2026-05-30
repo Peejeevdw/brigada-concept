@@ -213,7 +213,7 @@ const BrandOrbit = () => {
         .orbit-tiles__collection { justify-content: center; align-items: center; display: flex; position: relative; }
         .orbit-tiles__list { place-items: center; display: grid; }
         .orbit-tiles__item { will-change: transform, opacity, filter; grid-area: 1 / 1; justify-content: center; align-items: center; width: max-content; height: max-content; display: flex; }
-        .demo-card { aspect-ratio: 4 / 3; border-radius: 0.65em; width: clamp(16em, 25vw, 32em); position: relative; cursor: pointer; }
+        .demo-card { aspect-ratio: 4 / 3; width: clamp(16em, 25vw, 32em); position: relative; cursor: pointer; }
         .cover-image { object-fit: cover; border-radius: inherit; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .demo-card__label { position: absolute; left: 1em; bottom: 0.85em; z-index: 2; color: #fff; font-size: 0.9em; letter-spacing: -0.01em; pointer-events: none; }
       `}</style>

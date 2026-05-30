@@ -920,7 +920,7 @@ const Concept = () => {
           <section
             key={c.name}
             data-stacking-cards-item
-            className="relative -mt-4 flex min-h-screen w-full items-center overflow-hidden rounded-t-[1em]"
+            className="relative -mt-4 flex min-h-screen w-full items-center overflow-hidden"
             style={{ background: c.bg, color: c.fg }}
           >
             {/* Optional full-bleed video background */}
@@ -959,7 +959,7 @@ const Concept = () => {
                   (Osmo image-trail tijdelijk uit — zie de uitgecommentarieerde
                   data-trail markup hieronder + het trail-useEffect/CSS.) */}
               <div
-                className="relative w-full overflow-hidden rounded-[8px] md:flex-1"
+                className="relative w-full overflow-hidden md:flex-1"
                 onPointerEnter={() => setHoverCase(true)}
                 onPointerLeave={() => setHoverCase(false)}
               >
