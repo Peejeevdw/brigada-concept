@@ -17,8 +17,13 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
+import BunnyReelLightbox from "@/components/BunnyReelLightbox";
 
 gsap.registerPlugin(ScrollTrigger);
+
+// Bunny HLS playlist for the hero reel — opened in the lightbox player.
+const REEL_HLS_SRC =
+  "https://vz-329506f6-bc3.b-cdn.net/a62cb18e-7507-4aba-ba4d-35ffcf06c530/playlist.m3u8";
 
 const NAV_ITEMS = [
   { label: "Expertise", items: ["Brand", "Product", "People", "Marketing"] },
@@ -124,7 +129,7 @@ const Concept = () => {
   const blur = useTransform(blurPx, (b) => `blur(${b}px)`);
   const strokePx = useTransform(t, [0, 1], [18, 0], { clamp: true });
   const introScale = useTransform(t, [0, 1], [1.06, 1]);
-  const bgOpacity = useTransform(t, [0.3, 0.6], [0, 1], { clamp: true });
+  const bgOpacity = useTransform(t, [0.55, 0.85], [0, 1], { clamp: true });
   const bgScale = useTransform(t, [0.3, 1], [1.08, 1], { clamp: true });
 
   const run = () => {
@@ -158,6 +163,12 @@ const Concept = () => {
   // while hovering a case visual. The native cursor stays visible.
   // (Shared cursorX/Y also drives the award image-preview follower below.)
   const [hoverCase, setHoverCase] = useState(false);
+  // Custom cursor for the hero reel: a large "Play reel" pill centred on the
+  // cursor (native cursor hidden) that opens the lightbox on click. Only while
+  // the reel is actually showing — once the hard cut flips to the white/black
+  // section (scroll progress past cutAt) the trigger is disabled.
+  const [hoverReel, setHoverReel] = useState(false);
+  const [reelCut, setReelCut] = useState(false);
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
   const pillX = useSpring(cursorX, { stiffness: 180, damping: 17, mass: 0.7 });
@@ -423,6 +434,13 @@ const Concept = () => {
   const whiteOpacity = useTransform(p, [cutAt, cutAt + 0.025], [0, 1]);
   const textColor = useTransform(p, [cutAt, cutAt + 0.025], ["#ffffff", "#000000"]);
 
+  // Reel trigger only lives before the hard cut; track when we cross it.
+  useEffect(() => {
+    const update = (v: number) => setReelCut(v >= cutAt);
+    update(p.get());
+    return p.on("change", update);
+  }, [p, cutAt]);
+
   return (
     <main className="relative bg-black">
       <style>{`
@@ -659,6 +677,35 @@ const Concept = () => {
         </div>
       )}
 
+      {/* Custom cursor — large "Play reel" pill centred on the cursor over the hero reel */}
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[110]"
+        style={{ x: pillX, y: pillY }}
+        aria-hidden
+      >
+        <div className="-translate-x-1/2 -translate-y-1/2">
+          <AnimatePresence>
+            {hoverReel && !reelCut && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ duration: 0.25, ease: EASE_OUT }}
+                className="flex items-center gap-3 whitespace-nowrap rounded-full bg-white px-7 py-4 text-[15px] uppercase tracking-[0.14em] text-black shadow-[0_8px_40px_rgba(0,0,0,0.35)]"
+                style={{ fontFamily: SANS }}
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-black text-white">
+                  <svg width="10" height="11" viewBox="0 0 10 11" fill="none" className="translate-x-[1px]">
+                    <path d="M9 4.634c.667.385.667 1.347 0 1.732L1.5 10.7A1 1 0 0 1 0 9.835V1.165A1 1 0 0 1 1.5.3L9 4.634Z" fill="currentColor" />
+                  </svg>
+                </span>
+                Play reel
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+
       {/* Custom cursor — delayed "Watch case" pill trailing the real cursor */}
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[100]"
@@ -711,6 +758,9 @@ const Concept = () => {
         </div>
       </motion.div>
 
+      {/* Bunny HLS lightbox player — opened by the "Watch reel" button */}
+      <BunnyReelLightbox />
+
       {/* Scroll track — drives the pinned hero through its states */}
       <section ref={heroRef} className="relative z-10" style={{ height: `${heroVh}vh` }}>
         <div className="sticky top-0 h-screen select-none overflow-hidden bg-black">
@@ -725,10 +775,18 @@ const Concept = () => {
           >
             Replay
           </button>
-          {/* Background reel */}
-          <motion.div className="absolute inset-0 z-0" style={{ opacity: bgOpacity, scale: bgScale }}>
+          {/* Background reel — also the lightbox trigger: hovering shows a
+              large "Play reel" pill cursor, clicking opens the HLS player. */}
+          <motion.div
+            data-bunny-lightbox-control={reelCut ? undefined : "open"}
+            data-bunny-lightbox-src={reelCut ? undefined : REEL_HLS_SRC}
+            onPointerEnter={() => !reelCut && setHoverReel(true)}
+            onPointerLeave={() => setHoverReel(false)}
+            className={`absolute inset-0 z-0 ${reelCut ? "" : "cursor-none"}`}
+            style={{ opacity: bgOpacity, scale: bgScale }}
+          >
             <video
-              src={`${import.meta.env.BASE_URL}reel.mp4`}
+              src={`${import.meta.env.BASE_URL}short-reel.mp4`}
               className="h-full w-full object-cover"
               autoPlay
               muted
@@ -738,17 +796,20 @@ const Concept = () => {
               aria-hidden
             />
             <div className="absolute inset-0 bg-black/20" />
+            {/* Hidden poster — used by the lightbox as the loading placeholder */}
+            <img data-bunny-lightbox-placeholder src={`${import.meta.env.BASE_URL}concept-reel-bg.jpg`} alt="" className="hidden" />
           </motion.div>
 
           {/* White block that overtakes the image near the end */}
           <motion.div
-            className="absolute inset-0 z-[5] bg-white"
+            className="pointer-events-none absolute inset-0 z-[5] bg-white"
             style={{ opacity: whiteOpacity }}
             aria-hidden
           />
 
-          {/* Content group — logo + baseline + paragraph scroll up uniformly */}
-          <motion.div className="absolute inset-0 z-10" style={{ y: groupY }}>
+          {/* Content group — logo + baseline + paragraph scroll up uniformly.
+              pointer-events-none so hover/click falls through to the reel trigger. */}
+          <motion.div className="pointer-events-none absolute inset-0 z-10" style={{ y: groupY }}>
           {/* Wordmark — centred, scrolls off the top */}
           <div className="absolute inset-0 flex items-center justify-center">
             <motion.div
