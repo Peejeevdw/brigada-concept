@@ -64,7 +64,7 @@ const CareersFooter = () => {
         <div className="relative z-10 flex flex-col gap-12 md:flex-row md:gap-10">
           {COLUMNS.map((col) => (
             <div key={col.label} className="flex w-full flex-col gap-6 md:w-1/3">
-              <p className="text-[clamp(15px,1.4vw,21px)] font-semibold opacity-50">
+              <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
                 ( {col.label} )
               </p>
               <div className="flex flex-col items-start gap-1">

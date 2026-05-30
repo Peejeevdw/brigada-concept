@@ -12,7 +12,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const SANS = '"Antarctica", system-ui, sans-serif';
 
-// Bunny.net HLS playlist used as the footer's background video.
+// Bunny.net HLS playlist used as the footer's background video (default).
 const FOOTER_HLS_SRC =
   "https://vz-329506f6-bc3.b-cdn.net/64a5b788-c206-4941-8d10-5ff5cd49ab5f/playlist.m3u8";
 
@@ -22,7 +22,8 @@ const COLUMNS = [
   { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
 ];
 
-const BrandFooter = () => {
+// videoSrc — override the background HLS playlist (defaults to FOOTER_HLS_SRC).
+const BrandFooter = ({ videoSrc = FOOTER_HLS_SRC }: { videoSrc?: string } = {}) => {
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -33,14 +34,14 @@ const BrandFooter = () => {
     if (!video) return;
     const isSafariNative = !!video.canPlayType("application/vnd.apple.mpegurl");
     if (isSafariNative) {
-      video.src = FOOTER_HLS_SRC;
+      video.src = videoSrc;
       video.play?.().catch(() => {});
       return;
     }
     if (Hls.isSupported()) {
       const hls = new Hls({ maxBufferLength: 10 });
       hls.attachMedia(video);
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => hls.loadSource(FOOTER_HLS_SRC));
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => hls.loadSource(videoSrc));
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         video.play?.().catch(() => {});
       });
@@ -52,7 +53,7 @@ const BrandFooter = () => {
         }
       };
     }
-  }, []);
+  }, [videoSrc]);
 
   useEffect(() => {
     const el = footerRef.current;
@@ -112,7 +113,7 @@ const BrandFooter = () => {
         <div className="relative z-10 flex flex-col gap-12 md:flex-row md:gap-10">
           {COLUMNS.map((col) => (
             <div key={col.label} className="flex w-full flex-col gap-6 md:w-1/3">
-              <p className="text-[clamp(15px,1.4vw,21px)] font-semibold opacity-50">
+              <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
                 ( {col.label} )
               </p>
               <div className="flex flex-col items-start gap-1">

@@ -165,6 +165,7 @@ const CareersV2 = () => {
   const onSub = (sub: string) => {
     if (sub === "Brand") transitionTo("/brand");
     else if (sub === "Careers") transitionTo("/careers-v2");
+    else if (sub === "About") transitionTo("/about-v2");
   };
 
   // Smooth scroll — same Lenis setup as /concept, so the carousel + parallax

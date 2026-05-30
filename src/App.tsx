@@ -36,9 +36,10 @@ const Styles = lazy(() => import("./pages/Styles"));
 const Concept = lazy(() => import("./pages/Concept"));
 const Brand = lazy(() => import("./pages/Brand"));
 const CareersV2 = lazy(() => import("./pages/CareersV2"));
+const AboutV2 = lazy(() => import("./pages/AboutV2"));
 
 const queryClient = new QueryClient();
-const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/brand", "/careers-v2"];
+const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/brand", "/careers-v2", "/about-v2"];
 const ConditionalNav = () => {
   const { pathname } = useLocation();
   if (HIDE_NAV_ROUTES.includes(pathname)) return null;
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/concept" element={<Concept />} />
             <Route path="/brand" element={<Brand />} />
             <Route path="/careers-v2" element={<CareersV2 />} />
+            <Route path="/about-v2" element={<AboutV2 />} />
             <Route element={<SiteLayout />}>
               <Route path="/work" element={<Work />} />
               <Route path="/work/:slug" element={<WorkDetail />} />

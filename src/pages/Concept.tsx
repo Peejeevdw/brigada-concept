@@ -601,7 +601,10 @@ const Concept = () => {
                 <span
                   className="cursor-pointer text-[14px] uppercase tracking-[0.1em] opacity-90 transition-opacity hover:opacity-100"
                   style={{ fontFamily: SANS }}
-                  onClick={() => item.label === "Careers" && transitionTo("/careers-v2")}
+                  onClick={() => {
+                    if (item.label === "Careers") transitionTo("/careers-v2");
+                    else if (item.label === "About") transitionTo("/about-v2");
+                  }}
                 >
                   {item.label}
                 </span>
@@ -807,7 +810,7 @@ const Concept = () => {
           <motion.div
             data-bunny-lightbox-control={reelCut ? undefined : "open"}
             data-bunny-lightbox-src={reelCut ? undefined : REEL_HLS_SRC}
-            onPointerEnter={() => !reelCut && openIdx === null && setHoverReel(true)}
+            onPointerEnter={() => setHoverReel(true)}
             onPointerLeave={() => setHoverReel(false)}
             className={`absolute inset-0 z-0 ${reelCut || openIdx !== null ? "" : "cursor-none"}`}
             style={{ opacity: bgOpacity, scale: bgScale }}
@@ -1075,7 +1078,7 @@ const Concept = () => {
               { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
             ].map((col) => (
               <div key={col.label} className="flex w-full flex-col gap-6 md:w-1/3">
-                <p className="text-[clamp(15px,1.4vw,21px)] font-semibold opacity-50">
+                <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
                   ( {col.label} )
                 </p>
                 <div className="flex flex-col items-start gap-1">

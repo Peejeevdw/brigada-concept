@@ -4,7 +4,6 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
-import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
 import { usePageTransition } from "@/components/PageTransition";
 
@@ -17,7 +16,11 @@ gsap.registerPlugin(ScrollTrigger);
 
 const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
-const INK = "#2d2928";
+const INK = "#ffffff";
+
+// Footer background — reuse the careers page's hero video (Bunny HLS playlist).
+const FOOTER_HLS_SRC =
+  "https://vz-329506f6-bc3.b-cdn.net/c2b163ea-71a6-4fdd-a960-ac6ac4157268/playlist.m3u8";
 
 // Navigation — same treatment as the /concept page (progressive blur + the
 // Expertise dropdown), with a centred Brigada wordmark and an extra "More" item
@@ -91,15 +94,6 @@ const NavItem = ({
   </div>
 );
 
-// Brand disciplines list (Figma 308:2434).
-const DISCIPLINES = [
-  "Brand strategy & platforms",
-  "Naming, verbal & sonic identity",
-  "Brand identity concept & design",
-  "Motion to spatial identity design",
-  "Brand implementation & management",
-];
-
 // Shared gutter — same as the /concept page so content runs full-bleed (no
 // centred max-width), gutters only.
 const GUTTER = "px-[clamp(24px,5vw,72px)]";
@@ -134,8 +128,47 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const Brand = () => {
+const AboutV2 = () => {
   const [openLabel, setOpenLabel] = useState<string | null>(null);
+  // Hero-video speelt één keer; daarna scrollt de pagina er soepel voorbij naar
+  // de tekst. De sectie blijft in de DOM (constante paginahoogte) zodat de
+  // parallax-footer / ScrollTrigger niet ontregeld raken.
+  const heroRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
+  const handleVideoEnded = () => {
+    // Terug naar het eerste frame zodat er bij terugscrollen geen zwart vlak
+    // (het laatste frame) blijft staan; afspelen herstart zodra de sectie
+    // opnieuw in beeld komt (IntersectionObserver hieronder).
+    const v = videoRef.current;
+    if (v) {
+      v.pause();
+      v.currentTime = 0;
+    }
+    const target = heroRef.current?.offsetHeight ?? window.innerHeight;
+    if (lenisRef.current) lenisRef.current.scrollTo(target, { duration: 1.2 });
+    else window.scrollTo({ top: target, behavior: "smooth" });
+  };
+
+  // Speel de hero-video vanaf het begin zodra 'ie in beeld komt; pauzeer 'm als
+  // 'ie uit beeld is. Zo start de video opnieuw na terugscrollen.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.currentTime = 0;
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(video);
+    return () => io.disconnect();
+  }, []);
   // Hover-intent voor het nav-submenu: korte sluit-vertraging zodat bewegen
   // tussen label en submenu (of net links/rechts van het label) het menu niet
   // dichtklapt. Opnieuw een nav-item binnenkomen annuleert het sluiten.
@@ -167,7 +200,7 @@ const Brand = () => {
   // slides over. framer-motion interpolates the hex colour for us.
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollP = useMotionValue(0);
-  const bgColor = useTransform(scrollP, [0, 1], ["#FFFFFF", "#FEECF2"]);
+  const bgColor = useTransform(scrollP, [0, 1], ["#000000", "#000000"]);
 
   // Smooth scroll — same Lenis setup as /concept, so the orbit + parallax footer
   // glide instead of stepping with the native wheel. ScrollTrigger is kept in
@@ -194,6 +227,7 @@ const Brand = () => {
     }
 
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    lenisRef.current = lenis;
     lenis.on("scroll", ScrollTrigger.update);
     lenis.on("scroll", updateProgress);
     let raf = 0;
@@ -205,6 +239,7 @@ const Brand = () => {
     return () => {
       cancelAnimationFrame(raf);
       lenis.destroy();
+      lenisRef.current = null;
       window.removeEventListener("resize", updateProgress);
     };
   }, [scrollP]);
@@ -240,7 +275,7 @@ const Brand = () => {
           <div className="progressive-blur__layer is--4" />
           <div className="progressive-blur__layer is--5" />
         </div>
-        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-black">
+        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-white">
           {NAV_LEFT.map((item) => (
             <NavItem key={item.label} item={item} openLabel={openLabel} openMenu={openMenu} scheduleClose={scheduleMenuClose} alignRight={false} onSub={onSub} />
           ))}
@@ -263,23 +298,31 @@ const Brand = () => {
       {/* Content — full width (gutters only, no centred max-width), like /concept.
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
+        {/* Hero video — plays once, then the page scrolls smoothly past it so
+            the text below rises into view (section stays in the DOM). */}
+        <section ref={heroRef} className="relative h-[100svh] w-full overflow-hidden">
+          <video
+            ref={videoRef}
+            className="absolute inset-0 h-full w-full object-cover"
+            src={`${import.meta.env.BASE_URL}sharp-beats-loud.mp4`}
+            muted
+            playsInline
+            preload="auto"
+            onEnded={handleVideoEnded}
+          />
+        </section>
+
         {/* Intro (Figma 308:2631) */}
-        <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
+        <section className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
           <Reveal>
-            <p
-              className="text-[clamp(22px,2.78vw,40px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
-              style={{ fontWeight: 500, fontStretch: "125%" }}
-            >
-              How we move your brand
-            </p>
-          </Reveal>
-          <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
             <h1
-              className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em] text-black"
+              className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em] text-white"
               style={{ fontWeight: 400 }}
             >
-              We craft brands. We give them purpose and personality, and we make
-              them look, sounds and feel like they&rsquo;ve got a pulse.
+              Brigada was born when Fantastic, meetmarcel, mortierbrigade,
+              Onlyhumans, Today and Who Owns The Zebra joined forces to kick
+              brands into gear. We move as one, without the hand-offs that slow
+              most agencies down.
             </h1>
           </Reveal>
         </section>
@@ -289,60 +332,110 @@ const Brand = () => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>Brand</SectionLabel>
-              <ul
+              <SectionLabel>THE FIGHT WE PICKED</SectionLabel>
+              <p
                 className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
                 style={{ lineHeight: "40px" }}
               >
-                {DISCIPLINES.map((d) => (
-                  <li key={d}>{d}</li>
-                ))}
-              </ul>
+                We want to get brands and people moving again. Not by pushing
+                every button at once, but by pushing for a clear direction.
+                Because real progress comes from radical focus. From asking
+                difficult questions and stripping away the unnecessary. We
+                don&rsquo;t aim for &lsquo;louder&rsquo;; we aim for sharper.
+              </p>
             </div>
           </Reveal>
         </section>
 
-        {/* Brand contact (Figma 308:2437–2440) */}
+        {/* Heritage */}
+        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
+          <Reveal>
+            <div className="border-t" style={{ borderColor: INK }} />
+            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
+              <SectionLabel>STRONG HERITAGE</SectionLabel>
+              <p
+                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
+                style={{ lineHeight: "40px" }}
+              >
+                We&rsquo;re building on the legacy and strong expertise of
+                Fantastic, meetmarcel, mortierbrigade, Onlyhumans, Today and Who
+                Owns The Zebra. That&rsquo;s a lot of knowhow right there, and a
+                lot of great work that&rsquo;s been rewarded with several Effies,
+                XXX and XXX.
+              </p>
+            </div>
+          </Reveal>
+        </section>
+
+        {/* The sharpest tools in the shed */}
+        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
+          <Reveal>
+            <div className="border-t" style={{ borderColor: INK }} />
+            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
+              <SectionLabel>THE SHARPEST TOOLS IN THE SHED</SectionLabel>
+              <div
+                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
+                style={{ lineHeight: "40px" }}
+              >
+                <p>
+                  Coincidentally, we also live by the SHARP model: Strategic,
+                  Human, Authentic, Relevant, Provocative.
+                </p>
+                <p className="mt-[clamp(20px,2vw,32px)]">
+                  It&rsquo;s the lens we use to challenge briefs, test ideas and
+                  make sure our work pulls its weight. Feel free to use it on us,
+                  too.
+                </p>
+              </div>
+            </div>
+          </Reveal>
+        </section>
+
+        {/* An agency for the future */}
         <section
-          className={`${GUTTER} pt-[clamp(40px,5vw,72px)] pb-[clamp(80px,12vw,180px)]`}
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`}
           style={{ color: INK }}
         >
           <Reveal>
             <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-              <SectionLabel>Brand contact</SectionLabel>
-              <div className="flex w-full flex-col gap-8 sm:flex-row sm:items-start sm:gap-[clamp(24px,2.4vw,34px)] md:w-[49%]">
-                <div className="w-[clamp(200px,18vw,262px)] shrink-0 overflow-hidden">
-                  {/* Blur-in on scroll into view */}
-                  <motion.img
-                    src={`${import.meta.env.BASE_URL}brand-mathias.jpg`}
-                    alt="Mathias — Brand Lead"
-                    className="block aspect-[262/362] w-full object-cover"
-                    initial={{ filter: "blur(16px)", scale: 1.06 }}
-                    whileInView={{ filter: "blur(0px)", scale: 1 }}
-                    viewport={{ once: true, margin: "-10% 0px" }}
-                    transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.22 }}
-                  />
-                </div>
-                <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
-                  <p>Mathias is the guy to talk to.</p>
-                  <p className="mt-[18px]">Mathias</p>
-                  <p>Brand Lead</p>
-                  <p>mathias@brigada.be</p>
-                </div>
+            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
+              <SectionLabel>AN AGENCY FOR THE FUTURE</SectionLabel>
+              <div
+                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
+                style={{ lineHeight: "40px" }}
+              >
+                <p>
+                  We combine the service of an integrated agency with the
+                  expertise of all the different specialist agencies you&rsquo;d
+                  otherwise need, and need to keep aligned.
+                </p>
+                <p className="mt-[clamp(20px,2vw,32px)]">
+                  We see strategy as the foundation for every decision. And
+                  we&rsquo;re creative, without losing sight of your business
+                  reality. In short: we tick quite a few boxes.
+                </p>
               </div>
             </div>
           </Reveal>
         </section>
       </div>
 
-      {/* Branding cases — Osmo "Orbit Tiles Infinite Loop" (full-viewport). */}
-      <BrandOrbit />
+      {/* Reel — full-viewport looping video. */}
+      <section className="relative h-[100svh] w-full overflow-hidden">
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src={`${import.meta.env.BASE_URL}reel.mp4`}
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      </section>
 
       {/* Footer — parallax reveal, ported from /concept */}
-      <BrandFooter />
+      <BrandFooter videoSrc={FOOTER_HLS_SRC} />
     </motion.main>
   );
 };
 
-export default Brand;
+export default AboutV2;
