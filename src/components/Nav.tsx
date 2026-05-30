@@ -92,6 +92,12 @@ const Nav = ({ variant }: NavProps = {}) => {
     closeTimer.current = setTimeout(() => setOpenKey(null), 120);
   };
 
+  // The single item with children (Expertise) drives the horizontal sub-row
+  // rendered below the main nav.
+  const expertiseItem = items.find((i) => i.children?.length);
+  const expertiseChildren = expertiseItem?.children ?? [];
+  const expertiseOpen = !!expertiseItem && openKey === expertiseItem.to;
+
   if (isHome && variant !== "solid") return null;
 
   return (
@@ -146,7 +152,6 @@ const Nav = ({ variant }: NavProps = {}) => {
         </span>
         {items.map((item, idx) => {
           const hasChildren = !!item.children?.length;
-          const isOpen = openKey === item.to;
           return (
             <div
               key={item.to}
@@ -189,46 +194,61 @@ const Nav = ({ variant }: NavProps = {}) => {
                   </>
                 )}
               </NavLink>
-
-              {hasChildren && (
-                <div
-                  className={cn(
-                    "absolute left-0 top-full pt-3 transition-opacity duration-150",
-                    isOpen
-                      ? "opacity-100 pointer-events-auto"
-                      : "opacity-0 pointer-events-none"
-                  )}
-                  aria-hidden={!isOpen}
-                >
-                  <ul className="flex flex-col gap-1 py-2">
-                    {item.children!.map((child, i) => (
-                      <li
-                        key={child.to}
-                        className={isOpen ? "animate-fade-in" : "opacity-0"}
-                        style={
-                          isOpen
-                            ? {
-                                animationDelay: `${i * 60}ms`,
-                                animationFillMode: "both",
-                              }
-                            : undefined
-                        }
-                      >
-                        <NavLink
-                          to={child.to}
-                          className="inline-block whitespace-nowrap py-1 border-b border-transparent transition-colors hover:border-white/60"
-                        >
-                          {child.label}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           );
         })}
         </nav>
+
+        {/* Expertise sub-nav — horizontal row laid out under the main nav */}
+        {!!expertiseItem && (
+          <div
+            onMouseEnter={() => open(expertiseItem.to)}
+            onMouseLeave={scheduleClose}
+            className={cn(
+              "grid w-full grid-cols-6 items-center gap-3 md:gap-5 px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 text-sm uppercase tracking-widest transition-opacity duration-150",
+              expertiseOpen
+                ? "opacity-100 pointer-events-auto"
+                : "opacity-0 pointer-events-none"
+            )}
+            style={{ fontFamily: "'Antarctica', system-ui, sans-serif" }}
+            aria-hidden={!expertiseOpen}
+          >
+            <ul className="col-start-2 col-span-5 flex flex-wrap items-center gap-x-10 gap-y-2 pb-3">
+              {expertiseChildren.map((child, i) => (
+                <li
+                  key={child.to}
+                  className={expertiseOpen ? "animate-fade-in" : "opacity-0"}
+                  style={
+                    expertiseOpen
+                      ? { animationDelay: `${i * 60}ms`, animationFillMode: "both" }
+                      : undefined
+                  }
+                >
+                  <NavLink
+                    to={child.to}
+                    className="group relative inline-block whitespace-nowrap pb-1 opacity-90 transition-opacity hover:opacity-100"
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {child.label}
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "pointer-events-none absolute left-0 right-0 bottom-0 h-px transition-opacity duration-150",
+                            isActive
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100"
+                          )}
+                          style={{ backgroundColor: navTextColor }}
+                        />
+                      </>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </header>
     </>
   );

@@ -9,33 +9,116 @@ import {
   motion,
   AnimatePresence,
   useMotionValue,
+  useSpring,
   useTransform,
   animate,
 } from "framer-motion";
 import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import BrigadaWordmark from "@/components/BrigadaWordmark";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const NAV_ITEMS = [
   { label: "Expertise", items: ["Brand", "Product", "People", "Marketing"] },
-  { label: "Work", items: ["Agristo", "BMW", "Telenet", "Politie"] },
-  { label: "About", items: ["Studio", "Team", "Culture"] },
-  { label: "Careers", items: ["Open roles", "Internships", "Freelance"] },
+  { label: "Work", items: [] as string[] },
+  { label: "About", items: [] as string[] },
+  { label: "Careers", items: [] as string[] },
   { label: "Contact", items: [] as string[] },
 ];
 const TAGLINE = ["Sharp", "Beats", "Loud"];
 const PARAGRAPH = [
-  "We cut through the noise to",
-  "set brands in motion across",
-  "everything they do.",
+  "We cut through the noise to set brands",
+  "in motion across everything they do.",
 ];
 const SANS = '"Antarctica", system-ui, sans-serif';
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
+// Stacking case cards (Osmo "Stacking Cards Parallax" mechanic).
+// First card = TUI (real). The rest are placeholders — drop visuals in /public
+// and update `img` here. `bg` is any CSS background value; `fg` is the text colour.
+const TUI_BG =
+  "url(" +
+  import.meta.env.BASE_URL +
+  "concept-tui-bg.png) center/cover no-repeat, radial-gradient(140% 120% at 75% 6%, #FFFBEC 0%, #FFE25A 22%, #FFC21E 46%, #FF8A2E 70%, #FF5C46 88%, #FF4E73 100%)";
+// `bg` is any CSS background; `bgVideo` (optional) renders a full-bleed looping
+// video behind the content instead — takes precedence over `bg`.
+// `trail` = the set of images that spawn in the cursor image-trail on hover
+// (Osmo "Rotating Image Trail"). Per case its own set — placeholders for now,
+// reusing existing /public images; drop real per-case visuals here later.
+const CASES = [
+  {
+    name: "TUI",
+    tags: "Brand, Marketing",
+    img: "tui-image.jpg",
+    bg: TUI_BG,
+    fg: "#000000",
+    trail: ["yellow-1.png", "yellow-2.png", "yellow-3.png"],
+  },
+  {
+    name: "Meet Marcel",
+    tags: "Brand, Product",
+    img: "meetmarcel.jpg",
+    bgVideo: "meetmarcel-loop.mp4",
+    bg: "#1A232E",
+    fg: "#000000",
+    trail: ["mm-1.jpg", "mm-2.jpg", "mm-3.jpg", "mm-4.jpg"],
+  },
+  // Tijdelijk verborgen — terugzetten door uit te commenten:
+  // { name: "Case Three", tags: "Marketing, Film", img: "placeholder.svg", bg: "#62594C", fg: "#FFFFFF", trail: ["placeholder.svg"] },
+  // { name: "Case Four", tags: "Brand, Strategy", img: "placeholder.svg", bg: "#1F1715", fg: "#FFFFFF", trail: ["placeholder.svg"] },
+] as { name: string; tags: string; img: string; bg: string; fg: string; bgVideo?: string; trail?: string[] }[];
+
+// Recognition list for the "Proud not loud" section (placeholder content from Figma).
+// `img` = the case visual shown in the cursor-follower preview on hover (placeholder).
+const AWARDS = [
+  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "tui-image.jpg" },
+  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "meetmarcel.jpg" },
+  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "tui-image.jpg" },
+  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "meetmarcel.jpg" },
+  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "tui-image.jpg" },
+];
 
 const Concept = () => {
   // ---- Intro: 0 = blurred + thick stroke · 1 = crisp full logo ----
   const t = useMotionValue(0);
   const [revealed, setRevealed] = useState(false);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  // Dev-only live tuning (see the on-page panel below).
+  const [baseStart, setBaseStart] = useState(42);
+  const [baseEnd, setBaseEnd] = useState(129);
+  // Hero scroll length in vh — shorter = the whole sequence (and the cut) is faster.
+  const [heroVh, setHeroVh] = useState(150);
+  // Cut position as a fraction of scroll progress (independent of hero length).
+  // The whole choreography completes by this point, so it stays coherent.
+  const [cutAt, setCutAt] = useState(0.3);
+  // How far the video section is pulled up under the hero (vh) — higher = revealed sooner.
+  const [videoPull, setVideoPull] = useState(20);
+
+  // Reel section (above the footer) — its videos only start playing once the
+  // section scrolls into view, and pause again when it leaves.
+  const reelRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const section = reelRef.current;
+    if (!section) return;
+    const videos = Array.from(section.querySelectorAll("video"));
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        videos.forEach((v) => {
+          if (entry.isIntersecting) {
+            v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+    io.observe(section);
+    return () => io.disconnect();
+  }, []);
 
   const blurPx = useTransform(t, [0, 1], [40, 0], { clamp: true });
   const blur = useTransform(blurPx, (b) => `blur(${b}px)`);
@@ -68,6 +151,31 @@ const Concept = () => {
   // useScroll was unreliable here (lazy route + sticky), so drive it manually.
   const p = useMotionValue(0);
   const heroRef = useRef<HTMLElement>(null);
+  const collectionRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+
+  // Custom cursor: a "Watch case" pill that trails the real cursor (with delay)
+  // while hovering a case visual. The native cursor stays visible.
+  // (Shared cursorX/Y also drives the award image-preview follower below.)
+  const [hoverCase, setHoverCase] = useState(false);
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+  const pillX = useSpring(cursorX, { stiffness: 180, damping: 17, mass: 0.7 });
+  const pillY = useSpring(cursorY, { stiffness: 180, damping: 17, mass: 0.7 });
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => window.removeEventListener("pointermove", move);
+  }, [cursorX, cursorY]);
+
+  // Image-preview cursor-follower for the awards list ("Proud not loud").
+  // Hovering an award shows that case's visual, trailing the cursor.
+  const [hoverAward, setHoverAward] = useState<number | null>(null);
+  const previewX = useSpring(cursorX, { stiffness: 220, damping: 28, mass: 0.6 });
+  const previewY = useSpring(cursorY, { stiffness: 220, damping: 28, mass: 0.6 });
   useEffect(() => {
     const setProgress = () => {
       // Progress within the HERO section only — independent of sections below it.
@@ -92,6 +200,8 @@ const Concept = () => {
     // Lenis smooths the actual scroll position; progress follows it each frame.
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
     lenis.on("scroll", setProgress);
+    // Keep GSAP ScrollTrigger (stacking cards) in sync with Lenis' smoothing.
+    lenis.on("scroll", ScrollTrigger.update);
     let raf = 0;
     const loop = (time: number) => {
       lenis.raf(time);
@@ -104,24 +214,187 @@ const Concept = () => {
       window.removeEventListener("resize", setProgress);
     };
   }, [p]);
+
+  // Recompute scroll progress when the hero length / video pull changes (dev sliders).
+  useEffect(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, [heroVh, videoPull]);
+
+  // ---- Stacking case cards (Osmo "Stacking Cards Parallax") ----
+  // As each card scrolls in, the PREVIOUS card parallaxes down (yPercent 0→50)
+  // and its image rotates/lifts, so the incoming card slides over it.
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const cards = gsap.utils.toArray<HTMLElement>("[data-stacking-cards-item]");
+      if (cards.length < 2) return;
+      cards.forEach((card, i) => {
+        if (i === 0) return;
+        const previousCard = cards[i - 1];
+        if (!previousCard) return;
+        const previousCardImage = previousCard.querySelector(
+          "[data-stacking-cards-img]"
+        );
+        const tl = gsap.timeline({
+          defaults: { ease: "none", duration: 1 },
+          scrollTrigger: {
+            trigger: card,
+            start: "top bottom",
+            end: "top top",
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        });
+        tl.fromTo(previousCard, { yPercent: 0 }, { yPercent: 50 }).fromTo(
+          previousCardImage,
+          { yPercent: 0 },
+          { yPercent: -25 },
+          "<"
+        );
+      });
+      ScrollTrigger.refresh();
+    }, collectionRef);
+    return () => ctx.revert();
+  }, []);
+
+  // ---- Rotating image trail (Osmo) — per case media block ----
+  // TIJDELIJK UIT: teruggezet naar de "Watch case" pill-cursor. Om de trail
+  // weer aan te zetten: dit useEffect uncommenten, de pill-cursor + zijn state
+  // (hoverCase/pillX/pillY + de onPointerEnter/Leave op het mediablok)
+  // verwijderen, en in het mediablok de data-trail-area / data-trail-collection
+  // markup + de .rotating-image-trail CSS uncommenten. Per-case beelden staan
+  // klaar in CASES[].trail (TUI = yellow-1..3, Meet Marcel = mm-1..4).
+  // On mouse-move inside a [data-trail-area], clone the next source image and
+  // spawn it at the cursor: hidden → visible → transition-out → removed. The
+  // distance gate keeps clones spaced ~half a card apart. Faithful to Osmo's
+  // mechanic; adapted to run per-area in React.
+  /*
+  useEffect(() => {
+    const areas = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-trail-area]")
+    );
+    const cleanups: Array<() => void> = [];
+
+    areas.forEach((area) => {
+      const collection = area.querySelector("[data-trail-collection]");
+      if (!collection) return;
+      const items = collection.querySelectorAll<HTMLElement>("[data-trail-item]");
+      if (!items.length) return;
+
+      let index = 0;
+      let lastX: number | null = null;
+      let lastY: number | null = null;
+      const cardWidth = items[0].getBoundingClientRect().width;
+      const stepDistance = cardWidth * 0.5;
+      const timeouts = new Set<number>();
+      const clones = new Set<HTMLElement>();
+
+      const spawn = (x: number, y: number) => {
+        const clone = items[index].cloneNode(true) as HTMLElement;
+        clone.style.left = `${x}px`;
+        clone.style.top = `${y}px`;
+        clone.setAttribute("data-trail-item", "hidden");
+        area.appendChild(clone);
+        clones.add(clone);
+        void clone.getBoundingClientRect();
+        clone.setAttribute("data-trail-item", "visible");
+
+        const t1 = window.setTimeout(() => {
+          clone.setAttribute("data-trail-item", "transition-out");
+        }, 400);
+        const t2 = window.setTimeout(() => {
+          clone.remove();
+          clones.delete(clone);
+          timeouts.delete(t1);
+          timeouts.delete(t2);
+        }, 1200);
+        timeouts.add(t1);
+        timeouts.add(t2);
+
+        index = (index + 1) % items.length;
+        lastX = x;
+        lastY = y;
+      };
+
+      const onMove = (event: MouseEvent) => {
+        const rect = area.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+          lastX = null;
+          lastY = null;
+          return;
+        }
+        if (lastX === null || lastY === null) {
+          spawn(x, y);
+          return;
+        }
+        const dx = x - lastX;
+        const dy = y - lastY;
+        if (Math.sqrt(dx * dx + dy * dy) >= stepDistance) spawn(x, y);
+      };
+
+      area.addEventListener("mousemove", onMove);
+      cleanups.push(() => {
+        area.removeEventListener("mousemove", onMove);
+        timeouts.forEach((t) => clearTimeout(t));
+        clones.forEach((c) => c.remove());
+      });
+    });
+
+    return () => cleanups.forEach((fn) => fn());
+  }, []);
+  */
+
+  // ---- Footer parallax (Osmo "Footer Parallax Effect") ----
+  // As the footer scrolls in, its inner lifts (yPercent -25→0) and a dark
+  // overlay fades out (opacity 0.5→0).
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const ctx = gsap.context(() => {
+      const inner = el.querySelector("[data-footer-parallax-inner]");
+      const dark = el.querySelector("[data-footer-parallax-dark]");
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: el,
+          start: "clamp(top bottom)",
+          end: "clamp(top top)",
+          scrub: true,
+        },
+      });
+      if (inner) tl.from(inner, { yPercent: -25, ease: "none" });
+      if (dark) tl.from(dark, { opacity: 0.5, ease: "none" }, "<");
+    }, footerRef);
+    return () => ctx.revert();
+  }, []);
   // Logo + baseline + paragraph move up together as one group (uniform 44vh).
-  const groupY = useTransform(p, [0, 0.91], ["0vh", "-64vh"]);
+  // Runs to p=1 (the exact pin-release point) so the group never freezes before
+  // the sticky lets go — the text keeps scrolling instead of pausing at the end.
+  const groupY = useTransform(p, [0, 1], ["0vh", "-64vh"]);
   // Logo fades as it scrolls off the top.
   const logoOpacity = useTransform(p, [0.56, 0.78], [1, 0]);
   // Extra lead so the logo scrolls up a bit faster than the rest of the group.
-  const logoLead = useTransform(p, [0, 0.91], ["0vh", "-26vh"]);
-  // Paragraph trails the group slightly (counter-offset) so it rises slower.
-  const paraLag = useTransform(p, [0, 0.91], ["0vh", "10vh"]);
-  // Per-line clip-up reveal, staggered, all done before the cut.
-  const line0Y = useTransform(p, [0.22, 0.48], ["115%", "0%"]);
-  const line1Y = useTransform(p, [0.36, 0.63], ["115%", "0%"]);
-  const line2Y = useTransform(p, [0.5, 0.77], ["115%", "0%"]);
-  const lineYs = [line0Y, line1Y, line2Y];
+  const logoLead = useTransform(p, [0, 1], ["0vh", "-26vh"]);
+  // Per-line clip-up reveal, staggered.
+  const line0Y = useTransform(p, [0.22, 0.5], ["115%", "0%"]);
+  const line1Y = useTransform(p, [0.4, 0.68], ["115%", "0%"]);
+  const lineYs = [line0Y, line1Y];
 
-  // One shared font size: scale so the WIDEST line fills the available width
-  // (uniform size, left-aligned — shorter lines stay ragged, like the Figma).
+  // Baseline (SHARP/BEATS/LOUD) grows from baseStart→baseEnd as it scrolls up.
+  const baselineSize = useMotionValue("36px");
+  useEffect(() => {
+    const update = (v: number) => {
+      const tt = Math.min(1, Math.max(0, v / cutAt));
+      baselineSize.set(`${baseStart + (baseEnd - baseStart) * tt}px`);
+    };
+    update(p.get());
+    return p.on("change", update);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseStart, baseEnd, cutAt]);
+
+  // Paragraph: one shared font size so the WIDEST line fills the full width.
   const paraRef = useRef<HTMLDivElement>(null);
-  const [paraSize, setParaSize] = useState(96);
+  const [paraSize, setParaSize] = useState(90);
   useLayoutEffect(() => {
     const fit = () => {
       const root = paraRef.current;
@@ -131,7 +404,6 @@ const Concept = () => {
       const wrap = spans[0].parentElement as HTMLElement;
       const avail = wrap.clientWidth;
       const current = parseFloat(getComputedStyle(spans[0]).fontSize);
-      // True text width via Range (block scrollWidth is clamped to clientWidth).
       let maxNatural = 0;
       spans.forEach((s) => {
         const range = document.createRange();
@@ -141,7 +413,6 @@ const Concept = () => {
       if (maxNatural > 0 && avail > 0) setParaSize((current * avail) / maxNatural);
     };
     fit();
-    // Re-measure once the web font has loaded (initial measure may use a fallback).
     if (document.fonts?.ready) document.fonts.ready.then(fit);
     const ro = new ResizeObserver(fit);
     if (paraRef.current) ro.observe(paraRef.current);
@@ -149,8 +420,8 @@ const Concept = () => {
   }, []);
   // Hard cut: only once the group has fully scrolled up (text fully in view),
   // image → white background and text → black, simultaneously.
-  const whiteOpacity = useTransform(p, [0.91, 0.935], [0, 1]);
-  const textColor = useTransform(p, [0.91, 0.935], ["#ffffff", "#000000"]);
+  const whiteOpacity = useTransform(p, [cutAt, cutAt + 0.025], [0, 1]);
+  const textColor = useTransform(p, [cutAt, cutAt + 0.025], ["#ffffff", "#000000"]);
 
   return (
     <main className="relative bg-black">
@@ -178,7 +449,12 @@ const Concept = () => {
           left: 0;
           overflow: hidden;
           transform: translateZ(0);
+          transition: height 0.4s cubic-bezier(0.625, 0.05, 0, 1);
         }
+        /* When the nav submenu is open, push the blur deeper so the
+           horizontal sub-row sits inside the blurred area.
+           Tune live in DevTools via the --blur-depth custom property. */
+        .progressive-blur.is--open { height: var(--blur-depth, 48em); }
         .progressive-blur__layer { width: 100%; height: 100%; position: absolute; }
         .progressive-blur__layer.is--1 {
           -webkit-backdrop-filter: blur(.09375em); backdrop-filter: blur(.09375em);
@@ -205,6 +481,51 @@ const Concept = () => {
           -webkit-mask: linear-gradient(to top, #0000 88%, #000 100%);
           mask: linear-gradient(to top, #0000 88%, #000 100%);
         }
+        [data-underline-link] { position: relative; text-decoration: none; }
+        [data-underline-link]::before {
+          content: ""; position: absolute; bottom: -0.0625em; left: 0;
+          width: 100%; height: 0.08em; background-color: currentColor;
+          transform: scaleX(0) rotate(0.001deg); transform-origin: right;
+          transition: transform 0.6s cubic-bezier(0.625, 0.05, 0, 1);
+        }
+        @media (hover: hover) and (pointer: fine) {
+          [data-underline-link]:hover::before {
+            transform-origin: left; transform: scaleX(1) rotate(0.001deg);
+          }
+        }
+        /* Osmo "Rotating Image Trail" — TIJDELIJK UIT (terug naar pill-cursor).
+           Uncommenten samen met het trail-useEffect en de data-trail markup.
+        .rotating-image-trail__collection {
+          position: absolute; top: 0; left: 0;
+          display: flex; flex-flow: wrap; gap: 1em;
+          opacity: 0; pointer-events: none;
+        }
+        .rotating-image-trail__item {
+          z-index: 10; pointer-events: none;
+          -webkit-user-select: none; user-select: none;
+        }
+        .rotating-image-trail__card {
+          aspect-ratio: 3 / 4; width: 10vw; position: relative;
+        }
+        .rotating-image-trail__card-img {
+          object-fit: cover; width: 100%; height: 100%;
+          display: block; position: absolute; top: 0; left: 0;
+        }
+        [data-trail-item="hidden"] {
+          transform: translate(-50%, -50%) scale(0) rotate(0.001deg);
+          position: absolute;
+        }
+        [data-trail-item="visible"] {
+          transform: translate(-50%, -50%) scale(1) rotate(0.001deg);
+          transition: transform 0.4s cubic-bezier(0.625, 0.05, 0, 1);
+          position: absolute;
+        }
+        [data-trail-item="transition-out"] {
+          transform: translate(-50%, -50%) scale(0) rotate(0.001deg);
+          transition: transform 0.8s cubic-bezier(0.625, 0, 0.875, 0);
+          position: absolute;
+        }
+        */
       `}</style>
 
       {/* Navigation — fixed so it persists across sections (doesn't scroll away) */}
@@ -214,7 +535,7 @@ const Concept = () => {
         animate={revealed ? { y: "0%" } : { y: "-100%" }}
         transition={{ duration: 0.6, ease: EASE_OUT, delay: revealed ? 0.45 : 0 }}
       >
-        <div className="progressive-blur" aria-hidden>
+        <div className={`progressive-blur${openIdx !== null ? " is--open" : ""}`} aria-hidden>
           <div className="progressive-blur__layer is--1" />
           <div className="progressive-blur__layer is--2" />
           <div className="progressive-blur__layer is--3" />
@@ -247,11 +568,11 @@ const Concept = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 6 }}
                       transition={{ duration: 0.28, ease: EASE_OUT }}
-                      className={`absolute top-[calc(100%+8px)] min-w-[200px] rounded-[8px] border border-current/70 bg-current/[0.04] px-4 py-3 backdrop-blur-[18px] ${
+                      className={`absolute top-[calc(100%+8px)] ${
                         alignRight ? "right-0" : "left-0"
                       }`}
                     >
-                      <ul className="flex flex-col gap-[19px]">
+                      <ul className="flex flex-row items-center gap-[clamp(32px,4vw,80px)] whitespace-nowrap">
                         {item.items.map((sub) => (
                           <li key={sub}>
                             <a
@@ -273,8 +594,125 @@ const Concept = () => {
         </motion.nav>
       </motion.div>
 
+      {/* Dev-only type tuning panel — temporarily hidden (set `false &&` → remove to restore) */}
+      {false && import.meta.env.DEV && (
+        <div
+          className="fixed bottom-4 left-4 z-[60] w-[230px] select-none rounded-lg border border-white/15 bg-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
+          style={{ fontFamily: "ui-monospace, monospace" }}
+        >
+          <div className="mb-2 uppercase tracking-[0.15em] text-white/40">Tuning · dev</div>
+          <label className="mb-2 block">
+            Hero length — {heroVh}vh <span className="text-white/40">(↓ = faster cut)</span>
+            <input
+              type="range"
+              min={103}
+              max={300}
+              value={heroVh}
+              onChange={(e) => setHeroVh(+e.target.value)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+          <label className="mb-2 block">
+            Cut at — {Math.round(cutAt * 100)}% of scroll
+            <input
+              type="range"
+              min={5}
+              max={95}
+              value={Math.round(cutAt * 100)}
+              onChange={(e) => setCutAt(+e.target.value / 100)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+          <label className="mb-2 block">
+            Video pull-up — {videoPull}vh <span className="text-white/40">(↑ = sooner)</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={videoPull}
+              onChange={(e) => setVideoPull(+e.target.value)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+          <label className="mb-2 block">
+            Baseline start — {baseStart}px
+            <input
+              type="range"
+              min={16}
+              max={80}
+              value={baseStart}
+              onChange={(e) => setBaseStart(+e.target.value)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+          <label className="block">
+            Baseline end — {baseEnd}px
+            <input
+              type="range"
+              min={24}
+              max={140}
+              value={baseEnd}
+              onChange={(e) => setBaseEnd(+e.target.value)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+        </div>
+      )}
+
+      {/* Custom cursor — delayed "Watch case" pill trailing the real cursor */}
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[100]"
+        style={{ x: pillX, y: pillY }}
+        aria-hidden
+      >
+        <div className="translate-x-4 translate-y-4">
+          <AnimatePresence>
+            {hoverCase && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2, ease: EASE_OUT }}
+                className="whitespace-nowrap rounded-full border border-white/15 bg-black/50 px-4 py-2 text-[13px] uppercase tracking-[0.12em] text-white backdrop-blur-md"
+                style={{ fontFamily: SANS }}
+              >
+                Watch case
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+
+      {/* Image-preview cursor-follower — shows the hovered award's case visual */}
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[90]"
+        style={{ x: previewX, y: previewY }}
+        aria-hidden
+      >
+        <div className="relative aspect-[1/1.25] w-[clamp(180px,18vw,280px)] translate-x-6 -translate-y-1/2">
+          <AnimatePresence>
+            {hoverAward !== null && (
+              <motion.div
+                key={hoverAward}
+                initial={{ opacity: 0, scale: 0.92, y: 24 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: -24 }}
+                transition={{ duration: 0.35, ease: EASE_OUT }}
+                className="absolute inset-0 overflow-hidden"
+              >
+                <img
+                  src={`${import.meta.env.BASE_URL}${AWARDS[hoverAward].img}`}
+                  className="h-full w-full object-cover"
+                  alt=""
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+
       {/* Scroll track — drives the pinned hero through its states */}
-      <section ref={heroRef} className="relative" style={{ height: "190vh" }}>
+      <section ref={heroRef} className="relative z-10" style={{ height: `${heroVh}vh` }}>
         <div className="sticky top-0 h-screen select-none overflow-hidden bg-black">
           {/* Replay intro — scoped so scrolling/clicking the page never restarts it */}
           <button
@@ -287,12 +725,17 @@ const Concept = () => {
           >
             Replay
           </button>
-          {/* Background image */}
+          {/* Background reel */}
           <motion.div className="absolute inset-0 z-0" style={{ opacity: bgOpacity, scale: bgScale }}>
-            <img
-              src={`${import.meta.env.BASE_URL}concept-hero.jpg`}
-              alt=""
+            <video
+              src={`${import.meta.env.BASE_URL}reel.mp4`}
               className="h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden
             />
             <div className="absolute inset-0 bg-black/20" />
           </motion.div>
@@ -345,8 +788,8 @@ const Concept = () => {
             {TAGLINE.map((word, i) => (
               <motion.span
                 key={word}
-                className="text-[clamp(20px,2.5vw,36px)] uppercase tracking-[-0.015em]"
-                style={{ fontFamily: SANS, fontStretch: "125%" }}
+                className="uppercase tracking-[-0.015em]"
+                style={{ fontFamily: SANS, fontStretch: "125%", fontSize: baselineSize }}
                 initial={{ opacity: 0, y: 24 }}
                 animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                 transition={{ duration: 0.55, ease: EASE_OUT, delay: revealed ? 0.05 + i * 0.12 : 0 }}
@@ -356,11 +799,11 @@ const Concept = () => {
             ))}
           </motion.div>
 
-          {/* Paragraph — trails the group, revealed line by line (uniform size) */}
+          {/* Paragraph — 2 lines, auto-sized; moves with the group (constant gap to baseline) */}
           <motion.div
             ref={paraRef}
-            style={{ y: paraLag, color: textColor }}
-            className="absolute inset-x-0 top-[76vh] px-[clamp(24px,5vw,72px)]"
+            style={{ color: textColor }}
+            className="absolute inset-x-0 top-[96vh] px-[clamp(24px,5vw,72px)]"
           >
             {PARAGRAPH.map((line, i) => (
               <div key={line} className="overflow-hidden">
@@ -378,27 +821,202 @@ const Concept = () => {
         </div>
       </section>
 
-      {/* Next section — full-bleed background video */}
-      <section className="relative min-h-screen overflow-hidden bg-black">
+      {/* Cases — narrow meta label on the left, large landscape media on the
+          right, over each case's background (Figma node 299-1977). Pulled up
+          under the hero via videoPull so the reveal stays seamless. */}
+      <div
+        ref={collectionRef}
+        className="relative z-10 w-full"
+        style={{ marginTop: `-${videoPull}vh` }}
+      >
+        {CASES.map((c) => (
+          <section
+            key={c.name}
+            data-stacking-cards-item
+            className="relative -mt-4 flex min-h-screen w-full items-center overflow-hidden rounded-t-[1em]"
+            style={{ background: c.bg, color: c.fg }}
+          >
+            {/* Optional full-bleed video background */}
+            {c.bgVideo && (
+              <video
+                className="absolute inset-0 h-full w-full object-cover"
+                src={`${import.meta.env.BASE_URL}${c.bgVideo}`}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                aria-hidden
+              />
+            )}
+
+            {/* Full-width content row (same gutters as the paragraph above) */}
+            <div className="relative z-10 flex w-full flex-col gap-8 px-[clamp(24px,5vw,72px)] py-[clamp(56px,12vh,140px)] md:flex-row md:items-center md:gap-[clamp(40px,10vw,221px)]">
+              {/* Meta — name + disciplines */}
+              <div className="flex shrink-0 flex-col gap-4 md:w-[171px]">
+                <span
+                  className="text-[clamp(20px,1.9vw,27px)] uppercase leading-none"
+                  style={{ fontFamily: SANS, fontStretch: "125%", fontWeight: 500 }}
+                >
+                  {c.name}
+                </span>
+                <span
+                  className="text-[clamp(13px,1.05vw,15px)] tracking-[-0.015em]"
+                  style={{ fontFamily: SANS }}
+                >
+                  {c.tags}
+                </span>
+              </div>
+
+              {/* Media — large landscape visual; "Watch case" pill on hover.
+                  (Osmo image-trail tijdelijk uit — zie de uitgecommentarieerde
+                  data-trail markup hieronder + het trail-useEffect/CSS.) */}
+              <div
+                className="relative w-full overflow-hidden rounded-[8px] md:flex-1"
+                onPointerEnter={() => setHoverCase(true)}
+                onPointerLeave={() => setHoverCase(false)}
+              >
+                <img
+                  data-stacking-cards-img
+                  className="block aspect-[1342/813] w-full object-cover"
+                  src={`${import.meta.env.BASE_URL}${c.img}`}
+                  alt={`${c.name} — ${c.tags}`}
+                />
+                {/* Trail source set — hidden originals the script clones from.
+                <div data-trail-collection className="rotating-image-trail__collection" aria-hidden>
+                  {(c.trail ?? [c.img]).map((src, ti) => (
+                    <div data-trail-item="" key={ti} className="rotating-image-trail__item">
+                      <div className="rotating-image-trail__card">
+                        <img
+                          src={`${import.meta.env.BASE_URL}${src}`}
+                          loading="eager"
+                          alt=""
+                          className="rotating-image-trail__card-img"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                */}
+              </div>
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {/* Recognition — "Proud not loud" intro + awards list (Figma node 299-1904) */}
+      <section className="relative z-10 w-full bg-white text-black">
+        <div className="grid w-full grid-cols-1 gap-x-12 gap-y-12 px-[clamp(24px,5vw,72px)] py-[clamp(64px,12vh,160px)] md:grid-cols-2">
+          {/* Left — intro */}
+          <div className="max-w-[420px]">
+            <h2
+              className="text-[clamp(40px,6vw,70px)] uppercase leading-[1.1] tracking-[-0.02em]"
+              style={{ fontFamily: SANS, fontStretch: "125%", fontWeight: 500 }}
+            >
+              Proud not loud
+            </h2>
+            <p
+              className="mt-4 text-[clamp(16px,1.4vw,20px)] leading-[1.7]"
+              style={{ fontFamily: SANS }}
+            >
+              When strategy, creativity, data and experience come together from
+              day one, great work happens.
+            </p>
+          </div>
+
+          {/* Right — awards / recognition list */}
+          <div className="flex flex-col" onPointerLeave={() => setHoverAward(null)}>
+            {AWARDS.map((a, i) => (
+              <div
+                key={i}
+                onPointerEnter={() => setHoverAward(i)}
+                className="flex cursor-pointer flex-col gap-[2px] border-b border-black/15 py-[22px] transition-opacity duration-200 first:pt-0"
+                style={{
+                  fontFamily: SANS,
+                  opacity: hoverAward !== null && hoverAward !== i ? 0.45 : 1,
+                }}
+              >
+                <span className="text-[16px] tracking-[-0.015em] text-black/60">
+                  {a.year}
+                </span>
+                <span className="text-[16px] tracking-[-0.015em]">{a.org}</span>
+                <span className="text-[clamp(18px,1.7vw,24px)] tracking-[-0.015em]">
+                  {a.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reel — full-bleed gradient with a centered showreel blended in (Figma node 307-1985) */}
+      <section ref={reelRef} className="relative z-10 flex min-h-[70vh] w-full items-center justify-center overflow-hidden">
+        {/* Full-bleed background video */}
         <video
           className="absolute inset-0 h-full w-full object-cover"
-          src={`${import.meta.env.BASE_URL}brio-export-loop.mp4`}
-          autoPlay
+          src={`${import.meta.env.BASE_URL}bg-red.mp4`}
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden
+        />
+        {/* Centered reel, blended into the background */}
+        <video
+          className="relative z-10 aspect-[1090/613] w-[min(1090px,82vw)] object-cover mix-blend-screen"
+          src={`${import.meta.env.BASE_URL}sharp-beats-loud.mp4`}
           muted
           loop
           playsInline
           preload="auto"
         />
-        <div className="absolute inset-0 bg-black/35" />
-        <div className="relative z-10 flex min-h-screen flex-col justify-end px-[clamp(24px,5vw,72px)] pb-[12vh]">
-          <h2
-            className="max-w-[16ch] text-[clamp(36px,6vw,104px)] font-light leading-[1.02] tracking-[-0.02em] text-white"
-            style={{ fontFamily: SANS }}
-          >
-            Work that moves.
-          </h2>
-        </div>
       </section>
+
+      {/* Footer — parallax reveal (Osmo "Footer Parallax Effect") */}
+      <div ref={footerRef} data-footer-parallax className="relative z-10 overflow-hidden">
+        <footer
+          data-footer-parallax-inner
+          className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] bg-white px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-black"
+          style={{ fontFamily: SANS }}
+        >
+          {/* Link columns */}
+          <div className="flex flex-col gap-12 md:flex-row md:gap-10">
+            {[
+              { label: "Pages", links: ["Work", "Expertise", "About", "Careers", "Contact"] },
+              { label: "Socials", links: ["LinkedIn", "Instagram", "X/Twitter"] },
+              { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
+            ].map((col) => (
+              <div key={col.label} className="flex w-full flex-col gap-6 md:w-1/3">
+                <p className="text-[clamp(15px,1.4vw,21px)] font-semibold opacity-50">
+                  ( {col.label} )
+                </p>
+                <div className="flex flex-col items-start gap-1">
+                  {col.links.map((l) => (
+                    <a
+                      key={l}
+                      href="#"
+                      data-underline-link
+                      className="text-[clamp(28px,4.5vw,44px)] leading-none"
+                    >
+                      {l}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Logo row — full-width wordmark, bottom clipped off the footer edge */}
+          <div className="aspect-[1260/230] w-full overflow-hidden">
+            <BrigadaWordmark className="block h-auto w-full" />
+          </div>
+        </footer>
+        <div
+          data-footer-parallax-dark
+          className="pointer-events-none absolute inset-0 bg-[#201D1D] opacity-0"
+          aria-hidden
+        />
+      </div>
     </main>
   );
 };
