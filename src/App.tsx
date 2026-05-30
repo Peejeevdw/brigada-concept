@@ -11,6 +11,7 @@ import ExpertiseTransitionOverlay from "./components/ExpertiseTransitionOverlay"
 import SiteGridOverlay from "./components/SiteGridOverlay";
 import ReviewComments from "./components/review/ReviewComments";
 import Nav from "./components/Nav";
+import PageTransitionProvider from "./components/PageTransition";
 import IndexV2 from "./pages/IndexV2.tsx";
 import WorkDetail from "./pages/WorkDetail";
 import Animation from "./pages/Animation";
@@ -33,9 +34,10 @@ const Mortierbrigade = lazy(() => import("./pages/Mortierbrigade"));
 const Today = lazy(() => import("./pages/Today"));
 const Styles = lazy(() => import("./pages/Styles"));
 const Concept = lazy(() => import("./pages/Concept"));
+const Brand = lazy(() => import("./pages/Brand"));
 
 const queryClient = new QueryClient();
-const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept"];
+const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/brand"];
 const ConditionalNav = () => {
   const { pathname } = useLocation();
   if (HIDE_NAV_ROUTES.includes(pathname)) return null;
@@ -55,6 +57,7 @@ const App = () => (
         <SiteGridOverlay />
         <ReviewComments />
         <ConditionalNav />
+        <PageTransitionProvider>
         <Suspense fallback={<div className="min-h-screen bg-[#f3f2ef]" />}>
           <Routes>
             <Route path="/" element={<IndexV2 />} />
@@ -67,6 +70,7 @@ const App = () => (
             <Route path="/animation" element={<Animation />} />
             <Route path="/styles" element={<Styles />} />
             <Route path="/concept" element={<Concept />} />
+            <Route path="/brand" element={<Brand />} />
             <Route element={<SiteLayout />}>
               <Route path="/work" element={<Work />} />
               <Route path="/work/:slug" element={<WorkDetail />} />
@@ -82,6 +86,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </PageTransitionProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

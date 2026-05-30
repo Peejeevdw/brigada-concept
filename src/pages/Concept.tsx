@@ -18,6 +18,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import BunnyReelLightbox from "@/components/BunnyReelLightbox";
+import { usePageTransition } from "@/components/PageTransition";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -87,10 +88,29 @@ const AWARDS = [
 ];
 
 const Concept = () => {
+  const transitionTo = usePageTransition();
   // ---- Intro: 0 = blurred + thick stroke · 1 = crisp full logo ----
   const t = useMotionValue(0);
   const [revealed, setRevealed] = useState(false);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  // Hover-intent voor het nav-submenu: een korte sluit-vertraging zodat de muis
+  // tussen het label en zijn submenu (of net links/rechts van het label) bewegen
+  // het menu niet dichtklapt. Opnieuw een nav-item binnenkomen annuleert het.
+  const navCloseTimer = useRef<number | null>(null);
+  const openMenu = (i: number) => {
+    if (navCloseTimer.current !== null) {
+      window.clearTimeout(navCloseTimer.current);
+      navCloseTimer.current = null;
+    }
+    setOpenIdx(i);
+  };
+  const scheduleMenuClose = () => {
+    if (navCloseTimer.current !== null) window.clearTimeout(navCloseTimer.current);
+    navCloseTimer.current = window.setTimeout(() => {
+      setOpenIdx(null);
+      navCloseTimer.current = null;
+    }, 180);
+  };
   // Dev-only live tuning (see the on-page panel below).
   const [baseStart, setBaseStart] = useState(42);
   const [baseEnd, setBaseEnd] = useState(129);
@@ -396,7 +416,12 @@ const Concept = () => {
   useEffect(() => {
     const update = (v: number) => {
       const tt = Math.min(1, Math.max(0, v / cutAt));
-      baselineSize.set(`${baseStart + (baseEnd - baseStart) * tt}px`);
+      const px = baseStart + (baseEnd - baseStart) * tt;
+      // baseStart/baseEnd are tuned at a 1728px-wide screen (1vw = 17.28px).
+      // Express the size as min(px, vw): at ≥1728px it's the exact px value, and
+      // on narrower screens it scales DOWN with the viewport so the three words
+      // shrink together instead of running into each other.
+      baselineSize.set(`min(${px}px, ${px / 17.28}vw)`);
     };
     update(p.get());
     return p.on("change", update);
@@ -569,9 +594,9 @@ const Concept = () => {
             return (
               <div
                 key={item.label}
-                className="relative flex items-center"
-                onMouseEnter={() => setOpenIdx(i)}
-                onMouseLeave={() => setOpenIdx(null)}
+                className="relative flex items-center px-5 -mx-5"
+                onMouseEnter={() => openMenu(i)}
+                onMouseLeave={scheduleMenuClose}
               >
                 <span
                   className="cursor-pointer text-[14px] uppercase tracking-[0.1em] opacity-90 transition-opacity hover:opacity-100"
@@ -586,20 +611,21 @@ const Concept = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 6 }}
                       transition={{ duration: 0.28, ease: EASE_OUT }}
-                      className={`absolute top-[calc(100%+8px)] ${
-                        alignRight ? "right-0" : "left-0"
+                      className={`absolute top-full pt-2 ${
+                        alignRight ? "right-5" : "left-5"
                       }`}
                     >
                       <ul className="flex flex-row items-center gap-[clamp(32px,4vw,80px)] whitespace-nowrap">
                         {item.items.map((sub) => (
                           <li key={sub}>
-                            <a
-                              href="#"
+                            <button
+                              type="button"
+                              onClick={() => sub === "Brand" && transitionTo("/brand")}
                               className="block text-[14px] uppercase leading-[20px] tracking-[1.4px] opacity-90 transition-opacity hover:opacity-60"
                               style={{ fontFamily: SANS }}
                             >
                               {sub}
-                            </a>
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -685,7 +711,7 @@ const Concept = () => {
       >
         <div className="-translate-x-1/2 -translate-y-1/2">
           <AnimatePresence>
-            {hoverReel && !reelCut && (
+            {hoverReel && !reelCut && openIdx === null && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.7 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -780,9 +806,9 @@ const Concept = () => {
           <motion.div
             data-bunny-lightbox-control={reelCut ? undefined : "open"}
             data-bunny-lightbox-src={reelCut ? undefined : REEL_HLS_SRC}
-            onPointerEnter={() => !reelCut && setHoverReel(true)}
+            onPointerEnter={() => !reelCut && openIdx === null && setHoverReel(true)}
             onPointerLeave={() => setHoverReel(false)}
-            className={`absolute inset-0 z-0 ${reelCut ? "" : "cursor-none"}`}
+            className={`absolute inset-0 z-0 ${reelCut || openIdx !== null ? "" : "cursor-none"}`}
             style={{ opacity: bgOpacity, scale: bgScale }}
           >
             <video
