@@ -241,18 +241,19 @@ const Brand = () => {
           {NAV_LEFT.map((item) => (
             <NavItem key={item.label} item={item} openLabel={openLabel} openMenu={openMenu} scheduleClose={scheduleMenuClose} alignRight={false} onSub={onSub} />
           ))}
-          {NAV_RIGHT.map((item) => (
-            <NavItem key={item.label} item={item} openLabel={openLabel} openMenu={openMenu} scheduleClose={scheduleMenuClose} alignRight onSub={onSub} />
-          ))}
-          {/* Wordmark — absolutely centred; click transitions back to /concept */}
+          {/* Wordmark — in-flow centre item so justify-between spreads all 7
+              elements with equal gaps; click transitions back to /concept */}
           <button
             type="button"
             onClick={() => transitionTo("/concept")}
             aria-label="Brigada — home"
-            className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center"
+            className="flex items-center"
           >
             <BrigadaWordmark className="block h-auto w-[100px]" />
           </button>
+          {NAV_RIGHT.map((item) => (
+            <NavItem key={item.label} item={item} openLabel={openLabel} openMenu={openMenu} scheduleClose={scheduleMenuClose} alignRight onSub={onSub} />
+          ))}
         </nav>
       </motion.div>
 
