@@ -289,7 +289,11 @@ const Concept = () => {
           </button>
           {/* Background image */}
           <motion.div className="absolute inset-0 z-0" style={{ opacity: bgOpacity, scale: bgScale }}>
-            <img src="/concept-hero.jpg" alt="" className="h-full w-full object-cover" />
+            <img
+              src={`${import.meta.env.BASE_URL}concept-hero.jpg`}
+              alt=""
+              className="h-full w-full object-cover"
+            />
             <div className="absolute inset-0 bg-black/20" />
           </motion.div>
 
@@ -378,7 +382,7 @@ const Concept = () => {
       <section className="relative min-h-screen overflow-hidden bg-black">
         <video
           className="absolute inset-0 h-full w-full object-cover"
-          src="/brio-export-loop.mp4"
+          src={`${import.meta.env.BASE_URL}brio-export-loop.mp4`}
           autoPlay
           muted
           loop
