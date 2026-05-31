@@ -91,7 +91,7 @@ const NavItem = ({
   </div>
 );
 
-// Brand disciplines list (Figma 308:2434).
+// Brand disciplines list (Figma 308:2434). Some link to a detail page.
 const DISCIPLINES = [
   "Brand strategy & platforms",
   "Naming, verbal & sonic identity",
@@ -99,6 +99,9 @@ const DISCIPLINES = [
   "Motion to spatial identity design",
   "Brand implementation & management",
 ];
+const DISCIPLINE_LINKS: Record<string, string> = {
+  "Brand strategy & platforms": "/employer-branding",
+};
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
 // centred max-width), gutters only.
@@ -294,9 +297,27 @@ const Brand = () => {
                 className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
                 style={{ lineHeight: "40px" }}
               >
-                {DISCIPLINES.map((d) => (
-                  <li key={d}>{d}</li>
-                ))}
+                {DISCIPLINES.map((d) => {
+                  const href = DISCIPLINE_LINKS[d];
+                  return (
+                    <li key={d}>
+                      {href ? (
+                        <button
+                          type="button"
+                          onClick={() => transitionTo(href)}
+                          className="group inline-flex items-center gap-2 text-left transition-opacity hover:opacity-60"
+                        >
+                          <span>{d}</span>
+                          <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
+                            →
+                          </span>
+                        </button>
+                      ) : (
+                        d
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </Reveal>

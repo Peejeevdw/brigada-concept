@@ -1,10 +1,10 @@
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { motion, AnimatePresence, useMotionValue } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
-import BrandFooter from "@/components/BrandFooter";
+import CareersFooter from "@/components/CareersFooter";
 import { usePageTransition } from "@/components/PageTransition";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -16,11 +16,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
-const INK = "#ffffff";
-
-// Footer background — reuse the careers page's hero video (Bunny HLS playlist).
-const FOOTER_HLS_SRC =
-  "https://vz-329506f6-bc3.b-cdn.net/c2b163ea-71a6-4fdd-a960-ac6ac4157268/playlist.m3u8";
+const INK = "#2d2928";
 
 // Navigation — same treatment as the /concept page (progressive blur + the
 // Expertise dropdown), with a centred Brigada wordmark and an extra "More" item
@@ -94,6 +90,15 @@ const NavItem = ({
   </div>
 );
 
+// Brand disciplines list (Figma 308:2434).
+const DISCIPLINES = [
+  "Brand strategy & platforms",
+  "Naming, verbal & sonic identity",
+  "Brand identity concept & design",
+  "Motion to spatial identity design",
+  "Brand implementation & management",
+];
+
 // Shared gutter — same as the /concept page so content runs full-bleed (no
 // centred max-width), gutters only.
 const GUTTER = "px-[clamp(24px,5vw,72px)]";
@@ -119,59 +124,6 @@ const Reveal = ({
   </motion.div>
 );
 
-// Scroll-gestuurde kleuronthulling: de woorden starten in #424242 en vullen zich
-// woord-voor-woord naar #fff terwijl de zin door de viewport scrollt (GSAP scrub,
-// gekoppeld aan dezelfde Lenis-scroll als de rest van de pagina).
-const ScrollColorText = ({
-  text,
-  className = "",
-  style,
-  from = "#424242",
-  to = "#ffffff",
-}: {
-  text: string;
-  className?: string;
-  style?: CSSProperties;
-  from?: string;
-  to?: string;
-}) => {
-  const ref = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const words = el.querySelectorAll<HTMLElement>("[data-word]");
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        words,
-        { color: from },
-        {
-          color: to,
-          ease: "none",
-          duration: 1,
-          stagger: 0.4,
-          scrollTrigger: {
-            trigger: el,
-            start: "top 85%",
-            end: "top 5%",
-            scrub: 1.2,
-          },
-        }
-      );
-    }, el);
-    return () => ctx.revert();
-  }, [from, to]);
-
-  return (
-    <h1 ref={ref} className={className} style={style}>
-      {text.split(" ").map((word, i) => (
-        <span key={i} data-word style={{ color: from }}>
-          {word}{" "}
-        </span>
-      ))}
-    </h1>
-  );
-};
-
 const SectionLabel = ({ children }: { children: ReactNode }) => (
   <h2
     className="shrink-0 text-[clamp(18px,1.5vw,22px)] uppercase leading-none"
@@ -181,47 +133,8 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const AboutV2 = () => {
+const EmployerBranding = () => {
   const [openLabel, setOpenLabel] = useState<string | null>(null);
-  // Hero-video speelt één keer; daarna scrollt de pagina er soepel voorbij naar
-  // de tekst. De sectie blijft in de DOM (constante paginahoogte) zodat de
-  // parallax-footer / ScrollTrigger niet ontregeld raken.
-  const heroRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const lenisRef = useRef<Lenis | null>(null);
-  const handleVideoEnded = () => {
-    // Terug naar het eerste frame zodat er bij terugscrollen geen zwart vlak
-    // (het laatste frame) blijft staan; afspelen herstart zodra de sectie
-    // opnieuw in beeld komt (IntersectionObserver hieronder).
-    const v = videoRef.current;
-    if (v) {
-      v.pause();
-      v.currentTime = 0;
-    }
-    const target = heroRef.current?.offsetHeight ?? window.innerHeight;
-    if (lenisRef.current) lenisRef.current.scrollTo(target, { duration: 1.2 });
-    else window.scrollTo({ top: target, behavior: "smooth" });
-  };
-
-  // Speel de hero-video vanaf het begin zodra 'ie in beeld komt; pauzeer 'm als
-  // 'ie uit beeld is. Zo start de video opnieuw na terugscrollen.
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          video.currentTime = 0;
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
-      },
-      { threshold: 0.5 },
-    );
-    io.observe(video);
-    return () => io.disconnect();
-  }, []);
   // Hover-intent voor het nav-submenu: korte sluit-vertraging zodat bewegen
   // tussen label en submenu (of net links/rechts van het label) het menu niet
   // dichtklapt. Opnieuw een nav-item binnenkomen annuleert het sluiten.
@@ -253,7 +166,9 @@ const AboutV2 = () => {
   // slides over. framer-motion interpolates the hex colour for us.
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollP = useMotionValue(0);
-  const bgColor = useTransform(scrollP, [0, 1], ["#000000", "#000000"]);
+  // Achtergrond zweeft heel traag tussen een paar lichte groentinten — even zacht,
+  // alleen een subtiele hue-verschuiving. Geanimeerd op de motion.main hieronder.
+  const BG_TINTS = ["#E7FFE5", "#E6FFEF", "#ECFFE4", "#E2FBEC", "#E7FFE5"];
 
   // Smooth scroll — same Lenis setup as /concept, so the orbit + parallax footer
   // glide instead of stepping with the native wheel. ScrollTrigger is kept in
@@ -280,7 +195,6 @@ const AboutV2 = () => {
     }
 
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
-    lenisRef.current = lenis;
     lenis.on("scroll", ScrollTrigger.update);
     lenis.on("scroll", updateProgress);
     let raf = 0;
@@ -292,12 +206,16 @@ const AboutV2 = () => {
     return () => {
       cancelAnimationFrame(raf);
       lenis.destroy();
-      lenisRef.current = null;
       window.removeEventListener("resize", updateProgress);
     };
   }, [scrollP]);
   return (
-    <motion.main className="min-h-screen w-full" style={{ fontFamily: SANS, backgroundColor: bgColor }}>
+    <motion.main
+      className="min-h-screen w-full"
+      style={{ fontFamily: SANS }}
+      animate={{ backgroundColor: BG_TINTS }}
+      transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+    >
       <style>{`
         html.lenis, html.lenis body { height: auto; }
         .lenis.lenis-smooth { scroll-behavior: auto !important; }
@@ -328,7 +246,7 @@ const AboutV2 = () => {
           <div className="progressive-blur__layer is--4" />
           <div className="progressive-blur__layer is--5" />
         </div>
-        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-white">
+        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-black">
           {NAV_LEFT.map((item) => (
             <NavItem key={item.label} item={item} openLabel={openLabel} openMenu={openMenu} scheduleClose={scheduleMenuClose} alignRight={false} onSub={onSub} />
           ))}
@@ -351,138 +269,110 @@ const AboutV2 = () => {
       {/* Content — full width (gutters only, no centred max-width), like /concept.
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
-        {/* Hero video — plays once, then the page scrolls smoothly past it so
-            the text below rises into view (section stays in the DOM). */}
-        <section ref={heroRef} className="relative h-[100svh] w-full overflow-hidden">
-          <video
-            ref={videoRef}
-            className="absolute inset-0 h-full w-full object-cover"
-            src={`${import.meta.env.BASE_URL}sharp-beats-loud.mp4`}
-            muted
-            playsInline
-            preload="auto"
-            onEnded={handleVideoEnded}
-          />
-        </section>
-
-        {/* Intro (Figma 308:2631) — woorden vullen zich van #424242 naar #fff bij scroll */}
-        <section className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
-          <ScrollColorText
-            className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em]"
-            style={{ fontWeight: 400 }}
-            text="Brigada was born when Fantastic, meetmarcel, mortierbrigade, Onlyhumans, Today and Who Owns The Zebra joined forces to kick brands into gear. We move as one, without the hand-offs that slow most agencies down."
-          />
+        {/* Intro — employer branding. Placeholder copy for now. */}
+        <section className={`${GUTTER} pt-[clamp(110px,15vw,200px)]`}>
+          <Reveal>
+            <button
+              type="button"
+              onClick={() => transitionTo("/brand")}
+              className="group inline-flex items-center gap-2 text-[clamp(14px,1vw,16px)] text-black transition-opacity hover:opacity-60"
+            >
+              <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:-translate-x-1">
+                ←
+              </span>
+              <span>Brand</span>
+            </button>
+          </Reveal>
+          <Reveal delay={0.06} className="mt-[clamp(20px,2vw,32px)]">
+            <h1
+              className="w-full text-[clamp(40px,5.79vw,100px)] leading-[1.04] tracking-[-0.01em] text-black"
+              style={{ fontWeight: 400 }}
+            >
+              Employer Branding is not a recruitment campaign
+            </h1>
+          </Reveal>
+          <Reveal delay={0.12} className="mt-[clamp(56px,7vw,128px)]">
+            <div className="flex flex-col gap-10 md:flex-row md:justify-between">
+              {/* Left — supporting body copy (placeholder) */}
+              <div
+                className="flex w-full flex-col gap-[18px] text-[20px] md:w-[42%]"
+                style={{ lineHeight: "150%", color: "#000" }}
+              >
+                <p>
+                  Employer branding is often approached as a recruitment
+                  challenge. How do we attract more people? How do we generate
+                  more applications? How do we fill the pipeline?
+                </p>
+                <p>
+                  Those are important questions, but they&rsquo;re not the
+                  starting point according to us.
+                </p>
+                <p>
+                  A recruitment campaign is designed to solve a specific
+                  challenge in a specific moment. An employer brand should do
+                  something much bigger. It should provide a long-term framework
+                  that shapes how an organization presents itself to current and
+                  future employees, not for a few months, but for years.
+                </p>
+                <p>
+                  That&rsquo;s why recruitment campaigns should be expressions
+                  of an employer brand, not the other way around. The employer
+                  brand provides the story, the belief and the direction.
+                  Campaigns simply bring that story to life for a particular
+                  audience or hiring need.
+                </p>
+                <p>
+                  Yet many organizations still treat employer branding as an
+                  attraction exercise. The focus shifts to adding more messages,
+                  more benefits and more reasons to apply. In the process, the
+                  brand becomes broader, safer and less distinctive.
+                </p>
+                <p>
+                  We believe employer branding should be held to the same
+                  standards as any other branding discipline. Because branding
+                  is about making choices. Defining what matters. Being honest.
+                  Having the courage to focus. Not trying to appeal to everyone,
+                  but becoming impossible to confuse with anyone else.
+                </p>
+              </div>
+              {/* Right — statement (placeholder) */}
+              <p
+                className="w-full text-[clamp(26px,2.6vw,42px)] leading-[1.3] text-black md:w-[42%]"
+                style={{ fontWeight: 400 }}
+              >
+                An employer brand should do something much bigger. It should
+                provide a long-term framework that shapes how an organization
+                presents itself to current and future employees, not for a few
+                months, but for years.
+              </p>
+            </div>
+          </Reveal>
         </section>
 
         {/* Disciplines (Figma 308:2633) */}
-        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
+        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`} style={{ color: INK }}>
           <Reveal>
             <div className="border-t" style={{ borderColor: INK }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>THE FIGHT WE PICKED</SectionLabel>
-              <p
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
+              <SectionLabel>Brand</SectionLabel>
+              <ul
+                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[42%]"
                 style={{ lineHeight: "40px" }}
               >
-                We want to get brands and people moving again. Not by pushing
-                every button at once, but by pushing for a clear direction.
-                Because real progress comes from radical focus. From asking
-                difficult questions and stripping away the unnecessary. We
-                don&rsquo;t aim for &lsquo;louder&rsquo;; we aim for sharper.
-              </p>
+                {DISCIPLINES.map((d) => (
+                  <li key={d}>{d}</li>
+                ))}
+              </ul>
             </div>
           </Reveal>
         </section>
 
-        {/* Heritage */}
-        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>STRONG HERITAGE</SectionLabel>
-              <p
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                We&rsquo;re building on the legacy and strong expertise of
-                Fantastic, meetmarcel, mortierbrigade, Onlyhumans, Today and Who
-                Owns The Zebra. That&rsquo;s a lot of knowhow right there, and a
-                lot of great work that&rsquo;s been rewarded with several Effies,
-                XXX and XXX.
-              </p>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* The sharpest tools in the shed */}
-        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>THE SHARPEST TOOLS IN THE SHED</SectionLabel>
-              <div
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                <p>
-                  Coincidentally, we also live by the SHARP model: Strategic,
-                  Human, Authentic, Relevant, Provocative.
-                </p>
-                <p className="mt-[clamp(20px,2vw,32px)]">
-                  It&rsquo;s the lens we use to challenge briefs, test ideas and
-                  make sure our work pulls its weight. Feel free to use it on us,
-                  too.
-                </p>
-              </div>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* An agency for the future */}
-        <section
-          className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`}
-          style={{ color: INK }}
-        >
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>AN AGENCY FOR THE FUTURE</SectionLabel>
-              <div
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                <p>
-                  We combine the service of an integrated agency with the
-                  expertise of all the different specialist agencies you&rsquo;d
-                  otherwise need, and need to keep aligned.
-                </p>
-                <p className="mt-[clamp(20px,2vw,32px)]">
-                  We see strategy as the foundation for every decision. And
-                  we&rsquo;re creative, without losing sight of your business
-                  reality. In short: we tick quite a few boxes.
-                </p>
-              </div>
-            </div>
-          </Reveal>
-        </section>
       </div>
 
-      {/* Reel — full-viewport looping video. */}
-      <section className="relative h-[100svh] w-full overflow-hidden">
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          src={`${import.meta.env.BASE_URL}reel.mp4`}
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
-      </section>
-
-      {/* Footer — parallax reveal, ported from /concept */}
-      <BrandFooter videoSrc={FOOTER_HLS_SRC} />
+      {/* Footer — zwarte variant: zwarte achtergrond, witte tekst + wit wordmark */}
+      <CareersFooter />
     </motion.main>
   );
 };
 
-export default AboutV2;
+export default EmployerBranding;
