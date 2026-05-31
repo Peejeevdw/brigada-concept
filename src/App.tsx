@@ -38,12 +38,16 @@ const Brand = lazy(() => import("./pages/Brand"));
 const CareersV2 = lazy(() => import("./pages/CareersV2"));
 const AboutV2 = lazy(() => import("./pages/AboutV2"));
 const EmployerBranding = lazy(() => import("./pages/EmployerBranding"));
+const BrandV2 = lazy(() => import("./pages/BrandV2"));
+const WaveTest = lazy(() => import("./pages/WaveTest"));
 
 const queryClient = new QueryClient();
-const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/brand", "/careers-v2", "/about-v2", "/employer-branding"];
+const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/brand", "/careers-v2", "/about-v2", "/employer-branding", "/brand-v2", "/wave-test"];
 const ConditionalNav = () => {
   const { pathname } = useLocation();
-  if (HIDE_NAV_ROUTES.includes(pathname)) return null;
+  // Normalise a trailing slash so e.g. "/brand-v2/" still matches "/brand-v2".
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  if (HIDE_NAV_ROUTES.includes(path)) return null;
   return <Nav />;
 };
 
@@ -77,6 +81,8 @@ const App = () => (
             <Route path="/careers-v2" element={<CareersV2 />} />
             <Route path="/about-v2" element={<AboutV2 />} />
             <Route path="/employer-branding" element={<EmployerBranding />} />
+            <Route path="/brand-v2" element={<BrandV2 />} />
+            <Route path="/wave-test" element={<WaveTest />} />
             <Route element={<SiteLayout />}>
               <Route path="/work" element={<Work />} />
               <Route path="/work/:slug" element={<WorkDetail />} />
