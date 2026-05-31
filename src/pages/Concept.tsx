@@ -151,8 +151,6 @@ const Concept = () => {
     return () => io.disconnect();
   }, []);
 
-  const blurPx = useTransform(t, [0, 1], [40, 0], { clamp: true });
-  const blur = useTransform(blurPx, (b) => `blur(${b}px)`);
   const strokePx = useTransform(t, [0, 1], [18, 0], { clamp: true });
   const introScale = useTransform(t, [0, 1], [1.06, 1]);
   const bgOpacity = useTransform(t, [0.55, 0.85], [0, 1], { clamp: true });
@@ -175,6 +173,19 @@ const Concept = () => {
       if (v >= 0.78) setRevealed(true);
     });
     return unsub;
+  }, [t]);
+
+  // Hero logo entrance = codrops "WAVE" goo reveal instead of a plain blur: drive
+  // the goo feGaussianBlur from the pre-roll t (GOO_BLUR_START → 0 as t 0 → 1).
+  useEffect(() => {
+    const feBlur = document.querySelector<SVGFEGaussianBlurElement>("#hero-goo feGaussianBlur");
+    if (!feBlur) return;
+    const apply = (v: number) => {
+      const k = Math.min(1, Math.max(0, v));
+      feBlur.setAttribute("stdDeviation", String(GOO_BLUR_START * (1 - k)));
+    };
+    apply(t.get());
+    return t.on("change", apply);
   }, [t]);
 
   // ---- Scroll choreography across the pinned section ----
@@ -878,11 +889,21 @@ const Concept = () => {
           {/* Content group — logo + baseline + paragraph scroll up uniformly.
               pointer-events-none so hover/click falls through to the reel trigger. */}
           <motion.div className="pointer-events-none absolute inset-0 z-10" style={{ y: groupY }}>
+          {/* goo-1 filter for the hero wordmark "WAVE" reveal (replaces the blur) */}
+          <svg aria-hidden width="0" height="0" className="absolute">
+            <defs>
+              <filter id="hero-goo" x="-10%" y="-60%" width="120%" height="220%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="0" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values={`1 0 0 0 0  0 1 0 0 0  1 0 1 0 0  0 0 0 ${GOO_ALPHA_MUL} ${GOO_ALPHA_OFF}`} result="goo" />
+                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+              </filter>
+            </defs>
+          </svg>
           {/* Wordmark — centred, scrolls off the top */}
           <div className="absolute inset-0 flex items-center justify-center">
             <motion.div
               style={{
-                filter: blur,
+                filter: "url(#hero-goo)",
                 scale: introScale,
                 y: logoLead,
                 opacity: logoOpacity,
