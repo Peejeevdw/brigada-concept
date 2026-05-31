@@ -8,60 +8,88 @@ export type Duotone = {
   b: string; // secondary tint (shadow)
 };
 
-// Quadtones: 4-stop gradient maps (shadow → highlight) for the "brio" effect.
+// Quadtones: 7-stop gradient maps (shadow → highlight) for the "brio" effect.
 // Inspired by the Feeld brio visual: deep accent fading through warm mids
-// into a luminous highlight tone.
+// into a luminous highlight tone. The 7 stops are anchored on the 4 original
+// brand colors at positions 1/3/5/7, with linear midpoints at 2/4/6.
+export type QuadtoneStops = [string, string, string, string, string, string, string];
+
 export type Quadtone = {
   id: string;
   name: string;
-  /** Ordered shadow → highlight. Exactly 4 stops. */
-  stops: [string, string, string, string];
+  /** Ordered shadow → highlight. Exactly 7 stops. */
+  stops: QuadtoneStops;
+};
+
+// --- internal hex helpers used both for palette midpoints and for migrating
+// legacy 4-stop overrides to the new 7-stop model. ---
+const _hexByte = (s: string, i: number) => parseInt(s.slice(i, i + 2), 16);
+const _toHex2 = (n: number) =>
+  Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+const hexMix = (a: string, b: string): string => {
+  const r = (_hexByte(a, 1) + _hexByte(b, 1)) / 2;
+  const g = (_hexByte(a, 3) + _hexByte(b, 3)) / 2;
+  const bl = (_hexByte(a, 5) + _hexByte(b, 5)) / 2;
+  return ("#" + _toHex2(r) + _toHex2(g) + _toHex2(bl)).toUpperCase();
+};
+/** Expand a legacy 4-stop palette to the 7-stop model by inserting midpoints. */
+export const expandStops4to7 = (s: readonly string[]): QuadtoneStops => {
+  const safe = (i: number) => s[i] ?? s[s.length - 1] ?? "#000000";
+  const a = safe(0), b = safe(1), c = safe(2), d = safe(3);
+  return [a, hexMix(a, b), b, hexMix(b, c), c, hexMix(c, d), d];
 };
 
 export const quadtones: Quadtone[] = [
   {
-    id: "brio-01",
-    name: "Brio 01",
-    // Ink (body) → cream (bg), interpolated through 4 stops.
-    stops: ["#1F1B16", "#6E6552", "#BDB29A", "#F3F2EF"],
-  },
-  {
-    id: "brio-02",
-    name: "Brio 02",
-    // Evergreen → Purple → Old Rose → Ash Grey
-    stops: ["#01200F", "#6A4085", "#B4869F", "#A3C4BC"],
-  },
-  {
-    id: "brio-03",
-    name: "Brio 03",
-    // Dark Teal → Ultrasonic Blue → Slate Indigo → Ash Grey
-    stops: ["#003937", "#5521BF", "#3461D1", "#A3C4BC"],
-  },
-  {
-    id: "brio-04",
-    name: "Brio 04",
-    // Ink Black → Spicy Orange → Toasted Almond → Baby Blue Ice
-    stops: ["#0B0F1A", "#C45A2D", "#E38B5B", "#7FAEFF"],
-  },
-  {
     id: "brio-05",
-    name: "Brio 05",
+    name: "Brio 01 Purple & Red",
     // shadow (green) → orange → magenta → highlight (lavender)
-    stops: ["#2E9E47", "#E8401C", "#E8329C", "#C9C9F5"],
+    stops: expandStops4to7(["#2E9E47", "#E8401C", "#E8329C", "#C9C9F5"]),
   },
   {
     id: "brio-06",
-    name: "Brio 06",
+    name: "Brio 02 Red & Pink",
     // Deep plum → burnt sienna → sand → bone
-    stops: ["#2A1230", "#9B3A1E", "#D6A06A", "#F2E6D0"],
+    stops: expandStops4to7(["#2A1230", "#9B3A1E", "#D6A06A", "#F2E6D0"]),
+  },
+  {
+    id: "brio-01",
+    name: "Brio 03 Pink & Yellow",
+    // Ink (body) → cream (bg), interpolated through 7 stops.
+    stops: expandStops4to7(["#1F1B16", "#6E6552", "#BDB29A", "#F3F2EF"]),
+  },
+  {
+    id: "brio-04",
+    name: "Brio 04 Yellow & Green",
+    // Ink Black → Spicy Orange → Toasted Almond → Baby Blue Ice
+    stops: expandStops4to7(["#0B0F1A", "#C45A2D", "#E38B5B", "#7FAEFF"]),
+  },
+  {
+    id: "brio-03",
+    name: "Brio 05 Green & Blue",
+    // Indigo, blue, cyan, teal, mint, soft green, cream (sampled from gradient)
+    stops: ["#4A2BD9", "#4D7BFF", "#3FB8E8", "#36D4B4", "#5EEA8A", "#B8F2C8", "#F2EFD9"],
   },
   {
     id: "brio-07",
-    name: "Brio 07",
-    // Midnight navy → cobalt → mint → ivory
-    stops: ["#0A1A3A", "#2D5BD7", "#7FD6B4", "#F4F1E6"],
+    name: "Brio 06 Blue & Orange",
+    // Deep navy → blue → light blue → cream → peach → orange → burnt orange
+    stops: ["#0A1A3D", "#1E4FA8", "#4D8FE0", "#E8D8C4", "#F2B57A", "#E88A3C", "#B85420"],
+  },
+  {
+    id: "brio-02",
+    name: "Brio 07 Orange & Purple",
+    // Orange → coral → magenta → purple → indigo (sampled from gradient)
+    stops: ["#F9A03A", "#EE6A4D", "#D94A7E", "#C73E9E", "#A93BBE", "#7A37D4", "#4A2BD9"],
+  },
+  {
+    id: "brio-08",
+    name: "Brio 08 Rainbow",
+    // Orange → pink/magenta → purple → blue → cyan → mint/teal → coral red
+    stops: ["#F2A03C", "#E84B8A", "#B14CD6", "#3A4ED8", "#2FB6F0", "#3FD9C8", "#F0524A"],
   },
 ];
+
 
 export const DEFAULT_QUADTONE_ID = "brio-01";
 
@@ -76,16 +104,20 @@ export const QUADTONE_STOPS_OVERRIDES_STORAGE_KEY = "brigada.quadtone.stops.over
 const isHex = (s: unknown): s is string =>
   typeof s === "string" && /^#[0-9a-fA-F]{6}$/.test(s);
 
-const getQuadtoneStopsOverrides = (): Record<string, [string, string, string, string]> => {
+const getQuadtoneStopsOverrides = (): Record<string, QuadtoneStops> => {
   try {
     const raw = localStorage.getItem(QUADTONE_STOPS_OVERRIDES_STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return {};
-    const out: Record<string, [string, string, string, string]> = {};
+    const out: Record<string, QuadtoneStops> = {};
     for (const [id, stops] of Object.entries(parsed)) {
-      if (Array.isArray(stops) && stops.length === 4 && stops.every(isHex)) {
-        out[id] = [stops[0], stops[1], stops[2], stops[3]] as [string, string, string, string];
+      if (!Array.isArray(stops) || !stops.every(isHex)) continue;
+      if (stops.length === 7) {
+        out[id] = [stops[0], stops[1], stops[2], stops[3], stops[4], stops[5], stops[6]] as QuadtoneStops;
+      } else if (stops.length === 4) {
+        // Legacy 4-stop override: expand to 7 via midpoint interpolation.
+        out[id] = expandStops4to7(stops as string[]);
       }
     }
     return out;
@@ -94,7 +126,7 @@ const getQuadtoneStopsOverrides = (): Record<string, [string, string, string, st
   }
 };
 
-export const saveQuadtoneStops = (id: string, stops: [string, string, string, string]) => {
+export const saveQuadtoneStops = (id: string, stops: QuadtoneStops) => {
   try {
     if (!stops.every(isHex)) return;
     const all = getQuadtoneStopsOverrides();
@@ -105,6 +137,8 @@ export const saveQuadtoneStops = (id: string, stops: [string, string, string, st
     void (async () => {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
+        // `palette_overrides` is not in the generated Supabase types; cast to
+        // keep this best-effort sync type-safe. Fails silently if absent.
         await (supabase as any)
           .from("palette_overrides")
           .upsert({ palette_id: id, stops, updated_at: new Date().toISOString() });
@@ -136,17 +170,22 @@ export const loadQuadtoneOverridesFromDb = async () => {
       .from("palette_overrides")
       .select("palette_id, stops");
     if (error || !data) return;
-    const merged: Record<string, [string, string, string, string]> = {};
-    for (const row of data as Array<{ palette_id: string; stops: unknown }>) {
+    const merged: Record<string, QuadtoneStops> = {};
+    for (const row of data as { palette_id: string; stops: unknown }[]) {
       const s = row.stops as unknown;
-      if (Array.isArray(s) && s.length === 4 && s.every(isHex)) {
-        merged[row.palette_id] = [s[0], s[1], s[2], s[3]] as [string, string, string, string];
+      if (!Array.isArray(s) || !s.every(isHex)) continue;
+      if (s.length === 7) {
+        merged[row.palette_id] = [s[0], s[1], s[2], s[3], s[4], s[5], s[6]] as QuadtoneStops;
+      } else if (s.length === 4) {
+        merged[row.palette_id] = expandStops4to7(s as string[]);
       }
     }
     localStorage.setItem(QUADTONE_STOPS_OVERRIDES_STORAGE_KEY, JSON.stringify(merged));
     window.dispatchEvent(new CustomEvent("brio-palette-changed"));
   } catch {}
 };
+
+
 
 /** Returns the quadtone with any user-saved stop overrides applied. */
 export const getEffectiveQuadtone = (id: string): Quadtone | undefined => {
@@ -258,7 +297,9 @@ export type BrioSettings = {
   liquify: number;
   /** Per-effect on/off switches for the remaining steps. */
   toggles: BrioToggles;
-  /** Legacy fields preserved for backward compatibility with older callers. */
+  /** Legacy fields preserved for backward compatibility with older callers
+   *  (home-v4 hero, ReelPreview, experiment pages). Not used by the locked
+   *  BrioEffect package, which passes mesh/lava config via dedicated props. */
   zoom?: number;
   wave?: number;
   tempo?: number;
@@ -395,6 +436,9 @@ export const saveBrioPresetSettings = (id: BrioPresetId, settings: BrioSettings,
     entry[id] = sanitizeBrioSettings(settings);
     all[paletteId] = entry;
     localStorage.setItem(BRIO_PRESET_OVERRIDES_STORAGE_KEY, JSON.stringify(all));
+    void import("@/lib/appSettings").then(({ pushSetting }) =>
+      pushSetting("brio.preset.overrides", all),
+    );
   } catch {}
 };
 
@@ -406,6 +450,9 @@ export const resetBrioPresetSettings = (id: BrioPresetId, paletteId: string) => 
       if (Object.keys(all[paletteId]!).length === 0) delete all[paletteId];
     }
     localStorage.setItem(BRIO_PRESET_OVERRIDES_STORAGE_KEY, JSON.stringify(all));
+    void import("@/lib/appSettings").then(({ pushSetting }) =>
+      pushSetting("brio.preset.overrides", all),
+    );
   } catch {}
 };
 
@@ -420,6 +467,9 @@ export const getActiveBrioPresetId = (): BrioPresetId => {
 export const saveActiveBrioPresetId = (id: BrioPresetId) => {
   try {
     localStorage.setItem(BRIO_PRESET_STORAGE_KEY, id);
+    void import("@/lib/appSettings").then(({ pushSetting }) =>
+      pushSetting("brio.preset.active", id),
+    );
   } catch {}
 };
 
@@ -502,9 +552,13 @@ export const getDefaultBrioSettings = (): BrioSettings => {
 
 export const saveDefaultBrioSettings = (s: BrioSettings) => {
   try {
+    const sanitized = sanitizeBrioSettings(s);
     localStorage.setItem(
       BRIO_DEFAULT_OVERRIDE_STORAGE_KEY,
-      JSON.stringify(sanitizeBrioSettings(s)),
+      JSON.stringify(sanitized),
+    );
+    void import("@/lib/appSettings").then(({ pushSetting }) =>
+      pushSetting("brio.default.override", sanitized),
     );
   } catch {}
 };
@@ -512,6 +566,9 @@ export const saveDefaultBrioSettings = (s: BrioSettings) => {
 export const clearDefaultBrioSettings = () => {
   try {
     localStorage.removeItem(BRIO_DEFAULT_OVERRIDE_STORAGE_KEY);
+    void import("@/lib/appSettings").then(({ pushSetting }) =>
+      pushSetting("brio.default.override", null),
+    );
   } catch {}
 };
 
@@ -527,7 +584,11 @@ export const getBrioSettings = (): BrioSettings => {
 
 export const saveBrioSettings = (s: BrioSettings) => {
   try {
-    localStorage.setItem(BRIO_SETTINGS_STORAGE_KEY, JSON.stringify(sanitizeBrioSettings(s)));
+    const sanitized = sanitizeBrioSettings(s);
+    localStorage.setItem(BRIO_SETTINGS_STORAGE_KEY, JSON.stringify(sanitized));
+    void import("@/lib/appSettings").then(({ pushSetting }) =>
+      pushSetting("brio.settings", sanitized),
+    );
   } catch {}
 };
 

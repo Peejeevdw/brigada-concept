@@ -8,6 +8,7 @@ import {
   duotones,
   quadtones,
   getEffectiveQuadtone,
+  expandStops4to7,
   DEFAULT_BRIO_TOGGLES,
   type BrioToggles,
   type BrioThresholds,
@@ -105,6 +106,8 @@ interface ReelPreviewProps {
     scale: number;
     blobCount: number;
     blur: number;
+    /** Blob-pull strength. Defaults to the locked 0.85 if omitted. */
+    pull?: number;
   };
   /** Receives the live extracted cluster colors when cluster.enabled. */
   onClusterColors?: (colors: string[]) => void;
@@ -288,7 +291,10 @@ const ReelPreview = ({
   }>(() => {
     const base = getEffectiveQuadtone(appliedMode) ?? quadtones.find((x) => x.id === appliedMode);
     if (base) {
-      const q: Quadtone = appliedStops ? { ...base, stops: appliedStops } : base;
+      // Override is a legacy 4-stop tuple; expand to the new 7-stop model.
+      const q: Quadtone = appliedStops
+        ? { ...base, stops: expandStops4to7(appliedStops) }
+        : base;
       return { duotone: null, quadtone: q };
     }
     const d = duotones.find((x) => x.id === appliedMode);
@@ -934,7 +940,7 @@ const ReelPreview = ({
             zoom={z}
             overlay={overlay}
             cluster={cluster}
-            lava={lava}
+            lava={lava ? { ...lava, pull: lava.pull ?? 0.85 } : undefined}
             onClusterColors={onClusterColors}
           />
         )}

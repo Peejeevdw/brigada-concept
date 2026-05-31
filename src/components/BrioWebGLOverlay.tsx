@@ -32,6 +32,7 @@ export interface BrioWebGLLavaSettings {
   scale: number;
   blobCount: number;
   blur: number;
+  pull: number;
 }
 
 export interface BrioWebGLOverlayProps {
@@ -54,11 +55,28 @@ export interface BrioWebGLOverlayProps {
     points?: number;
     /** 0..1 normalized. Maps to Cauchy power, low = soft gradient, high = near-Voronoi. */
     sharpness?: number;
+    /** Multiplier on per-point sigma. Widens the gradient bands between spots. Default 1. */
+    spread?: number;
     /** 0..1 saturation boost applied to mesh point colors. 0 = source, 1 = fully saturated. */
     vibrance?: number;
+    /** 0..1 minimum luminance for extracted cluster colors. */
+    minBrightness?: number;
+    /** 0..1 maximum luminance for extracted cluster colors. */
+    maxBrightness?: number;
     /** When provided, mesh points use these hex colors (mapped by luminance)
      *  instead of footage-extracted colors. K is forced to the palette length. */
     paletteColors?: string[];
+    /** When true, each cluster fades from its own color (one edge) to the next
+     *  palette color (opposite edge) along a stable per-cluster random axis. */
+    twoTone?: boolean;
+    /** 0..100 percentage of clusters that receive a gradient (0 = all flat). */
+    gradientAmount?: number;
+    /** Hex colors selected by the user to be used as gradient targets. The
+     *  renderer cycles through these across clusters that receive a gradient. */
+    gradientColors?: string[];
+    /** 0..100 opacity of the secondary gradient color over the primary cluster
+     *  color. 0 = primary only, 100 = secondary fully replaces primary. */
+    gradientOpacity?: number;
   };
   lava?: BrioWebGLLavaSettings;
   onClusterColors?: (colors: string[]) => void;
@@ -143,13 +161,19 @@ uniform vec4 u_duoOffset;      // rgb offset + unused
 uniform int u_meshEnabled;
 uniform int u_meshCount;
 uniform float u_meshPower;
+uniform float u_meshSpread;
 uniform float u_meshProgress;       // 0..1, crossfade prev -> next point set
+uniform int u_meshTwoTone;          // 0/1
 uniform vec2 u_meshPosA[16];
 uniform vec2 u_meshPosB[16];
 uniform float u_meshSigA[16];
 uniform float u_meshSigB[16];
 uniform vec3 u_meshColA[16];
 uniform vec3 u_meshColB[16];
+uniform vec3 u_meshCol2A[16];       // secondary tone (next palette color), prev set
+uniform vec3 u_meshCol2B[16];       // secondary tone, next set
+uniform vec2 u_meshDirA[16];        // unit gradient direction per point, prev set
+uniform vec2 u_meshDirB[16];        // unit gradient direction per point, next set
 // Grain / overlay
 uniform float u_grain;         // 0..2
 uniform int u_toneMode;        // 0 none, 1 dark, 2 light
@@ -204,9 +228,18 @@ vec3 mesh(vec3 col, vec2 uv){
   for (int i = 0; i < 16; i++) {
     if (i >= u_meshCount) break;
     vec2 p = mix(u_meshPosA[i], u_meshPosB[i], t);
-    float sig = mix(u_meshSigA[i], u_meshSigB[i], t);
+    float sig = mix(u_meshSigA[i], u_meshSigB[i], t) * u_meshSpread;
     vec3 c = mix(u_meshColA[i], u_meshColB[i], t);
     vec2 dv = uv - p;
+    if (u_meshTwoTone == 1) {
+      vec2 dir = mix(u_meshDirA[i], u_meshDirB[i], t);
+      float dlen = length(dir);
+      if (dlen > 1e-5) dir = dir / dlen;
+      vec3 c2 = mix(u_meshCol2A[i], u_meshCol2B[i], t);
+      float proj = dot(dv, dir) / max(sig, 1e-5);
+      float g = clamp(0.5 + proj * 0.35, 0.0, 1.0);
+      c = mix(c, c2, g);
+    }
     float dist = sqrt(dot(dv, dv));
     float w = pow(sig / (dist + sig + 1e-5), u_meshPower);
     acc += w * c;
@@ -300,18 +333,29 @@ void main(){
   // off-blob area becomes duplicated edge pixels instead of a solid fill.
 
 
-  // Grain (procedural noise, overlay blend).
+  // Risograph-style ink mottle. Static (no u_time), clustered, midtone-weighted,
+  // applied as darkening rather than overlay. UV-locked so it sits on the image
+  // and doesn't crawl with motion.
   if (u_grain > 0.001) {
-    float n = hash(gl_FragCoord.xy + vec2(u_time * 60.0));
-    float strength = clamp(u_grain, 0.0, 2.0) * 0.45;
-    vec3 g3 = vec3(n);
-    vec3 blended = vec3(
-      overlayChan(col.r, g3.r),
-      overlayChan(col.g, g3.g),
-      overlayChan(col.b, g3.b)
-    );
-    col = mix(col, blended, strength);
+    // Screen-locked paper grain: sits on top of all prior effects (warp,
+    // liquify, lava) so blob pull can't distort the ink texture.
+    vec2 p = vUv * (u_canvasSize / max(u_canvasSize.y, 1.0));
+    float n =
+        (snoise(p * 200.0) * 0.5 + 0.5) * 0.55 +
+        (snoise(p * 500.0) * 0.5 + 0.5) * 0.30 +
+        (snoise(p * 1200.0) * 0.5 + 0.5) * 0.15;
+    // Push contrast so we get clusters instead of smooth haze.
+    n = clamp((n - 0.5) * 1.8 + 0.5, 0.0, 1.0);
+
+    float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    // Bell curve peaks at midtones; protects deep shadows + paper highlights.
+    float midMask = 4.0 * lum * (1.0 - lum);
+
+    float strength = clamp(u_grain, 0.0, 2.0) * 0.55 * midMask;
+    // Multiply blend: ink darkens the print where noise is strong.
+    col = mix(col, col * mix(1.0, n, 0.85), strength);
   }
+
 
   // Tone overlay.
   if (u_toneMode == 1) col = mix(col, vec3(0.0), 0.2);
@@ -440,15 +484,7 @@ const BrioWebGLOverlay = ({
     };
 
     // Find live source element inside target (mirrors LavaLampOverlay).
-    // Also picks up `<canvas data-brio-source>` so external composers can feed
-    // a hand-drawn frame (e.g. a wipe between two case stills) through the
-    // same pipeline.
-    const findSource = (): HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | null => {
-      const cans = target.querySelectorAll<HTMLCanvasElement>("canvas[data-brio-source]");
-      for (let i = cans.length - 1; i >= 0; i--) {
-        const c = cans[i];
-        if (c.width > 0 && c.height > 0) return c;
-      }
+    const findSource = (): HTMLVideoElement | HTMLImageElement | null => {
       const vids = target.querySelectorAll<HTMLVideoElement>("video");
       for (let i = vids.length - 1; i >= 0; i--) {
         const v = vids[i];
@@ -464,31 +500,13 @@ const BrioWebGLOverlay = ({
 
     const resize = () => {
       const r = target.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.max(2, Math.round(r.width * dpr));
       canvas.height = Math.max(2, Math.round(r.height * dpr));
     };
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(target);
-
-    // Pause the render loop when the target is offscreen.
-    let visible = true;
-    const io = new IntersectionObserver(
-      (entries) => {
-        const wasVisible = visible;
-        visible = entries.some((e) => e.isIntersecting);
-        if (visible && !wasVisible && raf === 0) {
-          last = performance.now();
-          raf = requestAnimationFrame(loop);
-        } else if (!visible && wasVisible) {
-          if (raf) cancelAnimationFrame(raf);
-          raf = 0;
-        }
-      },
-      { rootMargin: "200px" },
-    );
-    io.observe(target);
 
     // Uniforms cache.
     const uBlur = {
@@ -514,6 +532,7 @@ const BrioWebGLOverlay = ({
       meshEnabled: gl.getUniformLocation(mainProg, "u_meshEnabled"),
       meshCount: gl.getUniformLocation(mainProg, "u_meshCount"),
       meshPower: gl.getUniformLocation(mainProg, "u_meshPower"),
+      meshSpread: gl.getUniformLocation(mainProg, "u_meshSpread"),
       meshProgress: gl.getUniformLocation(mainProg, "u_meshProgress"),
       meshPosA: gl.getUniformLocation(mainProg, "u_meshPosA"),
       meshPosB: gl.getUniformLocation(mainProg, "u_meshPosB"),
@@ -521,6 +540,11 @@ const BrioWebGLOverlay = ({
       meshSigB: gl.getUniformLocation(mainProg, "u_meshSigB"),
       meshColA: gl.getUniformLocation(mainProg, "u_meshColA"),
       meshColB: gl.getUniformLocation(mainProg, "u_meshColB"),
+      meshTwoTone: gl.getUniformLocation(mainProg, "u_meshTwoTone"),
+      meshCol2A: gl.getUniformLocation(mainProg, "u_meshCol2A"),
+      meshCol2B: gl.getUniformLocation(mainProg, "u_meshCol2B"),
+      meshDirA: gl.getUniformLocation(mainProg, "u_meshDirA"),
+      meshDirB: gl.getUniformLocation(mainProg, "u_meshDirB"),
       grain: gl.getUniformLocation(mainProg, "u_grain"),
       toneMode: gl.getUniformLocation(mainProg, "u_toneMode"),
       lavaEnabled: gl.getUniformLocation(mainProg, "u_lavaEnabled"),
@@ -539,12 +563,21 @@ const BrioWebGLOverlay = ({
     const sampleCanvas = document.createElement("canvas");
     sampleCanvas.width = SAMPLE_W; sampleCanvas.height = sampleH;
     const sctx = sampleCanvas.getContext("2d", { willReadFrequently: true });
-    type MeshPoint = { x: number; y: number; r: number; g: number; b: number; sigma: number };
+    type MeshPoint = {
+      x: number; y: number; r: number; g: number; b: number; sigma: number;
+      r2: number; g2: number; b2: number; dirX: number; dirY: number;
+    };
     const seedMeshPoints = (K: number): MeshPoint[] => {
       const out: MeshPoint[] = [];
       for (let k = 0; k < K; k++) {
         const v = K === 1 ? 0.5 : k / (K - 1);
-        out.push({ x: 0.5, y: 0.5, r: v, g: v, b: v, sigma: 0.25 });
+        // Stable pseudo-random angle per cluster index.
+        const seed = Math.sin(k * 12.9898 + 78.233) * 43758.5453;
+        const ang = (seed - Math.floor(seed)) * Math.PI * 2;
+        out.push({
+          x: 0.5, y: 0.5, r: v, g: v, b: v, sigma: 0.25,
+          r2: v, g2: v, b2: v, dirX: Math.cos(ang), dirY: Math.sin(ang),
+        });
       }
       return out;
     };
@@ -554,14 +587,21 @@ const BrioWebGLOverlay = ({
     let clusterLastUpdate = -1;
     let clusterLastK = -1;
     let clusterLastVib = -1;
+    let clusterLastMinB = -1;
+    let clusterLastMaxB = -1;
     let clusterLastPaletteKey = "";
     let clusterLastCropKey = "";
+    let clusterLastGradKey = "";
     const meshPosBufA = new Float32Array(16 * 2);
     const meshPosBufB = new Float32Array(16 * 2);
     const meshSigBufA = new Float32Array(16);
     const meshSigBufB = new Float32Array(16);
     const meshColBufA = new Float32Array(16 * 3);
     const meshColBufB = new Float32Array(16 * 3);
+    const meshCol2BufA = new Float32Array(16 * 3);
+    const meshCol2BufB = new Float32Array(16 * 3);
+    const meshDirBufA = new Float32Array(16 * 2);
+    const meshDirBufB = new Float32Array(16 * 2);
 
     // Lava-lamp blob params (mirrors LavaLampOverlay sin/cos motion).
     const MAX_BLOBS = 8;
@@ -586,6 +626,63 @@ const BrioWebGLOverlay = ({
     const lavaRadBuf = new Float32Array(MAX_BLOBS);
     let lavaSimTime = 0;
 
+    // Apply the user-selected gradient overlay (secondary tone per cluster)
+    // to an existing mesh point array. Does NOT re-run k-means: only updates
+    // p.r2/g2/b2 based on current gradientAmount + gradientColors. Safe to
+    // call as often as those settings change.
+    const applyMeshGradient = (points: MeshPoint[]) => {
+      const c = stateRef.current.cluster;
+      if (!c) return;
+      const K = points.length;
+      if (K === 0) return;
+      const gradAmt = Math.max(0, Math.min(100, c.gradientAmount ?? 0));
+      const gradOpacity = Math.max(0, Math.min(100, c.gradientOpacity ?? 100)) / 100;
+      const selHex = Array.isArray(c.gradientColors) ? c.gradientColors : [];
+      const resolved: number[] = [];
+      for (const hex of selHex) {
+        const m = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
+        if (!m) continue;
+        const n = parseInt(m[1], 16);
+        const tr = ((n >> 16) & 255) / 255;
+        const tg = ((n >> 8) & 255) / 255;
+        const tb = (n & 255) / 255;
+        let bestK = 0, bestD = Infinity;
+        for (let k = 0; k < K; k++) {
+          const p = points[k];
+          const dr = p.r - tr, dg = p.g - tg, db = p.b - tb;
+          const d = dr * dr + dg * dg + db * db;
+          if (d < bestD) { bestD = d; bestK = k; }
+        }
+        resolved.push(bestK);
+      }
+      const hasGrad = gradAmt > 0 && resolved.length > 0;
+      let gradIdx = 0;
+      for (let k = 0; k < K; k++) {
+        const p = points[k];
+        const seed2 = Math.sin(k * 47.1239 + 5.137) * 43758.5453;
+        const s2 = seed2 - Math.floor(seed2);
+        if (!hasGrad || s2 * 100 >= gradAmt) {
+          p.r2 = p.r; p.g2 = p.g; p.b2 = p.b;
+          continue;
+        }
+        let secondaryK = resolved[gradIdx % resolved.length];
+        if (secondaryK === k && resolved.length > 1) {
+          for (let off = 1; off < resolved.length; off++) {
+            const cand = resolved[(gradIdx + off) % resolved.length];
+            if (cand !== k) { secondaryK = cand; break; }
+          }
+        }
+        if (secondaryK === k) secondaryK = (k + 1) % K;
+        const sp = points[secondaryK];
+        // Blend the secondary toward the primary by gradientOpacity so the
+        // user can dial how strongly the gradient color shows.
+        p.r2 = p.r + (sp.r - p.r) * gradOpacity;
+        p.g2 = p.g + (sp.g - p.g) * gradOpacity;
+        p.b2 = p.b + (sp.b - p.b) * gradOpacity;
+        gradIdx++;
+      }
+    };
+
     // Mesh point extraction. K-means in joint (position, colour) feature space
     // seeded with K-means++ (vibrance-weighted). Each cluster reports its mean
     // colour, the medoid sample position (real pixel inside its zone) and an
@@ -599,8 +696,8 @@ const BrioWebGLOverlay = ({
       const K = palette
         ? palette.length
         : Math.max(2, Math.min(16, c.points ?? c.colors ?? 6));
-      const sw = (src as HTMLVideoElement).videoWidth || (src as HTMLImageElement).naturalWidth || (src as HTMLCanvasElement).width;
-      const sh = (src as HTMLVideoElement).videoHeight || (src as HTMLImageElement).naturalHeight || (src as HTMLCanvasElement).height;
+      const sw = (src as HTMLVideoElement).videoWidth || (src as HTMLImageElement).naturalWidth;
+      const sh = (src as HTMLVideoElement).videoHeight || (src as HTMLImageElement).naturalHeight;
       if (!sw || !sh) return;
       const aspect = sh / sw;
       sampleH = Math.max(1, Math.round(SAMPLE_W * aspect));
@@ -643,6 +740,8 @@ const BrioWebGLOverlay = ({
       // colour weighted slightly stronger so clusters track colour zones, not a
       // regular spatial grid. Vibrance weight biases seeding toward vivid pixels.
       const SW = 1.0, CW = 1.8;
+      const minB = Math.max(0, Math.min(1, c.minBrightness ?? 0));
+      const maxB = Math.max(minB, Math.min(1, c.maxBrightness ?? 1));
       const fx = new Float32Array(N), fy = new Float32Array(N);
       const fr = new Float32Array(N), fg = new Float32Array(N), fb = new Float32Array(N);
       const pr = new Float32Array(N), pg = new Float32Array(N), pb = new Float32Array(N);
@@ -657,7 +756,18 @@ const BrioWebGLOverlay = ({
         const mx = Math.max(r, g, b) / 255, mn = Math.min(r, g, b) / 255;
         const l = (mx + mn) / 2, d = mx - mn;
         const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-        vb[i] = s * (1 - Math.abs(2 * l - 1));
+        // Luma-aware vibrance weight: pixels below the brightness floor are
+        // strongly suppressed during k-means++ seeding so dark zones don't
+        // anchor a centroid.
+        const luma = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        const lowMask = minB > 0
+          ? (luma >= minB ? 1 : Math.max(0.02, (luma / Math.max(minB, 1e-3)) ** 3))
+          : 1;
+        const highMask = maxB < 1
+          ? (luma <= maxB ? 1 : Math.max(0.02, ((1 - luma) / Math.max(1 - maxB, 1e-3)) ** 3))
+          : 1;
+        const brightMask = lowMask * highMask;
+        vb[i] = s * (1 - Math.abs(2 * l - 1)) * brightMask + brightMask * 0.001;
       }
 
       // K-means++ init, biased by vibrance.
@@ -798,14 +908,45 @@ const BrioWebGLOverlay = ({
             gg = Math.max(0, Math.min(1, luma + (gg - luma) * boost));
             bb = Math.max(0, Math.min(1, luma + (bb - luma) * boost));
           }
+          // Brightness floor: if the cluster mean is still darker than the
+          // requested minimum, scale RGB up so its luma meets the floor.
+          if (minB > 0) {
+            const lumaNow = 0.2126 * rr + 0.7152 * gg + 0.0722 * bb;
+            if (lumaNow < minB) {
+              const liftK = lumaNow > 1e-4 ? minB / lumaNow : 0;
+              if (liftK > 1) {
+                rr = Math.min(1, rr * liftK);
+                gg = Math.min(1, gg * liftK);
+                bb = Math.min(1, bb * liftK);
+              } else {
+                rr = gg = bb = minB;
+              }
+            }
+          }
+          // Brightness ceiling: if cluster mean exceeds the maximum, scale down.
+          if (maxB < 1) {
+            const lumaNow = 0.2126 * rr + 0.7152 * gg + 0.0722 * bb;
+            if (lumaNow > maxB) {
+              const dimK = lumaNow > 1e-4 ? maxB / lumaNow : 1;
+              rr = Math.max(0, rr * dimK);
+              gg = Math.max(0, gg * dimK);
+              bb = Math.max(0, bb * dimK);
+            }
+          }
         }
+        const seed = Math.sin(k * 12.9898 + 78.233) * 43758.5453;
+        const ang = (seed - Math.floor(seed)) * Math.PI * 2;
         next.push({
           x: sxUv + medX[k] * invScale,
           y: syUv + medY[k] * invScale,
           r: rr, g: gg, b: bb,
           sigma: sigC * invScale,
+          r2: rr, g2: gg, b2: bb,
+          dirX: Math.cos(ang), dirY: Math.sin(ang),
         });
       }
+
+      applyMeshGradient(next);
 
       prevMeshPoints = meshPoints;
       meshPoints = next;
@@ -828,7 +969,6 @@ const BrioWebGLOverlay = ({
     let lastTextureTime = -1;
 
     const loop = (now: number) => {
-      if (!visible) { raf = 0; return; }
       const dt = (now - last) / 1000; last = now;
       simTime += dt;
       const st = stateRef.current;
@@ -838,38 +978,23 @@ const BrioWebGLOverlay = ({
       if (!mediaEl) { raf = requestAnimationFrame(loop); return; }
 
       const isVideo = mediaEl instanceof HTMLVideoElement;
-      const isCanvas = mediaEl instanceof HTMLCanvasElement;
       const sw = isVideo
         ? (mediaEl as HTMLVideoElement).videoWidth
-        : isCanvas
-          ? (mediaEl as HTMLCanvasElement).width
-          : (mediaEl as HTMLImageElement).naturalWidth;
+        : (mediaEl as HTMLImageElement).naturalWidth;
       const sh = isVideo
         ? (mediaEl as HTMLVideoElement).videoHeight
-        : isCanvas
-          ? (mediaEl as HTMLCanvasElement).height
-          : (mediaEl as HTMLImageElement).naturalHeight;
+        : (mediaEl as HTMLImageElement).naturalHeight;
       if (!sw || !sh) { raf = requestAnimationFrame(loop); return; }
 
-      // Upload source texture only when the frame actually changed. Canvas
-      // sources are uploaded every tick (the caller is animating them) and
-      // expose an explicit cluster-recompute throttle via `data-brio-cluster-key`.
+      // Upload source texture only when frame actually changed.
       const vTime = isVideo ? (mediaEl as HTMLVideoElement).currentTime : 0;
       const srcKey = isVideo
         ? ((mediaEl as HTMLVideoElement).currentSrc || (mediaEl as HTMLVideoElement).src || "v")
-        : isCanvas
-          ? `c:${now.toFixed(2)}`
-          : (mediaEl as HTMLImageElement).src;
-      const srcChanged = isCanvas ? true : srcKey !== lastTextureSrcKey;
+        : (mediaEl as HTMLImageElement).src;
+      const srcChanged = srcKey !== lastTextureSrcKey;
       const sourceChanged = isVideo
         ? (srcChanged || vTime !== lastTextureTime || !(mediaEl as HTMLVideoElement).paused)
         : srcChanged;
-      const canvasClusterKey = isCanvas
-        ? ((mediaEl as HTMLCanvasElement).dataset.brioClusterKey ?? "")
-        : "";
-      const clusterSourceChanged = isCanvas
-        ? canvasClusterKey !== lastTextureSrcKey
-        : sourceChanged;
       if (sourceChanged) {
         gl.bindTexture(gl.TEXTURE_2D, srcTex);
         try {
@@ -877,13 +1002,11 @@ const BrioWebGLOverlay = ({
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mediaEl);
         } catch { /* not ready */ }
         lastTextureTime = vTime;
-        if (!isCanvas) lastTextureSrcKey = srcKey;
-      }
-      if (clusterSourceChanged && isCanvas) {
-        lastTextureSrcKey = canvasClusterKey;
-        clusterLastUpdate = -1;
-      } else if (clusterSourceChanged && !isCanvas && srcChanged) {
-        clusterLastUpdate = -1;
+        lastTextureSrcKey = srcKey;
+        if (srcChanged) {
+          // New source: invalidate cluster so it recomputes against this frame.
+          clusterLastUpdate = -1;
+        }
       }
 
       // Mesh: recompute live while the source frame is changing (video playing).
@@ -896,13 +1019,18 @@ const BrioWebGLOverlay = ({
           ? palette.length
           : Math.max(2, Math.min(16, cl.points ?? cl.colors ?? 6));
         const vib = Math.max(0, Math.min(1, cl.vibrance ?? 0));
+        const minB = Math.max(0, Math.min(1, cl.minBrightness ?? 0));
+        const maxB = Math.max(minB, Math.min(1, cl.maxBrightness ?? 1));
         const paletteKey = palette ? palette.join("|") : "";
         const cropKey = `${st.cropX.toFixed(4)}|${st.cropY.toFixed(4)}|${st.cropSize.toFixed(4)}|${st.zoom.toFixed(4)}`;
+        const gradKey = `${Math.round(cl.gradientAmount ?? 0)}|${Math.round(cl.gradientOpacity ?? 100)}|${(cl.gradientColors ?? []).join(",").toUpperCase()}`;
         if (
           clusterLastUpdate < 0 ||
-          clusterSourceChanged ||
+          sourceChanged ||
           K !== clusterLastK ||
           vib !== clusterLastVib ||
+          minB !== clusterLastMinB ||
+          maxB !== clusterLastMaxB ||
           paletteKey !== clusterLastPaletteKey ||
           cropKey !== clusterLastCropKey
         ) {
@@ -910,8 +1038,17 @@ const BrioWebGLOverlay = ({
           clusterLastUpdate = now;
           clusterLastK = K;
           clusterLastVib = vib;
+          clusterLastMinB = minB;
+          clusterLastMaxB = maxB;
           clusterLastPaletteKey = paletteKey;
           clusterLastCropKey = cropKey;
+          clusterLastGradKey = gradKey;
+        } else if (gradKey !== clusterLastGradKey) {
+          // Gradient-only change: re-apply secondary tone without re-running
+          // k-means so clusters and primary colors stay stable.
+          applyMeshGradient(meshPoints);
+          applyMeshGradient(prevMeshPoints);
+          clusterLastGradKey = gradKey;
         }
         for (let i = 0; i < 16; i++) {
           const idx = Math.min(i, K - 1);
@@ -923,6 +1060,10 @@ const BrioWebGLOverlay = ({
           meshSigBufB[i] = pb?.sigma ?? 0.25;
           meshColBufA[i * 3] = pa?.r ?? 0; meshColBufA[i * 3 + 1] = pa?.g ?? 0; meshColBufA[i * 3 + 2] = pa?.b ?? 0;
           meshColBufB[i * 3] = pb?.r ?? 0; meshColBufB[i * 3 + 1] = pb?.g ?? 0; meshColBufB[i * 3 + 2] = pb?.b ?? 0;
+          meshCol2BufA[i * 3] = pa?.r2 ?? 0; meshCol2BufA[i * 3 + 1] = pa?.g2 ?? 0; meshCol2BufA[i * 3 + 2] = pa?.b2 ?? 0;
+          meshCol2BufB[i * 3] = pb?.r2 ?? 0; meshCol2BufB[i * 3 + 1] = pb?.g2 ?? 0; meshCol2BufB[i * 3 + 2] = pb?.b2 ?? 0;
+          meshDirBufA[i * 2] = pa?.dirX ?? 1; meshDirBufA[i * 2 + 1] = pa?.dirY ?? 0;
+          meshDirBufB[i * 2] = pb?.dirX ?? 1; meshDirBufB[i * 2 + 1] = pb?.dirY ?? 0;
         }
       }
 
@@ -996,6 +1137,7 @@ const BrioWebGLOverlay = ({
         // Sharpness 0..1 -> Cauchy power 1.5..12 (soft gradient -> near-Voronoi).
         const sharp = Math.max(0, Math.min(1, cl.sharpness ?? 0.35));
         gl.uniform1f(uMain.meshPower, 1.5 + sharp * 10.5);
+        gl.uniform1f(uMain.meshSpread, Math.max(0.1, cl.spread ?? 1));
         gl.uniform1f(uMain.meshProgress, meshProgress);
         gl.uniform2fv(uMain.meshPosA, meshPosBufA);
         gl.uniform2fv(uMain.meshPosB, meshPosBufB);
@@ -1003,6 +1145,11 @@ const BrioWebGLOverlay = ({
         gl.uniform1fv(uMain.meshSigB, meshSigBufB);
         gl.uniform3fv(uMain.meshColA, meshColBufA);
         gl.uniform3fv(uMain.meshColB, meshColBufB);
+        gl.uniform1i(uMain.meshTwoTone, cl.twoTone ? 1 : 0);
+        gl.uniform3fv(uMain.meshCol2A, meshCol2BufA);
+        gl.uniform3fv(uMain.meshCol2B, meshCol2BufB);
+        gl.uniform2fv(uMain.meshDirA, meshDirBufA);
+        gl.uniform2fv(uMain.meshDirB, meshDirBufB);
       }
 
       gl.uniform1f(uMain.grain, Math.max(0, Math.min(2, s.grain)));
@@ -1027,7 +1174,7 @@ const BrioWebGLOverlay = ({
         gl.uniform2fv(uMain.lavaBlobs, lavaBlobBuf);
         gl.uniform1fv(uMain.lavaRadii, lavaRadBuf);
         gl.uniform1f(uMain.lavaSoftness, lv.softness);
-        gl.uniform1f(uMain.lavaPull, 0.85);
+        gl.uniform1f(uMain.lavaPull, lv.pull ?? 0.85);
       } else {
         gl.uniform1i(uMain.lavaEnabled, 0);
       }
