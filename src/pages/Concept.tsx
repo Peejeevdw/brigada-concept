@@ -717,15 +717,15 @@ const Concept = () => {
           <AnimatePresence>
             {hoverReel && !reelCut && openIdx === null && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.7 }}
+                initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.7 }}
+                exit={{ opacity: 0, scale: 0.85 }}
                 transition={{ duration: 0.25, ease: EASE_OUT }}
-                className="flex items-center gap-3 whitespace-nowrap rounded-full bg-white px-7 py-4 text-[15px] uppercase tracking-[0.14em] text-black shadow-[0_8px_40px_rgba(0,0,0,0.35)]"
+                className="flex items-center gap-2.5 whitespace-nowrap rounded-full bg-black p-2.5 text-[12px] uppercase tracking-[0.12em] text-white shadow-[0_4px_18px_rgba(0,0,0,0.35)]"
                 style={{ fontFamily: SANS }}
               >
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-black text-white">
-                  <svg width="10" height="11" viewBox="0 0 10 11" fill="none" className="translate-x-[1px]">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-black">
+                  <svg width="8" height="9" viewBox="0 0 10 11" fill="none" className="translate-x-[1px]">
                     <path d="M9 4.634c.667.385.667 1.347 0 1.732L1.5 10.7A1 1 0 0 1 0 9.835V1.165A1 1 0 0 1 1.5.3L9 4.634Z" fill="currentColor" />
                   </svg>
                 </span>
