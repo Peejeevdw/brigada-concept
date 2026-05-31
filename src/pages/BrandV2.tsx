@@ -524,8 +524,8 @@ const BrandV2 = () => {
       {/* Branding cases — Osmo "Orbit Tiles Infinite Loop" (full-viewport). */}
       <BrandOrbit />
 
-      {/* Footer — parallax reveal, ported from /concept */}
-      <BrandFooter />
+      {/* Footer — parallax reveal, ported from /concept; wordmark gets the goo reveal */}
+      <BrandFooter gooReveal />
 
       {/* Dev-only live tuning panel for the hero choreography.
           Hidden — flip `false` → `true` to restore. */}

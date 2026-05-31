@@ -42,6 +42,12 @@ const SANS = '"Antarctica", system-ui, sans-serif';
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
+// goo-1 "WAVE" reveal values (codrops), shared with the brand footers.
+const GOO_BLUR_START = 50;
+const GOO_ALPHA_MUL = 31;
+const GOO_ALPHA_OFF = -6;
+const GOO_DUR = 2;
+
 // Stacking case cards (Osmo "Stacking Cards Parallax" mechanic).
 // First card = TUI (real). The rest are placeholders — drop visuals in /public
 // and update `img` here. `bg` is any CSS background value; `fg` is the text colour.
@@ -178,6 +184,7 @@ const Concept = () => {
   const heroRef = useRef<HTMLElement>(null);
   const collectionRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
+  const footerWordmarkRef = useRef<HTMLDivElement>(null);
 
   // Custom cursor: a "Watch case" pill that trails the real cursor (with delay)
   // while hovering a case visual. The native cursor stays visible.
@@ -397,6 +404,37 @@ const Concept = () => {
       if (dark) tl.from(dark, { opacity: 0.5, ease: "none" }, "<");
     }, footerRef);
     return () => ctx.revert();
+  }, []);
+
+  // codrops gooey-blur reveal on the footer wordmark — plays as it scrolls into
+  // view (center 85%) and reverses back to the start state on scroll up.
+  useEffect(() => {
+    const el = footerWordmarkRef.current;
+    const feBlur = document.querySelector<SVGFEGaussianBlurElement>("#concept-footer-goo feGaussianBlur");
+    if (!el || !feBlur) return;
+    const vals = { stdDeviation: GOO_BLUR_START };
+    feBlur.setAttribute("stdDeviation", String(GOO_BLUR_START));
+    el.style.filter = "url(#concept-footer-goo)";
+    gsap.set(el, { opacity: 0 });
+    const ctx = gsap.context(() => {
+      gsap
+        .timeline({
+          defaults: { duration: GOO_DUR, ease: "expo" },
+          onUpdate: () => feBlur.setAttribute("stdDeviation", String(vals.stdDeviation)),
+          scrollTrigger: {
+            trigger: el,
+            start: "center 85%",
+            toggleActions: "play none none reverse",
+          },
+        })
+        .fromTo(vals, { stdDeviation: GOO_BLUR_START }, { stdDeviation: 0 }, 0)
+        .fromTo(el, { opacity: 0 }, { opacity: 1 }, 0);
+    }, footerRef);
+    return () => {
+      ctx.revert();
+      el.style.filter = "none";
+      gsap.set(el, { opacity: 1 });
+    };
   }, []);
   // Logo + baseline + paragraph move up together as one group (uniform 44vh).
   // Runs to p=1 (the exact pin-release point) so the group never freezes before
@@ -1097,8 +1135,18 @@ const Concept = () => {
             ))}
           </div>
 
+          {/* goo-1 filter for the wordmark "WAVE" reveal */}
+          <svg aria-hidden width="0" height="0" className="absolute">
+            <defs>
+              <filter id="concept-footer-goo" x="-20%" y="-100%" width="140%" height="300%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="0" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values={`1 0 0 0 0  0 1 0 0 0  1 0 1 0 0  0 0 0 ${GOO_ALPHA_MUL} ${GOO_ALPHA_OFF}`} result="goo" />
+                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+              </filter>
+            </defs>
+          </svg>
           {/* Logo row — full-width wordmark, bottom clipped off the footer edge */}
-          <div className="aspect-[1260/230] w-full overflow-hidden">
+          <div ref={footerWordmarkRef} className="aspect-[1260/230] w-full overflow-hidden">
             <BrigadaWordmark className="block h-auto w-full" />
           </div>
         </footer>

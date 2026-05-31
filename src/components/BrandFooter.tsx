@@ -22,10 +22,21 @@ const COLUMNS = [
   { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
 ];
 
-// videoSrc — override the background HLS playlist (defaults to FOOTER_HLS_SRC).
-const BrandFooter = ({ videoSrc = FOOTER_HLS_SRC }: { videoSrc?: string } = {}) => {
+// goo-1 "WAVE" reveal values (codrops), tuned on /wave-test.
+const GOO_BLUR_START = 50;
+const GOO_ALPHA_MUL = 31;
+const GOO_ALPHA_OFF = -6;
+const GOO_DUR = 2;
+
+// videoSrc — override the background HLS playlist. gooReveal — apply the codrops
+// gooey-blur reveal to the wordmark as it scrolls into view (opt-in per page).
+const BrandFooter = ({
+  videoSrc = FOOTER_HLS_SRC,
+  gooReveal = true,
+}: { videoSrc?: string; gooReveal?: boolean } = {}) => {
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wordmarkRef = useRef<HTMLDivElement>(null);
 
   // Attach the Bunny HLS playlist to the background video — hls.js for
   // Chrome/Firefox, native HLS for Safari (same approach as BunnyReelLightbox).
@@ -74,6 +85,39 @@ const BrandFooter = ({ videoSrc = FOOTER_HLS_SRC }: { videoSrc?: string } = {}) 
     }, footerRef);
     return () => ctx.revert();
   }, []);
+
+  // Optional codrops gooey-blur reveal on the wordmark (feGaussianBlur 50→0 +
+  // opacity 0→1, ease expo). Plays a bit later (center 75%) so it's better in
+  // view, and reverses back to the start state when you scroll back up.
+  useEffect(() => {
+    if (!gooReveal) return;
+    const el = wordmarkRef.current;
+    const feBlur = document.querySelector<SVGFEGaussianBlurElement>("#footer-goo feGaussianBlur");
+    if (!el || !feBlur) return;
+    const vals = { stdDeviation: GOO_BLUR_START };
+    feBlur.setAttribute("stdDeviation", String(GOO_BLUR_START));
+    el.style.filter = "url(#footer-goo)";
+    gsap.set(el, { opacity: 0 });
+    const ctx = gsap.context(() => {
+      gsap
+        .timeline({
+          defaults: { duration: GOO_DUR, ease: "expo" },
+          onUpdate: () => feBlur.setAttribute("stdDeviation", String(vals.stdDeviation)),
+          scrollTrigger: {
+            trigger: el,
+            start: "center 85%",
+            toggleActions: "play none none reverse",
+          },
+        })
+        .fromTo(vals, { stdDeviation: GOO_BLUR_START }, { stdDeviation: 0 }, 0)
+        .fromTo(el, { opacity: 0 }, { opacity: 1 }, 0);
+    }, footerRef);
+    return () => {
+      ctx.revert();
+      el.style.filter = "none";
+      gsap.set(el, { opacity: 1 });
+    };
+  }, [gooReveal]);
 
   return (
     <div ref={footerRef} data-footer-parallax className="relative z-10 overflow-hidden">
@@ -132,8 +176,20 @@ const BrandFooter = ({ videoSrc = FOOTER_HLS_SRC }: { videoSrc?: string } = {}) 
           ))}
         </div>
 
+        {/* goo-1 filter for the optional wordmark "WAVE" reveal */}
+        {gooReveal && (
+          <svg aria-hidden width="0" height="0" className="absolute">
+            <defs>
+              <filter id="footer-goo" x="-20%" y="-100%" width="140%" height="300%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="0" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values={`1 0 0 0 0  0 1 0 0 0  1 0 1 0 0  0 0 0 ${GOO_ALPHA_MUL} ${GOO_ALPHA_OFF}`} result="goo" />
+                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+              </filter>
+            </defs>
+          </svg>
+        )}
         {/* Logo row — full-width wordmark, bottom clipped off the footer edge */}
-        <div className="relative z-10 aspect-[1260/230] w-full overflow-hidden text-white">
+        <div ref={wordmarkRef} className="relative z-10 aspect-[1260/230] w-full overflow-hidden text-white">
           <BrigadaWordmark className="block h-auto w-full" />
         </div>
       </footer>
