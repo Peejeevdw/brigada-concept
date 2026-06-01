@@ -1201,16 +1201,39 @@ const Concept = () => {
                   ( {col.label} )
                 </p>
                 <div className="flex flex-col items-start gap-1">
-                  {col.links.map((l) => (
-                    <a
-                      key={l}
-                      href="#"
-                      data-underline-link
-                      className="text-[clamp(28px,4.5vw,44px)] leading-none"
-                    >
-                      {l}
-                    </a>
-                  ))}
+                  {col.links.map((l) => {
+                    const routes: Record<string, string> = {
+                      Work: "/work-v2",
+                      Expertise: "/expertise-v2",
+                      About: "/about-v2",
+                      Careers: "/careers-v2",
+                      Contact: "/contact-v2",
+                    };
+                    const cls = "text-[clamp(28px,4.5vw,44px)] leading-none";
+                    if (routes[l]) {
+                      return (
+                        <button
+                          key={l}
+                          type="button"
+                          onClick={() => transitionTo(routes[l])}
+                          data-underline-link
+                          className={`${cls} text-left`}
+                        >
+                          {l}
+                        </button>
+                      );
+                    }
+                    const href = l.includes("@")
+                      ? `mailto:${l}`
+                      : /^[+\d]/.test(l)
+                        ? `tel:${l.replace(/\s/g, "")}`
+                        : "#";
+                    return (
+                      <a key={l} href={href} data-underline-link className={cls}>
+                        {l}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             ))}

@@ -49,7 +49,8 @@ const BrandFooter = ({
   brioPaletteId,
   brioSrc = `${import.meta.env.BASE_URL}concept-hero.jpg`,
   dark = false,
-}: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean } = {}) => {
+  lightText = false,
+}: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean; lightText?: boolean } = {}) => {
   const transitionTo = usePageTransition();
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -154,7 +155,7 @@ const BrandFooter = ({
       `}</style>
       <footer
         data-footer-parallax-inner
-        className={`relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] ${dark ? "text-white" : "text-brigada-black"}`}
+        className={`relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] ${dark || lightText ? "text-white" : "text-brigada-black"}`}
         style={{ fontFamily: SANS }}
       >
         {/* Full-bleed backdrop — the footer's background. Content above it uses

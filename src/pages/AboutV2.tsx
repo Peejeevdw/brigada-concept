@@ -446,7 +446,7 @@ const AboutV2 = () => {
       </section>
 
       {/* Footer — parallax reveal, ported from /concept */}
-      <BrandFooter videoSrc={FOOTER_HLS_SRC} />
+      <BrandFooter videoSrc={FOOTER_HLS_SRC} lightText />
     </motion.main>
   );
 };
