@@ -43,26 +43,26 @@ export const quadtones: Quadtone[] = [
   {
     id: "brio-05",
     name: "Brio 01 Purple & Red",
-    // shadow (green) → orange → magenta → highlight (lavender)
-    stops: expandStops4to7(["#2E9E47", "#E8401C", "#E8329C", "#C9C9F5"]),
+    // crimson → red → orange-red → wine → deep purple
+    stops: ["#AD002A", "#D60A15", "#ff1400", "#E11503", "#7E162B", "#511259", "#3A174F"],
   },
   {
     id: "brio-06",
     name: "Brio 02 Red & Pink",
-    // Deep plum → burnt sienna → sand → bone
-    stops: expandStops4to7(["#2A1230", "#9B3A1E", "#D6A06A", "#F2E6D0"]),
+    // pale pink → off-white → red → blush pink
+    stops: expandStops4to7(["#eedde7", "#f7eef2", "#FF1400", "#fabdd5"]),
   },
   {
     id: "brio-01",
     name: "Brio 03 Pink & Yellow",
-    // Ink (body) → cream (bg), interpolated through 7 stops.
-    stops: expandStops4to7(["#1F1B16", "#6E6552", "#BDB29A", "#F3F2EF"]),
+    // yellow → gold → pink → yellow
+    stops: expandStops4to7(["#FDE33A", "#e5b32a", "#ff70a9", "#ecce3c"]),
   },
   {
     id: "brio-04",
     name: "Brio 04 Yellow & Green",
-    // Ink Black → Spicy Orange → Toasted Almond → Baby Blue Ice
-    stops: expandStops4to7(["#0B0F1A", "#C45A2D", "#E38B5B", "#7FAEFF"]),
+    // mint → green → yellow → spring green
+    stops: expandStops4to7(["#48f4aa", "#2fc699", "#fde33a", "#55F793"]),
   },
   {
     id: "brio-03",
@@ -73,14 +73,14 @@ export const quadtones: Quadtone[] = [
   {
     id: "brio-07",
     name: "Brio 06 Blue & Orange",
-    // Deep navy → blue → light blue → cream → peach → orange → burnt orange
-    stops: ["#0A1A3D", "#1E4FA8", "#4D8FE0", "#E8D8C4", "#F2B57A", "#E88A3C", "#B85420"],
+    // cream → blue → light blue → cream → peach → orange → burnt orange
+    stops: ["#E8D8C4", "#1E4FA8", "#4D8FE0", "#E8D8C4", "#eab885", "#f58529", "#d2530f"],
   },
   {
     id: "brio-02",
     name: "Brio 07 Orange & Purple",
-    // Orange → coral → magenta → purple → indigo (sampled from gradient)
-    stops: ["#F9A03A", "#EE6A4D", "#D94A7E", "#C73E9E", "#A93BBE", "#7A37D4", "#4A2BD9"],
+    // orange → coral → magenta → purple → deep purple
+    stops: ["#f97339", "#EE6A4D", "#D94A7E", "#C73E9E", "#A93BBE", "#2a1051", "#3A174F"],
   },
   {
     id: "brio-08",

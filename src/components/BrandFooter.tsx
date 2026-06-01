@@ -3,6 +3,7 @@ import Hls from "hls.js";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
+import { BrioEffect } from "@/brio-effect";
 
 // Footer ported from the /concept page — Osmo "Footer Parallax Effect": as the
 // footer scrolls in, its inner lifts (yPercent -25→0) and a dark overlay fades
@@ -30,10 +31,14 @@ const GOO_DUR = 2;
 
 // videoSrc — override the background HLS playlist. gooReveal — apply the codrops
 // gooey-blur reveal to the wordmark as it scrolls into view (opt-in per page).
+// brioPaletteId — when set, replace the HLS video backdrop with the locked
+// BrioEffect (palette mode) over the default concept-hero image (opt-in per page).
 const BrandFooter = ({
   videoSrc = FOOTER_HLS_SRC,
   gooReveal = true,
-}: { videoSrc?: string; gooReveal?: boolean } = {}) => {
+  brioPaletteId,
+  brioSrc = `${import.meta.env.BASE_URL}concept-hero.jpg`,
+}: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string } = {}) => {
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
@@ -140,18 +145,30 @@ const BrandFooter = ({
         className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-black"
         style={{ fontFamily: SANS }}
       >
-        {/* Full-bleed background video — the footer's backdrop. Content above it
-            uses mix-blend-difference so it inverts against the moving footage. */}
-        <video
-          ref={videoRef}
-          className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden
-        />
+        {/* Full-bleed backdrop — the footer's background. Content above it uses
+            mix-blend-difference so it inverts against the moving footage.
+            brioPaletteId swaps the HLS video for the locked BrioEffect. */}
+        {brioPaletteId ? (
+          <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
+            <BrioEffect
+              src={brioSrc}
+              mode="palette"
+              paletteId={brioPaletteId}
+              className="h-full w-full"
+            />
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden
+          />
+        )}
 
         {/* Link columns — over the video */}
         <div className="relative z-10 flex flex-col gap-12 md:flex-row md:gap-10">

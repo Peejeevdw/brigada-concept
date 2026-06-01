@@ -42,6 +42,9 @@ const SANS = '"Antarctica", system-ui, sans-serif';
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
+// Flip to true (in dev) to show the on-page type-tuning panel.
+const SHOW_TUNING_PANEL = false;
+
 // goo-1 "WAVE" reveal values (codrops), shared with the brand footers.
 const GOO_BLUR_START = 50;
 const GOO_ALPHA_MUL = 31;
@@ -119,7 +122,7 @@ const Concept = () => {
   };
   // Dev-only live tuning (see the on-page panel below).
   const [baseStart, setBaseStart] = useState(42);
-  const [baseEnd, setBaseEnd] = useState(129);
+  const [baseEnd, setBaseEnd] = useState(105);
   // Hero scroll length in vh — shorter = the whole sequence (and the cut) is faster.
   const [heroVh, setHeroVh] = useState(150);
   // Cut position as a fraction of scroll progress (independent of hero length).
@@ -127,6 +130,11 @@ const Concept = () => {
   const [cutAt, setCutAt] = useState(0.3);
   // How far the video section is pulled up under the hero (vh) — higher = revealed sooner.
   const [videoPull, setVideoPull] = useState(20);
+  // Dev-only multiplier on the auto-fitted paragraph size (1 = exactly fills width).
+  const [paraScale, setParaScale] = useState(0.84);
+  // Dev-only vertical nudge of the paragraph (px) — negative pulls it up, closer
+  // to SHARP BEATS LOUD.
+  const [paraOffsetY, setParaOffsetY] = useState(-40);
 
   // Reel section (above the footer) — its videos only start playing once the
   // section scrolls into view, and pause again when it leaves.
@@ -477,6 +485,20 @@ const Concept = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseStart, baseEnd, cutAt]);
 
+  // Tagline block width: starts full (gutter-to-gutter) and converges to the
+  // paragraph width (paraScale of available) by the cut, staying centred — so
+  // SHARP/BEATS/LOUD ends up exactly as wide as the "We cut…" block.
+  const taglineWidth = useMotionValue("100%");
+  useEffect(() => {
+    const update = (v: number) => {
+      const tt = Math.min(1, Math.max(0, v / cutAt));
+      taglineWidth.set(`${(1 - (1 - paraScale) * tt) * 100}%`);
+    };
+    update(p.get());
+    return p.on("change", update);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paraScale, cutAt]);
+
   // Paragraph: one shared font size so the WIDEST line fills the full width.
   const paraRef = useRef<HTMLDivElement>(null);
   const [paraSize, setParaSize] = useState(90);
@@ -691,8 +713,8 @@ const Concept = () => {
         </motion.nav>
       </motion.div>
 
-      {/* Dev-only type tuning panel — temporarily hidden (set `false &&` → remove to restore) */}
-      {false && import.meta.env.DEV && (
+      {/* Dev-only type tuning panel — hidden (set SHOW_TUNING_PANEL = true to restore) */}
+      {SHOW_TUNING_PANEL && import.meta.env.DEV && (
         <div
           className="fixed bottom-4 left-4 z-[60] w-[230px] select-none rounded-lg border border-white/15 bg-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
           style={{ fontFamily: "ui-monospace, monospace" }}
@@ -742,14 +764,37 @@ const Concept = () => {
               className="mt-1 w-full accent-white"
             />
           </label>
-          <label className="block">
-            Baseline end — {baseEnd}px
+          <label className="mb-2 block">
+            Baseline end — {baseEnd}px <span className="text-white/40">(Sharp Beats Loud)</span>
             <input
               type="range"
               min={24}
               max={140}
               value={baseEnd}
               onChange={(e) => setBaseEnd(+e.target.value)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+          <label className="mb-2 block">
+            Paragraph — {Math.round(paraSize * paraScale)}px{" "}
+            <span className="text-white/40">({Math.round(paraScale * 100)}% of fit · "We cut through…")</span>
+            <input
+              type="range"
+              min={50}
+              max={150}
+              value={Math.round(paraScale * 100)}
+              onChange={(e) => setParaScale(+e.target.value / 100)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+          <label className="block">
+            Paragraph offset — {paraOffsetY}px <span className="text-white/40">(↑ closer to SBL)</span>
+            <input
+              type="range"
+              min={-200}
+              max={100}
+              value={paraOffsetY}
+              onChange={(e) => setParaOffsetY(+e.target.value)}
               className="mt-1 w-full accent-white"
             />
           </label>
@@ -933,8 +978,9 @@ const Concept = () => {
           {/* Tagline — SHARP · BEATS · LOUD (sits above the paragraph) */}
           <motion.div
             style={{ color: textColor }}
-            className="absolute inset-x-0 top-[76vh] flex justify-between px-[clamp(24px,5vw,72px)]"
+            className="absolute inset-x-0 top-[76vh] px-[clamp(24px,5vw,72px)]"
           >
+            <motion.div style={{ width: taglineWidth }} className="mx-auto flex justify-between">
             {TAGLINE.map((word, i) => (
               <motion.span
                 key={word}
@@ -947,20 +993,21 @@ const Concept = () => {
                 {word}
               </motion.span>
             ))}
+            </motion.div>
           </motion.div>
 
           {/* Paragraph — 2 lines, auto-sized; moves with the group (constant gap to baseline) */}
           <motion.div
             ref={paraRef}
-            style={{ color: textColor }}
+            style={{ color: textColor, y: paraOffsetY }}
             className="absolute inset-x-0 top-[96vh] px-[clamp(24px,5vw,72px)]"
           >
             {PARAGRAPH.map((line, i) => (
               <div key={line} className="overflow-hidden">
                 <motion.span
                   data-line
-                  style={{ y: lineYs[i], fontFamily: SANS, fontSize: `${paraSize}px` }}
-                  className="block whitespace-nowrap pb-[0.06em] font-light leading-[1.0] tracking-[-0.02em]"
+                  style={{ y: lineYs[i], fontFamily: SANS, fontSize: `${paraSize * paraScale}px` }}
+                  className="block whitespace-nowrap pb-[0.06em] text-center font-light leading-[1.0] tracking-[-0.02em]"
                 >
                   {line}
                 </motion.span>

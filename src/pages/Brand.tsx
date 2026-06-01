@@ -360,8 +360,9 @@ const Brand = () => {
       {/* Branding cases — Osmo "Orbit Tiles Infinite Loop" (full-viewport). */}
       <BrandOrbit />
 
-      {/* Footer — parallax reveal, ported from /concept */}
-      <BrandFooter />
+      {/* Footer — parallax reveal, ported from /concept; brio "Red & Pink"
+          (palette brio-06) backdrop instead of the HLS video */}
+      <BrandFooter brioPaletteId="brio-06" brioSrc="/meetmarcel.jpg" />
     </motion.main>
   );
 };

@@ -7,6 +7,7 @@ import BrigadaWordmark from "@/components/BrigadaWordmark";
 import CareersCarousel from "@/components/CareersCarousel";
 import CareersFooter from "@/components/CareersFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
+import { BrioEffect } from "@/brio-effect";
 import { usePageTransition } from "@/components/PageTransition";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -249,11 +250,17 @@ const CareersV2 = () => {
         <section
           className={`relative overflow-hidden ${GUTTER} pt-[clamp(120px,18vw,250px)] pb-[clamp(80px,12vw,160px)]`}
         >
-          {/* Background video — covers the whole hero, sits behind the nav and text. */}
-          <HlsBackgroundVideo
-            src={HERO_HLS_SRC}
-            className="absolute inset-0 z-0 h-full w-full object-cover"
-          />
+          {/* Background — brio "Green & Blue" (palette brio-03) over the concept
+              hero image, full-bleed behind the nav and hero text. Wrapped because
+              BrioEffect forces position:relative on its own container. */}
+          <div className="absolute inset-0 z-0">
+            <BrioEffect
+              src={`${import.meta.env.BASE_URL}concept-hero.jpg`}
+              mode="palette"
+              paletteId="brio-03"
+              className="h-full w-full"
+            />
+          </div>
           <div className="relative z-10">
             <Reveal>
               <p
