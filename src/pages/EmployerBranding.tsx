@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import CareersFooter from "@/components/CareersFooter";
 import { usePageTransition } from "@/components/PageTransition";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -246,7 +247,7 @@ const EmployerBranding = () => {
           <div className="progressive-blur__layer is--4" />
           <div className="progressive-blur__layer is--5" />
         </div>
-        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-black">
+        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-brigada-black">
           {NAV_LEFT.map((item) => (
             <NavItem key={item.label} item={item} openLabel={openLabel} openMenu={openMenu} scheduleClose={scheduleMenuClose} alignRight={false} onSub={onSub} />
           ))}
@@ -275,7 +276,7 @@ const EmployerBranding = () => {
             <button
               type="button"
               onClick={() => transitionTo("/brand")}
-              className="group inline-flex items-center gap-2 text-[clamp(14px,1vw,16px)] text-black transition-opacity hover:opacity-60"
+              className="group inline-flex items-center gap-2 text-[clamp(14px,1vw,16px)] text-brigada-black transition-opacity hover:opacity-60"
             >
               <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:-translate-x-1">
                 ←
@@ -285,7 +286,7 @@ const EmployerBranding = () => {
           </Reveal>
           <Reveal delay={0.06} className="mt-[clamp(20px,2vw,32px)]">
             <h1
-              className="w-full text-[clamp(40px,5.79vw,100px)] leading-[1.04] tracking-[-0.01em] text-black"
+              className="w-full text-[clamp(40px,5.79vw,100px)] leading-[1.04] tracking-[-0.01em] text-brigada-black"
               style={{ fontWeight: 400 }}
             >
               Employer Branding is not a recruitment campaign
@@ -296,7 +297,7 @@ const EmployerBranding = () => {
               {/* Left — supporting body copy (placeholder) */}
               <div
                 className="flex w-full flex-col gap-[18px] text-[20px] md:w-[42%]"
-                style={{ lineHeight: "150%", color: "#000" }}
+                style={{ lineHeight: "150%", color: BRIGADA_BLACK }}
               >
                 <p>
                   Employer branding is often approached as a recruitment
@@ -337,7 +338,7 @@ const EmployerBranding = () => {
               </div>
               {/* Right — statement (placeholder) */}
               <p
-                className="w-full text-[clamp(26px,2.6vw,42px)] leading-[1.3] text-black md:w-[42%]"
+                className="w-full text-[clamp(26px,2.6vw,42px)] leading-[1.3] text-brigada-black md:w-[42%]"
                 style={{ fontWeight: 400 }}
               >
                 An employer brand should do something much bigger. It should

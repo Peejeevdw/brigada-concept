@@ -170,7 +170,7 @@ const CareersCarousel = ({
                   initial={{ opacity: 0, filter: "blur(10px)" }}
                   animate={{ opacity: 1, filter: "blur(0px)" }}
                   transition={{ duration: 0.5 }}
-                  className="absolute bottom-0 left-2 flex h-[14%] w-full translate-y-full items-center justify-center p-2 text-center font-medium tracking-tight text-black/40"
+                  className="absolute bottom-0 left-2 flex h-[14%] w-full translate-y-full items-center justify-center p-2 text-center font-medium tracking-tight text-brigada-black/40"
                 >
                   {img.title}
                 </motion.div>
@@ -185,14 +185,14 @@ const CareersCarousel = ({
           <button
             aria-label="Previous slide"
             onClick={() => api?.scrollPrev()}
-            className="pointer-events-auto rounded-full bg-black/10 p-2 transition-colors hover:bg-black/20"
+            className="pointer-events-auto rounded-full bg-brigada-black/10 p-2 transition-colors hover:bg-brigada-black/20"
           >
             <ChevronLeft className="text-white" />
           </button>
           <button
             aria-label="Next slide"
             onClick={() => api?.scrollNext()}
-            className="pointer-events-auto rounded-full bg-black/10 p-2 transition-colors hover:bg-black/20"
+            className="pointer-events-auto rounded-full bg-brigada-black/10 p-2 transition-colors hover:bg-brigada-black/20"
           >
             <ChevronRight className="text-white" />
           </button>
@@ -208,7 +208,7 @@ const CareersCarousel = ({
                 onClick={() => api?.scrollTo(index)}
                 className={cn(
                   "h-2 w-2 cursor-pointer rounded-full transition-all",
-                  current === index ? "bg-black" : "bg-[#D9D9D9]",
+                  current === index ? "bg-brigada-black" : "bg-[#D9D9D9]",
                 )}
                 aria-label={`Go to slide ${index + 1}`}
               />

@@ -92,7 +92,7 @@ const Today = () => {
         preBlur={BRIO_02_SETTINGS.blur}
       />
       <GrainOverlay opacity={BRIO_02_SETTINGS.grain ?? 0.5} />
-      <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden />
+      <div className="absolute inset-0 bg-brigada-black/20 pointer-events-none" aria-hidden />
 
       <div className="absolute left-0 right-0 top-0 px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96">
         <div className="grid grid-cols-6 gap-3 md:gap-5 w-full">

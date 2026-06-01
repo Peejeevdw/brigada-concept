@@ -7,6 +7,7 @@ import BrigadaWordmark from "@/components/BrigadaWordmark";
 import BrandFooter from "@/components/BrandFooter";
 import SharpBeatsLoud from "@/components/SharpBeatsLoud";
 import { usePageTransition } from "@/components/PageTransition";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -221,7 +222,7 @@ const AboutV2 = () => {
   // slides over. framer-motion interpolates the hex colour for us.
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollP = useMotionValue(0);
-  const bgColor = useTransform(scrollP, [0, 1], ["#000000", "#000000"]);
+  const bgColor = useTransform(scrollP, [0, 1], [BRIGADA_BLACK, BRIGADA_BLACK]);
 
   // Smooth scroll — same Lenis setup as /concept, so the orbit + parallax footer
   // glide instead of stepping with the native wheel. ScrollTrigger is kept in
@@ -321,7 +322,7 @@ const AboutV2 = () => {
       <div ref={contentRef} className="w-full">
         {/* Hero — "Sharp beats loud" gooey word-morph (replaces the old video),
             looping on a black field, centred full-viewport. */}
-        <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-black px-[6vw]">
+        <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
           <SharpBeatsLoud className="flex w-full items-center justify-center text-white" />
         </section>
 

@@ -78,7 +78,7 @@ const CareersFooter = () => {
   }, []);
 
   return (
-    <div ref={footerRef} data-footer-parallax className="relative z-10 overflow-hidden bg-black">
+    <div ref={footerRef} data-footer-parallax className="relative z-10 overflow-hidden bg-brigada-black">
       <style>{`
         [data-underline-link] { position: relative; text-decoration: none; }
         [data-underline-link]::before {
@@ -95,7 +95,7 @@ const CareersFooter = () => {
       `}</style>
       <footer
         data-footer-parallax-inner
-        className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden bg-black px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-white"
+        className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden bg-brigada-black px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-white"
         style={{ fontFamily: SANS }}
       >
         {/* Link columns */}

@@ -19,6 +19,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import BunnyReelLightbox from "@/components/BunnyReelLightbox";
 import { usePageTransition } from "@/components/PageTransition";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -45,6 +46,10 @@ const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 // Flip to true (in dev) to show the on-page type-tuning panel.
 const SHOW_TUNING_PANEL = false;
 
+// Custom "Play reel" cursor over the hero reel. Disabled for now (plain cursor
+// instead); the cursor + pill code is kept around in case we bring it back.
+const USE_REEL_CURSOR = false;
+
 // goo-1 "WAVE" reveal values (codrops), shared with the brand footers.
 const GOO_BLUR_START = 50;
 const GOO_ALPHA_MUL = 31;
@@ -69,7 +74,7 @@ const CASES = [
     tags: "Brand, Marketing",
     img: "tui-image.jpg",
     bg: TUI_BG,
-    fg: "#000000",
+    fg: BRIGADA_BLACK,
     trail: ["yellow-1.png", "yellow-2.png", "yellow-3.png"],
   },
   {
@@ -78,7 +83,7 @@ const CASES = [
     img: "meetmarcel.jpg",
     bgVideo: "meetmarcel-loop.mp4",
     bg: "#1A232E",
-    fg: "#000000",
+    fg: BRIGADA_BLACK,
     trail: ["mm-1.jpg", "mm-2.jpg", "mm-3.jpg", "mm-4.jpg"],
   },
   // Tijdelijk verborgen — terugzetten door uit te commenten:
@@ -528,7 +533,7 @@ const Concept = () => {
   // Hard cut: only once the group has fully scrolled up (text fully in view),
   // image → white background and text → black, simultaneously.
   const whiteOpacity = useTransform(p, [cutAt, cutAt + 0.025], [0, 1]);
-  const textColor = useTransform(p, [cutAt, cutAt + 0.025], ["#ffffff", "#000000"]);
+  const textColor = useTransform(p, [cutAt, cutAt + 0.025], ["#ffffff", BRIGADA_BLACK]);
 
   // Reel trigger only lives before the hard cut; track when we cross it.
   useEffect(() => {
@@ -538,7 +543,7 @@ const Concept = () => {
   }, [p, cutAt]);
 
   return (
-    <main className="relative bg-black">
+    <main className="relative bg-brigada-black">
       <style>{`
         html.lenis, html.lenis body { height: auto; }
         .lenis.lenis-smooth { scroll-behavior: auto !important; }
@@ -716,7 +721,7 @@ const Concept = () => {
       {/* Dev-only type tuning panel — hidden (set SHOW_TUNING_PANEL = true to restore) */}
       {SHOW_TUNING_PANEL && import.meta.env.DEV && (
         <div
-          className="fixed bottom-4 left-4 z-[60] w-[230px] select-none rounded-lg border border-white/15 bg-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
+          className="fixed bottom-4 left-4 z-[60] w-[230px] select-none rounded-lg border border-white/15 bg-brigada-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
           style={{ fontFamily: "ui-monospace, monospace" }}
         >
           <div className="mb-2 uppercase tracking-[0.15em] text-white/40">Tuning · dev</div>
@@ -809,16 +814,16 @@ const Concept = () => {
       >
         <div className="-translate-x-1/2 -translate-y-1/2">
           <AnimatePresence>
-            {hoverReel && !reelCut && openIdx === null && (
+            {USE_REEL_CURSOR && hoverReel && !reelCut && openIdx === null && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85 }}
                 transition={{ duration: 0.25, ease: EASE_OUT }}
-                className="flex items-center gap-2.5 whitespace-nowrap rounded-full bg-black p-2.5 text-[12px] uppercase tracking-[0.12em] text-white shadow-[0_4px_18px_rgba(0,0,0,0.35)]"
+                className="flex items-center gap-2.5 whitespace-nowrap rounded-full bg-brigada-black p-2.5 text-[12px] uppercase tracking-[0.12em] text-white shadow-[0_4px_18px_rgba(0,0,0,0.35)]"
                 style={{ fontFamily: SANS }}
               >
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-black">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-brigada-black">
                   <svg width="8" height="9" viewBox="0 0 10 11" fill="none" className="translate-x-[1px]">
                     <path d="M9 4.634c.667.385.667 1.347 0 1.732L1.5 10.7A1 1 0 0 1 0 9.835V1.165A1 1 0 0 1 1.5.3L9 4.634Z" fill="currentColor" />
                   </svg>
@@ -844,7 +849,7 @@ const Concept = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.2, ease: EASE_OUT }}
-                className="whitespace-nowrap rounded-full border border-white/15 bg-black/50 px-4 py-2 text-[13px] uppercase tracking-[0.12em] text-white backdrop-blur-md"
+                className="whitespace-nowrap rounded-full border border-white/15 bg-brigada-black/50 px-4 py-2 text-[13px] uppercase tracking-[0.12em] text-white backdrop-blur-md"
                 style={{ fontFamily: SANS }}
               >
                 Watch case
@@ -887,7 +892,7 @@ const Concept = () => {
 
       {/* Scroll track — drives the pinned hero through its states */}
       <section ref={heroRef} className="relative z-10" style={{ height: `${heroVh}vh` }}>
-        <div className="sticky top-0 h-screen select-none overflow-hidden bg-black">
+        <div className="sticky top-0 h-screen select-none overflow-hidden bg-brigada-black">
           {/* Replay intro — scoped so scrolling/clicking the page never restarts it */}
           <button
             type="button"
@@ -899,18 +904,19 @@ const Concept = () => {
           >
             Replay
           </button>
-          {/* Background reel — also the lightbox trigger: hovering shows a
-              large "Play reel" pill cursor, clicking opens the HLS player. */}
+          {/* Background reel — also the lightbox trigger: clicking opens the HLS
+              player. (Custom "Play reel" pill cursor is behind USE_REEL_CURSOR;
+              currently off → plain cursor.) */}
           <motion.div
             data-bunny-lightbox-control={reelCut ? undefined : "open"}
             data-bunny-lightbox-src={reelCut ? undefined : REEL_HLS_SRC}
             onPointerEnter={() => setHoverReel(true)}
             onPointerLeave={() => setHoverReel(false)}
-            className={`absolute inset-0 z-0 ${reelCut || openIdx !== null ? "" : "cursor-none"}`}
+            className={`absolute inset-0 z-0 ${USE_REEL_CURSOR && !reelCut && openIdx === null ? "cursor-none" : ""}`}
             style={{ opacity: bgOpacity, scale: bgScale }}
           >
             <video
-              src={`${import.meta.env.BASE_URL}short-reel.mp4`}
+              src={`${import.meta.env.BASE_URL}reel.mp4`}
               className="h-full w-full object-cover"
               autoPlay
               muted
@@ -919,7 +925,7 @@ const Concept = () => {
               preload="auto"
               aria-hidden
             />
-            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute inset-0 bg-brigada-black/20" />
             {/* Hidden poster — used by the lightbox as the loading placeholder */}
             <img data-bunny-lightbox-placeholder src={`${import.meta.env.BASE_URL}concept-reel-bg.jpg`} alt="" className="hidden" />
           </motion.div>
@@ -1102,7 +1108,7 @@ const Concept = () => {
       </div>
 
       {/* Recognition — "Proud not loud" intro + awards list (Figma node 299-1904) */}
-      <section className="relative z-10 w-full bg-white text-black">
+      <section className="relative z-10 w-full bg-white text-brigada-black">
         <div className="grid w-full grid-cols-1 gap-x-12 gap-y-12 px-[clamp(24px,5vw,72px)] py-[clamp(64px,12vh,160px)] md:grid-cols-2">
           {/* Left — intro */}
           <div className="max-w-[420px]">
@@ -1127,13 +1133,13 @@ const Concept = () => {
               <div
                 key={i}
                 onPointerEnter={() => setHoverAward(i)}
-                className="flex cursor-pointer flex-col gap-[2px] border-b border-black/15 py-[22px] transition-opacity duration-200 first:pt-0"
+                className="flex cursor-pointer flex-col gap-[2px] border-b border-brigada-black/15 py-[22px] transition-opacity duration-200 first:pt-0"
                 style={{
                   fontFamily: SANS,
                   opacity: hoverAward !== null && hoverAward !== i ? 0.45 : 1,
                 }}
               >
-                <span className="text-[16px] tracking-[-0.015em] text-black/60">
+                <span className="text-[16px] tracking-[-0.015em] text-brigada-black/60">
                   {a.year}
                 </span>
                 <span className="text-[16px] tracking-[-0.015em]">{a.org}</span>
@@ -1173,7 +1179,7 @@ const Concept = () => {
       <div ref={footerRef} data-footer-parallax className="relative z-10 overflow-hidden">
         <footer
           data-footer-parallax-inner
-          className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] bg-white px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-black"
+          className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] bg-white px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-brigada-black"
           style={{ fontFamily: SANS }}
         >
           {/* Link columns */}

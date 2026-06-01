@@ -35,7 +35,7 @@ const Pill = ({
     onClick={onClick}
     className={`rounded-full border px-4 py-2 text-[12px] uppercase tracking-[0.12em] transition-colors ${
       active
-        ? "border-white bg-white text-black"
+        ? "border-white bg-white text-brigada-black"
         : "border-white/25 bg-transparent text-white/70 hover:border-white/60 hover:text-white"
     }`}
     style={{ fontFamily: SANS }}

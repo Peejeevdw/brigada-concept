@@ -132,7 +132,7 @@ const SharpBeats = () => {
         className="w-full rounded border border-white/15 bg-white/5 px-2 py-1 text-white outline-none focus:border-white/40"
       >
         {EASES.map((e) => (
-          <option key={e} value={e} className="bg-black">{e}</option>
+          <option key={e} value={e} className="bg-brigada-black">{e}</option>
         ))}
       </select>
     </label>
@@ -151,7 +151,7 @@ const SharpBeats = () => {
   );
 
   return (
-    <main className="relative h-screen w-full overflow-hidden bg-black text-white" style={{ fontFamily: SANS }}>
+    <main className="relative h-screen w-full overflow-hidden bg-brigada-black text-white" style={{ fontFamily: SANS }}>
       {/* goo filter */}
       <svg aria-hidden width="0" height="0" className="absolute">
         <defs>
@@ -184,7 +184,7 @@ const SharpBeats = () => {
 
       {/* control panel */}
       <div
-        className="fixed right-4 top-4 z-50 max-h-[94vh] w-[300px] select-none overflow-y-auto rounded-lg border border-white/15 bg-black/85 p-4 text-[12px] leading-tight shadow-xl backdrop-blur-md"
+        className="fixed right-4 top-4 z-50 max-h-[94vh] w-[300px] select-none overflow-y-auto rounded-lg border border-white/15 bg-brigada-black/85 p-4 text-[12px] leading-tight shadow-xl backdrop-blur-md"
         style={{ fontFamily: "ui-monospace, monospace" }}
       >
         <div className="mb-3 flex items-center justify-between">

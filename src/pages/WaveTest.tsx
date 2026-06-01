@@ -128,7 +128,7 @@ const WaveTest = () => {
   );
 
   return (
-    <main className="relative w-full bg-black text-white" style={{ fontFamily: SANS }}>
+    <main className="relative w-full bg-brigada-black text-white" style={{ fontFamily: SANS }}>
       {/* intro spacer */}
       <section className="flex h-screen items-end justify-center pb-10 text-white/30">
         <span className="text-[12px] uppercase tracking-[0.2em]">scroll ↓</span>
@@ -173,7 +173,7 @@ const WaveTest = () => {
 
       {/* Control panel — shared across all three */}
       <div
-        className="fixed right-4 top-4 z-50 max-h-[92vh] w-[290px] select-none overflow-y-auto rounded-lg border border-white/15 bg-black/85 p-4 text-[12px] leading-tight shadow-xl backdrop-blur-md"
+        className="fixed right-4 top-4 z-50 max-h-[92vh] w-[290px] select-none overflow-y-auto rounded-lg border border-white/15 bg-brigada-black/85 p-4 text-[12px] leading-tight shadow-xl backdrop-blur-md"
         style={{ fontFamily: "ui-monospace, monospace" }}
       >
         <div className="mb-3 flex items-center justify-between">

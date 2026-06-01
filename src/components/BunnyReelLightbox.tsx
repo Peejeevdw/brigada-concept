@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import Hls from "hls.js";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 /**
  * Osmo "Custom Bunny HLS Lightbox" — faithful port.
@@ -600,7 +601,7 @@ const BunnyReelLightbox = () => {
           z-index: 600; pointer-events: auto; border-radius: 50%;
           justify-content: center; align-items: center;
           width: 3em; height: 3em; display: flex; position: absolute; top: 2.5vw; right: 2.5vw;
-          color: #000; background: #fff; border: 0; cursor: pointer;
+          color: ${BRIGADA_BLACK}; background: #fff; border: 0; cursor: pointer;
         }
         .bunny-lightbox__close-bar {
           background-color: currentColor; width: 1em; height: .125em; position: absolute; transform: rotate(-45deg);

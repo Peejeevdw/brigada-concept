@@ -142,7 +142,7 @@ const BrandFooter = ({
       `}</style>
       <footer
         data-footer-parallax-inner
-        className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-black"
+        className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-brigada-black"
         style={{ fontFamily: SANS }}
       >
         {/* Full-bleed backdrop — the footer's background. Content above it uses

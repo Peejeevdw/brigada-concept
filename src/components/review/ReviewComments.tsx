@@ -234,7 +234,7 @@ export default function ReviewComments() {
       {enabled && (
         <>
           {/* Toolbar */}
-          <div className="fixed bottom-20 right-4 z-[9999] flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm shadow-lg ring-1 ring-black/10">
+          <div className="fixed bottom-20 right-4 z-[9999] flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm shadow-lg ring-1 ring-brigada-black/10">
             <button
               type="button"
               onClick={() => setPlacing((v) => !v)}
@@ -274,7 +274,7 @@ export default function ReviewComments() {
                   </button>
                   {isOpen && (
                     <div
-                      className="pointer-events-auto rounded-lg bg-white p-3 text-sm text-neutral-900 shadow-xl ring-1 ring-black/10 z-[10000]"
+                      className="pointer-events-auto rounded-lg bg-white p-3 text-sm text-neutral-900 shadow-xl ring-1 ring-brigada-black/10 z-[10000]"
                       style={computePopoverStyle(left, top, 200)}
                     >
                       <div className="mb-1 flex items-center justify-between text-xs text-neutral-500">
@@ -318,7 +318,7 @@ export default function ReviewComments() {
                   </div>
                 </div>
                 <div
-                  className="pointer-events-auto rounded-lg bg-white p-3 shadow-xl ring-1 ring-black/10 z-[10000]"
+                  className="pointer-events-auto rounded-lg bg-white p-3 shadow-xl ring-1 ring-brigada-black/10 z-[10000]"
                   style={computePopoverStyle((draft.x / 100) * docW, (draft.y / 100) * docH, 280)}
                 >
                   <div className="mb-2 flex items-center justify-between">

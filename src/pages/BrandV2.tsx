@@ -7,6 +7,7 @@ import BrigadaWordmark from "@/components/BrigadaWordmark";
 import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
 import { usePageTransition } from "@/components/PageTransition";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -220,7 +221,7 @@ const BrandV2 = () => {
   // Hard cut: right as the tagline reaches ~full size (cutAt) the black hero
   // flips to white, and the hero text + nav flip white → black simultaneously.
   const whiteOpacity = useTransform(p, [cutAt, cutAt + 0.025], [0, 1]);
-  const cutColor = useTransform(p, [cutAt, cutAt + 0.025], ["#ffffff", "#000000"]);
+  const cutColor = useTransform(p, [cutAt, cutAt + 0.025], ["#ffffff", BRIGADA_BLACK]);
   // Tagline grows from baseStart→baseEnd as it scrolls up (size relative to a
   // 1728px-wide screen, scaling down with the viewport on narrower screens).
   const baselineSize = useMotionValue("36px");
@@ -392,7 +393,7 @@ const BrandV2 = () => {
             into view as one group while the tagline grows and the lines clip up.
             Ported from /concept (no logo / reel video / white cut). */}
         <section ref={heroRef} className="relative z-10" style={{ height: `${heroVh}vh` }}>
-          <div className="sticky top-0 h-screen select-none overflow-hidden bg-black">
+          <div className="sticky top-0 h-screen select-none overflow-hidden bg-brigada-black">
             {/* goo-1 filter for the tagline "WAVE" reveal (feGaussianBlur →
                 feColorMatrix goo → feComposite). Region widened so the bloom
                 isn't clipped on smaller text. */}
@@ -531,7 +532,7 @@ const BrandV2 = () => {
           Hidden — flip `false` → `true` to restore. */}
       {false && import.meta.env.DEV && (
         <div
-          className="fixed bottom-4 left-4 z-[60] w-[240px] select-none rounded-lg border border-white/15 bg-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
+          className="fixed bottom-4 left-4 z-[60] w-[240px] select-none rounded-lg border border-white/15 bg-brigada-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
           style={{ fontFamily: "ui-monospace, monospace" }}
         >
           <div className="mb-2 flex items-center justify-between">

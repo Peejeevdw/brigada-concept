@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CustomEase } from "gsap/CustomEase";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 // Osmo Supply — "Orbit Tiles Infinite Loop". Faithful port: the data-attributes,
 // class names and animation math are unchanged from the resource. Only adaptation
@@ -209,7 +210,7 @@ const BrandOrbit = () => {
   return (
     <section ref={containerRef} data-orbit-tiles-init className="orbit-tiles">
       <style>{`
-        .orbit-tiles { justify-content: center; align-items: center; width: 100%; height: 900px; padding-bottom: 120px; display: flex; position: relative; overflow: clip; background-color: #000; }
+        .orbit-tiles { justify-content: center; align-items: center; width: 100%; height: 900px; padding-bottom: 120px; display: flex; position: relative; overflow: clip; background-color: ${BRIGADA_BLACK}; }
         .orbit-tiles__collection { justify-content: center; align-items: center; display: flex; position: relative; }
         .orbit-tiles__list { place-items: center; display: grid; }
         .orbit-tiles__item { will-change: transform, opacity, filter; grid-area: 1 / 1; justify-content: center; align-items: center; width: max-content; height: max-content; display: flex; }
@@ -249,7 +250,7 @@ const BrandOrbit = () => {
       {/* Dev-only tuning panel — temporarily hidden (set `false &&` → remove to restore) */}
       {false && import.meta.env.DEV && (
         <div
-          className="absolute bottom-4 left-4 z-[60] w-[240px] select-none rounded-lg border border-white/15 bg-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
+          className="absolute bottom-4 left-4 z-[60] w-[240px] select-none rounded-lg border border-white/15 bg-brigada-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
           style={{ fontFamily: "ui-monospace, monospace" }}
         >
           <div className="mb-2 flex items-center justify-between">

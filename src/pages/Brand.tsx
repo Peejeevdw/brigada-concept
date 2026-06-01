@@ -243,7 +243,7 @@ const Brand = () => {
           <div className="progressive-blur__layer is--4" />
           <div className="progressive-blur__layer is--5" />
         </div>
-        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-black">
+        <nav className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] text-brigada-black">
           {NAV_LEFT.map((item) => (
             <NavItem key={item.label} item={item} openLabel={openLabel} openMenu={openMenu} scheduleClose={scheduleMenuClose} alignRight={false} onSub={onSub} />
           ))}
@@ -270,7 +270,7 @@ const Brand = () => {
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
             <p
-              className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
+              className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-brigada-black"
               style={{ fontWeight: 500, fontStretch: "125%" }}
             >
               How we move your brand
@@ -278,7 +278,7 @@ const Brand = () => {
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
             <h1
-              className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-black"
+              className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-brigada-black"
               style={{ fontWeight: 400 }}
             >
               We craft brands. We give them purpose and personality, and we make

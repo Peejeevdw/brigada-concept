@@ -61,7 +61,7 @@ const Careers = () => {
           {sequenceSources.length > 0 && (
             <FootageColorsSequence sources={sequenceSources} progressRef={progressRef} />
           )}
-          <div className="absolute inset-0 bg-black/25 pointer-events-none" />
+          <div className="absolute inset-0 bg-brigada-black/25 pointer-events-none" />
         </div>
         <div className="relative z-10 h-full px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 text-white flex flex-col items-center justify-center text-center">
           <Appear from="up" delay={60}>

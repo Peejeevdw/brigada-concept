@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { BRIGADA_BLACK } from "./src/lib/colors";
 
 export default {
   darkMode: ["class"],
@@ -17,6 +18,9 @@ export default {
         serif: ['"Antarctica"', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // Brand near-black token — use `bg-brigada-black`, `text-brigada-black`,
+        // `border-brigada-black/15`, … (opacity modifiers supported).
+        "brigada-black": BRIGADA_BLACK,
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
