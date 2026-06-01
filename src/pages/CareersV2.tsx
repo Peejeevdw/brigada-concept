@@ -170,6 +170,8 @@ const CareersV2 = () => {
     else if (sub === "Careers") transitionTo("/careers-v2");
     else if (sub === "About") transitionTo("/about-v2");
     else if (sub === "Expertise") transitionTo("/expertise-v2");
+    else if (sub === "Work") transitionTo("/work-v2");
+    else if (sub === "Contact") transitionTo("/contact-v2");
   };
 
   // Smooth scroll — same Lenis setup as /concept, so the carousel + parallax

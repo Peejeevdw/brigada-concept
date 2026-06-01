@@ -163,6 +163,8 @@ const EmployerBranding = () => {
     else if (sub === "Careers") transitionTo("/careers-v2");
     else if (sub === "About") transitionTo("/about-v2");
     else if (sub === "Expertise") transitionTo("/expertise-v2");
+    else if (sub === "Work") transitionTo("/work-v2");
+    else if (sub === "Contact") transitionTo("/contact-v2");
   };
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll

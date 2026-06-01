@@ -681,6 +681,8 @@ const Concept = () => {
                     if (item.label === "Careers") transitionTo("/careers-v2");
                     else if (item.label === "About") transitionTo("/about-v2");
                     else if (item.label === "Expertise") transitionTo("/expertise-v2");
+                    else if (item.label === "Work") transitionTo("/work-v2");
+                    else if (item.label === "Contact") transitionTo("/contact-v2");
                   }}
                 >
                   {item.label}
