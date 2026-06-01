@@ -258,6 +258,32 @@ All colors MUST be HSL.
     line-height: 1.375;
     letter-spacing: -0.015em;
   }
+
+  /* New-style ("concept"/"brand") page roles. Same Antarctica system, sizes
+     the section-leads/headlines on those pages used to hand-roll inline.
+     Use these instead of inline fontFamily/fontStretch/fontWeight. */
+
+  /* Eyebrow / section lead, e.g. "HOW WE MOVE YOUR BRAND" above a headline. */
+  .font-eyebrow {
+    font-family: "Antarctica", system-ui, sans-serif;
+    font-variation-settings: "wdth" 125, "wght" 500;
+    font-weight: 500;
+    font-size: clamp(1.25rem, 2.5vw, 2.25rem); /* 20→36px */
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Display headline, e.g. "We craft brands…" — the big intro statement. */
+  .font-display {
+    font-family: "Antarctica", system-ui, sans-serif;
+    font-variation-settings: "wdth" 100, "wght" 400;
+    font-weight: 400;
+    font-size: clamp(2rem, 5.56vw, 5rem); /* 32→80px @ 1920 */
+    line-height: 1.06;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
 }
 
 @layer utilities {
@@ -285,6 +311,154 @@ All colors MUST be HSL.
     background-size: 100% 1px;
   }
 }
+
+/* ===========================================================
+   New-style page chrome. Lenis smooth-scroll + the nav's
+   progressive-blur backdrop. Previously copy-pasted into a
+   <style> block on every concept/brand-family page; now one
+   global source consumed by useLenis() and <SiteNav />.
+   =========================================================== */
+html.lenis,
+html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+.progressive-blur {
+  z-index: 40; pointer-events: none; isolation: isolate; contain: paint;
+  width: 100%; height: 20em; transform-style: preserve-3d; position: absolute;
+  top: 0; left: 0; overflow: hidden; transform: translateZ(0);
+  transition: height 0.4s cubic-bezier(0.625, 0.05, 0, 1);
+}
+.progressive-blur.is--open { height: var(--blur-depth, 48em); }
+.progressive-blur__layer { width: 100%; height: 100%; position: absolute; }
+.progressive-blur__layer.is--1 { -webkit-backdrop-filter: blur(.09375em); backdrop-filter: blur(.09375em); -webkit-mask: linear-gradient(to top, #0000 50%, #000 62.5% 75%, #0000 87.5%); mask: linear-gradient(to top, #0000 50%, #000 62.5% 75%, #0000 87.5%); }
+.progressive-blur__layer.is--2 { -webkit-backdrop-filter: blur(.1875em); backdrop-filter: blur(.1875em); -webkit-mask: linear-gradient(to top, #0000 62.5%, #000 75% 87.5%, #0000 100%); mask: linear-gradient(to top, #0000 62.5%, #000 75% 87.5%, #0000 100%); }
+.progressive-blur__layer.is--3 { -webkit-backdrop-filter: blur(.375em); backdrop-filter: blur(.375em); -webkit-mask: linear-gradient(to top, #0000 75%, #000 87.5% 100%); mask: linear-gradient(to top, #0000 75%, #000 87.5% 100%); }
+.progressive-blur__layer.is--4 { -webkit-backdrop-filter: blur(.75em); backdrop-filter: blur(.75em); -webkit-mask: linear-gradient(to top, #0000 82%, #000 92% 100%); mask: linear-gradient(to top, #0000 82%, #000 92% 100%); }
+.progressive-blur__layer.is--5 { -webkit-backdrop-filter: blur(1.5em); backdrop-filter: blur(1.5em); -webkit-mask: linear-gradient(to top, #0000 88%, #000 100%); mask: linear-gradient(to top, #0000 88%, #000 100%); }
+
+/* Osmo "Directional List Hover" — the tile slides in from the cursor's entry
+   edge and out toward its exit edge. Base state + transition; the direction is
+   driven by inline transform set in JS (see useDirectionalHover). */
+[data-directional-hover-tile] {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(-100%);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-directional-hover-tile] { transition: none; }
+}
+
+/* Osmo "Cascading Slider" — clip-path carousel (active slide wide, siblings
+   clipped narrower). Shipped CSS kept as-is; only the heading font swapped from
+   Haffer XH to Antarctica to match the site. Positioning is driven by GSAP. */
+[data-cascading-viewport] { --gap: 0.5em; }
+[data-cascading-slide] { --clip: 0; --radius: 0; }
+
+.cascading-slider {
+  width: 100%; max-width: 90em; margin-left: auto; margin-right: auto;
+  position: relative;
+}
+.cascading-slider__collection { width: 100%; }
+.cascading-slider__list { width: 100%; height: 35em; position: relative; overflow: hidden; }
+.cascading-slider__item {
+  color: #fff; cursor: pointer; will-change: transform, clip-path;
+  clip-path: inset(0px calc(var(--clip) * 1px) round var(--radius));
+  -webkit-user-select: none; user-select: none; height: 100%;
+  position: absolute; inset: 0% auto auto 0%;
+}
+.cascading-slider__item[data-status="active"] { cursor: default; }
+.cascading-slider__item-inner { width: 100%; height: 100%; position: relative; overflow: hidden; }
+.cascading-slider__item-bg { z-index: 0; position: absolute; inset: 0%; }
+.cascading-slider__img { object-fit: cover; width: 100%; height: 100%; position: absolute; inset: 0%; }
+.cascading-slider__item-content {
+  z-index: 2; background-image: linear-gradient(0deg, #0009, #0000);
+  padding: 2em 2em 3em 2.5em; position: absolute; inset: auto 0% 0%;
+}
+.cascading-slider__h {
+  opacity: 0; letter-spacing: -.03em; margin-top: 0; margin-bottom: 0;
+  font-family: "Antarctica", system-ui, sans-serif;
+  font-size: 2.75em; font-weight: 400; line-height: 1;
+  transition: all .3s cubic-bezier(.645, .045, .355, 1);
+  transform: translate(0, .25em); transition-delay: 0ms;
+}
+[data-cascading-slide][data-status="active"] .cascading-slider__h {
+  transition-delay: 400ms; opacity: 1; transform: translate(0px, 0em);
+}
+.cascading-slider__nav {
+  grid-column-gap: 1em; grid-row-gap: 1em; flex-flow: row;
+  justify-content: center; align-items: center; margin-top: 4em;
+  margin-left: auto; margin-right: auto; display: flex; position: relative;
+}
+.cascading-slider__button {
+  color: #323b32; background-color: #d7ecd7; border-radius: .25em;
+  justify-content: center; align-items: center; width: 3em; height: 3em;
+  padding: .75em; display: flex;
+}
+.cascading-slider__button-arrow.is--prev { transform: rotate(-180deg); }
+
+
+/* Osmo "Basic Filter Setup (Multi Match)" — button filter; items toggle via
+   [data-filter-status]. The shipped show/hide transition states (active /
+   transition-out / not-active) are kept as-is so the reflow animates exactly as
+   designed; the button + card styling is the site's (mockup), not the demo's.
+   JS is ported to a scoped React effect; the data-filter-* hooks are unchanged. */
+.filter-group { width: 100%; }
+.filter-buttons {
+  display: flex; flex-flow: wrap; gap: 0.5em;
+  margin-bottom: clamp(28px, 3vw, 48px);
+}
+.filter-btn {
+  -webkit-appearance: none; appearance: none; cursor: pointer; border: 0;
+  background-color: #efeeec; color: #181614; border-radius: 10em;
+  padding: 0.6em 1.2em; line-height: 1;
+  font-family: "Antarctica", system-ui, sans-serif;
+  font-size: clamp(13px, 1vw, 15px); font-weight: 400;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  transition: color 0.6s cubic-bezier(0.625, 0.05, 0, 1),
+    background-color 0.6s cubic-bezier(0.625, 0.05, 0, 1);
+}
+.filter-btn[data-filter-status="active"] { background-color: #181614; color: #efeeec; }
+
+.filter-list { display: flex; flex-flow: wrap; width: 100%; margin: -0.6em; }
+.filter-list__item { width: 50%; padding: 0.6em 0.6em 1.75em; }
+.filter-list__item[data-filter-status="active"] {
+  transition: opacity 0.6s cubic-bezier(0.625, 0.05, 0, 1),
+    transform 0.6s cubic-bezier(0.625, 0.05, 0, 1);
+  transform: scale(1) rotate(0.001deg); opacity: 1; visibility: visible; position: relative;
+}
+.filter-list__item[data-filter-status="transition-out"] {
+  transition: opacity 0.45s cubic-bezier(0.625, 0.05, 0, 1),
+    transform 0.45s cubic-bezier(0.625, 0.05, 0, 1);
+  transform: scale(0.9) rotate(0.001deg); opacity: 0; visibility: visible;
+}
+.filter-list__item[data-filter-status="not-active"] {
+  transform: scale(0.9) rotate(0.001deg); opacity: 0; visibility: hidden; position: absolute;
+}
+
+/* Work card (mockup: image · title · tag line) */
+.work-card { display: flex; flex-flow: column; gap: 0.85em; width: 100%; }
+.work-card__visual {
+  width: 100%; aspect-ratio: 4 / 3; overflow: hidden;
+  background-color: #e2dfdf;
+}
+.work-card__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.work-card__meta {
+  display: flex; align-items: baseline; justify-content: flex-start; gap: 0.75em;
+}
+.work-card__title {
+  margin: 0; line-height: 1; font-weight: 500;
+  font-family: "Antarctica", system-ui, sans-serif;
+  font-size: clamp(18px, 1.4vw, 22px);
+}
+.work-card__tags {
+  margin: 0; line-height: 1; opacity: 0.6; white-space: nowrap;
+  font-family: "Antarctica", system-ui, sans-serif;
+  font-size: clamp(13px, 1vw, 15px);
+}
+
+@media screen and (max-width: 767px) { .filter-list__item { width: 100%; } }
 
 
 @layer utilities {

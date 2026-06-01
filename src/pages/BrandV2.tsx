@@ -185,8 +185,11 @@ const BrandV2 = () => {
   // Nav targets — Expertise→Brand goes to /brand, Careers goes to /careers-v2.
   const onSub = (sub: string) => {
     if (sub === "Brand") transitionTo("/brand");
+    else if (sub === "Product") transitionTo("/product");
+    else if (sub === "People") transitionTo("/people");
     else if (sub === "Careers") transitionTo("/careers-v2");
     else if (sub === "About") transitionTo("/about-v2");
+    else if (sub === "Expertise") transitionTo("/expertise-v2");
   };
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll

@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { BrioEffect } from "@/brio-effect";
+import { usePageTransition } from "@/components/PageTransition";
 
 // Footer ported from the /concept page — Osmo "Footer Parallax Effect": as the
 // footer scrolls in, its inner lifts (yPercent -25→0) and a dark overlay fades
@@ -23,6 +24,15 @@ const COLUMNS = [
   { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
 ];
 
+// Internal routes for the "Pages" column (new-style destinations).
+const PAGE_ROUTES: Record<string, string> = {
+  Work: "/work-v2",
+  Expertise: "/expertise-v2",
+  About: "/about-v2",
+  Careers: "/careers-v2",
+  Contact: "/contact-v2",
+};
+
 // goo-1 "WAVE" reveal values (codrops), tuned on /wave-test.
 const GOO_BLUR_START = 50;
 const GOO_ALPHA_MUL = 31;
@@ -38,7 +48,9 @@ const BrandFooter = ({
   gooReveal = true,
   brioPaletteId,
   brioSrc = `${import.meta.env.BASE_URL}concept-hero.jpg`,
-}: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string } = {}) => {
+  dark = false,
+}: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean } = {}) => {
+  const transitionTo = usePageTransition();
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
@@ -142,13 +154,16 @@ const BrandFooter = ({
       `}</style>
       <footer
         data-footer-parallax-inner
-        className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-brigada-black"
+        className={`relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] ${dark ? "text-white" : "text-brigada-black"}`}
         style={{ fontFamily: SANS }}
       >
         {/* Full-bleed backdrop — the footer's background. Content above it uses
             mix-blend-difference so it inverts against the moving footage.
-            brioPaletteId swaps the HLS video for the locked BrioEffect. */}
-        {brioPaletteId ? (
+            dark renders a solid black fill; brioPaletteId swaps the HLS video
+            for the locked BrioEffect. */}
+        {dark ? (
+          <div className="pointer-events-none absolute inset-0 z-0 bg-brigada-black" aria-hidden />
+        ) : brioPaletteId ? (
           <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
             <BrioEffect
               src={brioSrc}
@@ -178,16 +193,33 @@ const BrandFooter = ({
                 ( {col.label} )
               </p>
               <div className="flex flex-col items-start gap-1">
-                {col.links.map((l) => (
-                  <a
-                    key={l}
-                    href="#"
-                    data-underline-link
-                    className="text-[clamp(28px,4.5vw,44px)] leading-none"
-                  >
-                    {l}
-                  </a>
-                ))}
+                {col.links.map((l) => {
+                  const route = PAGE_ROUTES[l];
+                  const cls = "text-[clamp(28px,4.5vw,44px)] leading-none";
+                  if (route) {
+                    return (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => transitionTo(route)}
+                        data-underline-link
+                        className={`${cls} text-left`}
+                      >
+                        {l}
+                      </button>
+                    );
+                  }
+                  const href = l.includes("@")
+                    ? `mailto:${l}`
+                    : /^[+\d]/.test(l)
+                      ? `tel:${l.replace(/\s/g, "")}`
+                      : "#";
+                  return (
+                    <a key={l} href={href} data-underline-link className={cls}>
+                      {l}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           ))}

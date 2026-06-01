@@ -680,6 +680,7 @@ const Concept = () => {
                   onClick={() => {
                     if (item.label === "Careers") transitionTo("/careers-v2");
                     else if (item.label === "About") transitionTo("/about-v2");
+                    else if (item.label === "Expertise") transitionTo("/expertise-v2");
                   }}
                 >
                   {item.label}
@@ -700,7 +701,11 @@ const Concept = () => {
                           <li key={sub}>
                             <button
                               type="button"
-                              onClick={() => sub === "Brand" && transitionTo("/brand")}
+                              onClick={() => {
+                                if (sub === "Brand") transitionTo("/brand");
+                                else if (sub === "Product") transitionTo("/product");
+                                else if (sub === "People") transitionTo("/people");
+                              }}
                               className="block text-[14px] uppercase leading-[20px] tracking-[1.4px] opacity-90 transition-opacity hover:opacity-60"
                               style={{ fontFamily: SANS }}
                             >

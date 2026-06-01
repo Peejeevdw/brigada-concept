@@ -43,9 +43,15 @@ const BrandV2 = lazy(() => import("./pages/BrandV2"));
 const WaveTest = lazy(() => import("./pages/WaveTest"));
 const SharpBeats = lazy(() => import("./pages/SharpBeats"));
 const Brio = lazy(() => import("./pages/Brio"));
+const ExpertiseV2 = lazy(() => import("./pages/ExpertiseV2"));
+const Product = lazy(() => import("./pages/Product"));
+const People = lazy(() => import("./pages/People"));
+const Marketing = lazy(() => import("./pages/Marketing"));
+const WorkV2 = lazy(() => import("./pages/WorkV2"));
+const ContactV2 = lazy(() => import("./pages/ContactV2"));
 
 const queryClient = new QueryClient();
-const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/concept-lab", "/brand", "/careers-v2", "/about-v2", "/employer-branding", "/brand-v2", "/wave-test", "/sharp-beats", "/brio"];
+const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/concept-lab", "/brand", "/careers-v2", "/about-v2", "/employer-branding", "/brand-v2", "/wave-test", "/sharp-beats", "/brio", "/expertise-v2", "/product", "/people", "/marketing", "/work-v2", "/contact-v2"];
 const ConditionalNav = () => {
   const { pathname } = useLocation();
   // Normalise a trailing slash so e.g. "/brand-v2/" still matches "/brand-v2".
@@ -89,6 +95,12 @@ const App = () => (
             <Route path="/wave-test" element={<WaveTest />} />
             <Route path="/sharp-beats" element={<SharpBeats />} />
             <Route path="/brio" element={<Brio />} />
+            <Route path="/expertise-v2" element={<ExpertiseV2 />} />
+            <Route path="/product" element={<Product />} />
+            <Route path="/people" element={<People />} />
+            <Route path="/marketing" element={<Marketing />} />
+            <Route path="/work-v2" element={<WorkV2 />} />
+            <Route path="/contact-v2" element={<ContactV2 />} />
             <Route element={<SiteLayout />}>
               <Route path="/work" element={<Work />} />
               <Route path="/work/:slug" element={<WorkDetail />} />

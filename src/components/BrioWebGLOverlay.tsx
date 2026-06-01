@@ -967,8 +967,12 @@ const BrioWebGLOverlay = ({
     let last = performance.now();
     let lastTextureSrcKey = "";
     let lastTextureTime = -1;
+    // Toggled by the IntersectionObserver below — when false the loop stops
+    // rescheduling, so the effect costs zero GPU/battery while off-screen.
+    let visible = true;
 
     const loop = (now: number) => {
+      if (!visible) { raf = 0; return; }
       const dt = (now - last) / 1000; last = now;
       simTime += dt;
       const st = stateRef.current;
@@ -1231,8 +1235,27 @@ const BrioWebGLOverlay = ({
     };
     raf = requestAnimationFrame(loop);
 
+    // Pause the render loop while the effect is scrolled off-screen; resume on
+    // re-entry without a time jump (reset `last` so simTime doesn't leap).
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (!visible) {
+            visible = true;
+            last = performance.now();
+            if (!raf) raf = requestAnimationFrame(loop);
+          }
+        } else {
+          visible = false;
+        }
+      },
+      { threshold: 0 }
+    );
+    io.observe(canvas);
+
     return () => {
       cancelAnimationFrame(raf);
+      io.disconnect();
       ro.disconnect();
       if (texA) gl.deleteTexture(texA);
       if (texB) gl.deleteTexture(texB);

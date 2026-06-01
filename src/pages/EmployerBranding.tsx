@@ -158,8 +158,11 @@ const EmployerBranding = () => {
   // Nav targets — Expertise→Brand goes to /brand, Careers goes to /careers-v2.
   const onSub = (sub: string) => {
     if (sub === "Brand") transitionTo("/brand");
+    else if (sub === "Product") transitionTo("/product");
+    else if (sub === "People") transitionTo("/people");
     else if (sub === "Careers") transitionTo("/careers-v2");
     else if (sub === "About") transitionTo("/about-v2");
+    else if (sub === "Expertise") transitionTo("/expertise-v2");
   };
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll
@@ -275,13 +278,13 @@ const EmployerBranding = () => {
           <Reveal>
             <button
               type="button"
-              onClick={() => transitionTo("/brand")}
+              onClick={() => transitionTo("/people")}
               className="group inline-flex items-center gap-2 text-[clamp(14px,1vw,16px)] text-brigada-black transition-opacity hover:opacity-60"
             >
               <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:-translate-x-1">
                 ←
               </span>
-              <span>Brand</span>
+              <span>People</span>
             </button>
           </Reveal>
           <Reveal delay={0.06} className="mt-[clamp(20px,2vw,32px)]">

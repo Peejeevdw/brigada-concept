@@ -99,9 +99,7 @@ const DISCIPLINES = [
   "Motion to spatial identity design",
   "Brand implementation & management",
 ];
-const DISCIPLINE_LINKS: Record<string, string> = {
-  "Brand strategy & platforms": "/employer-branding",
-};
+const DISCIPLINE_LINKS: Record<string, string> = {};
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
 // centred max-width), gutters only.
@@ -161,8 +159,11 @@ const Brand = () => {
   // Nav targets — Expertise→Brand goes to /brand, Careers goes to /careers-v2.
   const onSub = (sub: string) => {
     if (sub === "Brand") transitionTo("/brand");
+    else if (sub === "Product") transitionTo("/product");
+    else if (sub === "People") transitionTo("/people");
     else if (sub === "Careers") transitionTo("/careers-v2");
     else if (sub === "About") transitionTo("/about-v2");
+    else if (sub === "Expertise") transitionTo("/expertise-v2");
   };
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll
@@ -332,19 +333,7 @@ const Brand = () => {
             <div className="border-t" style={{ borderColor: INK }} />
             <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
               <SectionLabel>Brand contact</SectionLabel>
-              <div className="flex w-full flex-col gap-8 sm:flex-row sm:items-start sm:gap-[clamp(24px,2.4vw,34px)] md:w-[49%]">
-                <div className="w-[clamp(200px,18vw,262px)] shrink-0 overflow-hidden">
-                  {/* Blur-in on scroll into view */}
-                  <motion.img
-                    src={`${import.meta.env.BASE_URL}brand-mathias.jpg`}
-                    alt="Mathias — Brand Lead"
-                    className="block aspect-[262/362] w-full object-cover"
-                    initial={{ filter: "blur(16px)", scale: 1.06 }}
-                    whileInView={{ filter: "blur(0px)", scale: 1 }}
-                    viewport={{ once: true, margin: "-10% 0px" }}
-                    transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.22 }}
-                  />
-                </div>
+              <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
                   <p>Mathias is the guy to talk to.</p>
                   <p className="mt-[18px]">Mathias</p>
