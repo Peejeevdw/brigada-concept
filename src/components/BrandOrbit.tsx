@@ -17,12 +17,14 @@ CustomEase.create("osmo", "M0,0 C0.625,0.05 0,1 1,1");
 // renders a looping `video` (from /public via BASE_URL) when present, otherwise
 // an `img`. To enable navigation: wrap the media in <Link to={`/brand/${c.slug}`}>
 // (react-router) or add an onClick → navigate.
+// Self-hosted from /public/orbit (was an external Webflow CDN — moved local to
+// kill the cold-load stall when the orbit scrolls into view on first visit).
 const ORBIT_CASES: { slug: string; img?: string; video?: string }[] = [
-  { slug: "case-1", img: "https://cdn.prod.website-files.com/69f8734cb3f6e933a8e50121/69f879f8571dc895a0bea874_serene-woman-with-flowers-beafd.avif" },
-  { slug: "case-2", img: "https://cdn.prod.website-files.com/69f8734cb3f6e933a8e50121/69f8776231204174f1671a7c_13e8de8f22f5fc08ededce8943422e1f_Close-up%20of%20Basketball.avif" },
-  { slug: "case-3", img: "https://cdn.prod.website-files.com/69f8734cb3f6e933a8e50121/69f87c4f0df4bcb0aee7b459_futuristic-blue-spheres-qb9rz.avif" },
-  { slug: "case-4", img: "https://cdn.prod.website-files.com/69f8734cb3f6e933a8e50121/69f87ad4d9444f02158d1f93_multicolored-jacket-portrait-msr1h.avif" },
-  { slug: "case-5", img: "https://cdn.prod.website-files.com/69f8734cb3f6e933a8e50121/69f879f5b599c8331c24a16f_a17ca47b9ff9b454658f5e70e11a7b5e_dynamic-pose-drawing-1cy6f.avif" },
+  { slug: "case-1", img: `${import.meta.env.BASE_URL}orbit/case-1.avif` },
+  { slug: "case-2", img: `${import.meta.env.BASE_URL}orbit/case-2.avif` },
+  { slug: "case-3", img: `${import.meta.env.BASE_URL}orbit/case-3.avif` },
+  { slug: "case-4", img: `${import.meta.env.BASE_URL}orbit/case-4.avif` },
+  { slug: "case-5", img: `${import.meta.env.BASE_URL}orbit/case-5.avif` },
 ];
 
 // Tunable orbit parameters (Osmo's config, lifted to state so the dev panel can
@@ -220,7 +222,7 @@ const BrandOrbit = () => {
       `}</style>
       <div data-orbit-tiles-collection className="orbit-tiles__collection">
         <div data-orbit-tiles-list className="orbit-tiles__list">
-          {ORBIT_CASES.map((c) => (
+          {ORBIT_CASES.map((c, i) => (
             <div key={c.slug} data-orbit-tiles-item className="orbit-tiles__item">
               {/* Click-ready: data-case-slug + cursor. To navigate later, wrap the
                   <img> in <Link to={`/brand/${c.slug}`}> or add onClick → navigate. */}
@@ -237,7 +239,14 @@ const BrandOrbit = () => {
                     aria-hidden
                   />
                 ) : (
-                  <img src={c.img} loading="lazy" alt="" className="cover-image" />
+                  <img
+                    src={c.img}
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority={i === 0 ? "high" : "auto"}
+                    alt=""
+                    className="cover-image"
+                  />
                 )}
                 {/* Client label — bottom-left under the visual */}
                 <span className="demo-card__label">Client name comes here</span>
