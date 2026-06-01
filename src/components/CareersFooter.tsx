@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
+import { usePageTransition } from "@/components/PageTransition";
 
 // Careers footer — same layout/parallax as BrandFooter (Osmo "Footer Parallax
 // Effect": inner lifts yPercent -25→0 as it scrolls in), but on a plain black
@@ -18,6 +19,15 @@ const COLUMNS = [
   { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
 ];
 
+// Internal routes for the "Pages" column (new-style destinations).
+const PAGE_ROUTES: Record<string, string> = {
+  Work: "/work-v2",
+  Expertise: "/expertise-v2",
+  About: "/about-v2",
+  Careers: "/careers-v2",
+  Contact: "/contact-v2",
+};
+
 // goo-1 "WAVE" reveal values (codrops), shared with BrandFooter.
 const GOO_BLUR_START = 50;
 const GOO_ALPHA_MUL = 31;
@@ -25,6 +35,7 @@ const GOO_ALPHA_OFF = -6;
 const GOO_DUR = 2;
 
 const CareersFooter = () => {
+  const transitionTo = usePageTransition();
   const footerRef = useRef<HTMLDivElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
 
@@ -106,16 +117,33 @@ const CareersFooter = () => {
                 ( {col.label} )
               </p>
               <div className="flex flex-col items-start gap-1">
-                {col.links.map((l) => (
-                  <a
-                    key={l}
-                    href="#"
-                    data-underline-link
-                    className="text-[clamp(28px,4.5vw,44px)] leading-none"
-                  >
-                    {l}
-                  </a>
-                ))}
+                {col.links.map((l) => {
+                  const route = PAGE_ROUTES[l];
+                  const cls = "text-[clamp(28px,4.5vw,44px)] leading-none";
+                  if (route) {
+                    return (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => transitionTo(route)}
+                        data-underline-link
+                        className={`${cls} text-left`}
+                      >
+                        {l}
+                      </button>
+                    );
+                  }
+                  const href = l.includes("@")
+                    ? `mailto:${l}`
+                    : /^[+\d]/.test(l)
+                      ? `tel:${l.replace(/\s/g, "")}`
+                      : "#";
+                  return (
+                    <a key={l} href={href} data-underline-link className={cls}>
+                      {l}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           ))}
