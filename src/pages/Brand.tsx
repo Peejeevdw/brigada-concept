@@ -362,7 +362,7 @@ const Brand = () => {
 
       {/* Footer — parallax reveal, ported from /concept; brio "Red & Pink"
           (palette brio-06) backdrop instead of the HLS video */}
-      <BrandFooter brioPaletteId="brio-06" brioSrc="/meetmarcel.jpg" />
+      <BrandFooter brioPaletteId="brio-06" brioSrc={`${import.meta.env.BASE_URL}meetmarcel.jpg`} />
     </motion.main>
   );
 };
