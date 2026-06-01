@@ -329,7 +329,7 @@ const AboutV2 = () => {
         {/* Intro (Figma 308:2631) — woorden vullen zich van #424242 naar #fff bij scroll */}
         <section className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
           <ScrollColorText
-            className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em]"
+            className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em]"
             style={{ fontWeight: 400 }}
             text="Brigada was born when Fantastic, meetmarcel, mortierbrigade, Onlyhumans, Today and Who Owns The Zebra joined forces to kick brands into gear. We move as one, without the hand-offs that slow most agencies down."
           />
