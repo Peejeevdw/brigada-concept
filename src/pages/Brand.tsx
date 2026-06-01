@@ -270,7 +270,7 @@ const Brand = () => {
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
             <p
-              className="text-[clamp(22px,2.78vw,40px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
+              className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
               style={{ fontWeight: 500, fontStretch: "125%" }}
             >
               How we move your brand
@@ -278,7 +278,7 @@ const Brand = () => {
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
             <h1
-              className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em] text-black"
+              className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-black"
               style={{ fontWeight: 400 }}
             >
               We craft brands. We give them purpose and personality, and we make

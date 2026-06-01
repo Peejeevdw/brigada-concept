@@ -257,7 +257,7 @@ const CareersV2 = () => {
           <div className="relative z-10">
             <Reveal>
               <p
-                className="text-[clamp(22px,2.78vw,40px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
+                className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-black"
                 style={{ fontWeight: 500, fontStretch: "125%" }}
               >
                 Baby make your move
@@ -265,7 +265,7 @@ const CareersV2 = () => {
             </Reveal>
             <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
               <h1
-                className="w-full text-[clamp(40px,6.94vw,100px)] leading-[1.06] tracking-[-0.01em] text-black"
+                className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-black"
                 style={{ fontWeight: 400 }}
               >
                 We think for ourselves. We want to keep learning and pushing for

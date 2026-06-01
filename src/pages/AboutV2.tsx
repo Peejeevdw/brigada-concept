@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import BrandFooter from "@/components/BrandFooter";
+import SharpBeatsLoud from "@/components/SharpBeatsLoud";
 import { usePageTransition } from "@/components/PageTransition";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -183,45 +184,12 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
 
 const AboutV2 = () => {
   const [openLabel, setOpenLabel] = useState<string | null>(null);
-  // Hero-video speelt één keer; daarna scrollt de pagina er soepel voorbij naar
-  // de tekst. De sectie blijft in de DOM (constante paginahoogte) zodat de
-  // parallax-footer / ScrollTrigger niet ontregeld raken.
+  // Hero toont de "Sharp beats loud" word-morph (looping). De sectie blijft in
+  // de DOM (constante paginahoogte) zodat de parallax-footer / ScrollTrigger
+  // niet ontregeld raken.
   const heroRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
-  const handleVideoEnded = () => {
-    // Terug naar het eerste frame zodat er bij terugscrollen geen zwart vlak
-    // (het laatste frame) blijft staan; afspelen herstart zodra de sectie
-    // opnieuw in beeld komt (IntersectionObserver hieronder).
-    const v = videoRef.current;
-    if (v) {
-      v.pause();
-      v.currentTime = 0;
-    }
-    const target = heroRef.current?.offsetHeight ?? window.innerHeight;
-    if (lenisRef.current) lenisRef.current.scrollTo(target, { duration: 1.2 });
-    else window.scrollTo({ top: target, behavior: "smooth" });
-  };
 
-  // Speel de hero-video vanaf het begin zodra 'ie in beeld komt; pauzeer 'm als
-  // 'ie uit beeld is. Zo start de video opnieuw na terugscrollen.
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          video.currentTime = 0;
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
-      },
-      { threshold: 0.5 },
-    );
-    io.observe(video);
-    return () => io.disconnect();
-  }, []);
   // Hover-intent voor het nav-submenu: korte sluit-vertraging zodat bewegen
   // tussen label en submenu (of net links/rechts van het label) het menu niet
   // dichtklapt. Opnieuw een nav-item binnenkomen annuleert het sluiten.
@@ -351,18 +319,10 @@ const AboutV2 = () => {
       {/* Content — full width (gutters only, no centred max-width), like /concept.
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
-        {/* Hero video — plays once, then the page scrolls smoothly past it so
-            the text below rises into view (section stays in the DOM). */}
-        <section ref={heroRef} className="relative h-[100svh] w-full overflow-hidden">
-          <video
-            ref={videoRef}
-            className="absolute inset-0 h-full w-full object-cover"
-            src={`${import.meta.env.BASE_URL}sharp-beats-loud.mp4`}
-            muted
-            playsInline
-            preload="auto"
-            onEnded={handleVideoEnded}
-          />
+        {/* Hero — "Sharp beats loud" gooey word-morph (replaces the old video),
+            looping on a black field, centred full-viewport. */}
+        <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-black px-[6vw]">
+          <SharpBeatsLoud className="flex w-full items-center justify-center text-white" />
         </section>
 
         {/* Intro (Figma 308:2631) — woorden vullen zich van #424242 naar #fff bij scroll */}

@@ -34,15 +34,17 @@ const Mortierbrigade = lazy(() => import("./pages/Mortierbrigade"));
 const Today = lazy(() => import("./pages/Today"));
 const Styles = lazy(() => import("./pages/Styles"));
 const Concept = lazy(() => import("./pages/Concept"));
+const ConceptLab = lazy(() => import("./pages/ConceptLab"));
 const Brand = lazy(() => import("./pages/Brand"));
 const CareersV2 = lazy(() => import("./pages/CareersV2"));
 const AboutV2 = lazy(() => import("./pages/AboutV2"));
 const EmployerBranding = lazy(() => import("./pages/EmployerBranding"));
 const BrandV2 = lazy(() => import("./pages/BrandV2"));
 const WaveTest = lazy(() => import("./pages/WaveTest"));
+const SharpBeats = lazy(() => import("./pages/SharpBeats"));
 
 const queryClient = new QueryClient();
-const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/brand", "/careers-v2", "/about-v2", "/employer-branding", "/brand-v2", "/wave-test"];
+const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/concept-lab", "/brand", "/careers-v2", "/about-v2", "/employer-branding", "/brand-v2", "/wave-test", "/sharp-beats"];
 const ConditionalNav = () => {
   const { pathname } = useLocation();
   // Normalise a trailing slash so e.g. "/brand-v2/" still matches "/brand-v2".
@@ -77,12 +79,14 @@ const App = () => (
             <Route path="/animation" element={<Animation />} />
             <Route path="/styles" element={<Styles />} />
             <Route path="/concept" element={<Concept />} />
+            <Route path="/concept-lab" element={<ConceptLab />} />
             <Route path="/brand" element={<Brand />} />
             <Route path="/careers-v2" element={<CareersV2 />} />
             <Route path="/about-v2" element={<AboutV2 />} />
             <Route path="/employer-branding" element={<EmployerBranding />} />
             <Route path="/brand-v2" element={<BrandV2 />} />
             <Route path="/wave-test" element={<WaveTest />} />
+            <Route path="/sharp-beats" element={<SharpBeats />} />
             <Route element={<SiteLayout />}>
               <Route path="/work" element={<Work />} />
               <Route path="/work/:slug" element={<WorkDetail />} />
