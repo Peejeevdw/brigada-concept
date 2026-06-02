@@ -19,13 +19,34 @@ const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const INK = "#2d2928";
 
-// Brand disciplines list (Figma 308:2434). Some link to a detail page.
+// Brand disciplines list (Figma 308:2434) — each with a short subline. Some
+// titles link to a detail page.
 const DISCIPLINES = [
-  "Brand strategy & platforms",
-  "Naming, verbal & sonic identity",
-  "Brand identity concept & design",
-  "Motion to spatial identity design",
-  "Brand implementation & management",
+  {
+    title: "Brand strategy & platforms",
+    blurb:
+      "A sharp strategy gives brands the story and focus to move with intent, instead of reacting to anything that moves.",
+  },
+  {
+    title: "Naming, verbal & sonic identity",
+    blurb:
+      "The right name, tone of voice and sound make a brand feel familiar and trusted, even if you haven’t heard from them in a while.",
+  },
+  {
+    title: "Brand identity concept & design",
+    blurb:
+      "Strong identity design creates recognition through simplicity, giving brands a glowing presence without needing to shout.",
+  },
+  {
+    title: "Motion to spatial identity design",
+    blurb:
+      "Brands come alive when they move convincingly across time and space, like the real world does.",
+  },
+  {
+    title: "Brand implementation & management",
+    blurb:
+      "A brand can only gain traction if it is usable and aligned across every channel, tool and touchpoint.",
+  },
 ];
 const DISCIPLINE_LINKS: Record<string, string> = {};
 
@@ -146,28 +167,29 @@ const Brand = () => {
             <div className="border-t" style={{ borderColor: INK }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
               <SectionLabel>Brand</SectionLabel>
-              <ul
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                {DISCIPLINES.map((d) => {
-                  const href = DISCIPLINE_LINKS[d];
+              <ul className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]">
+                {DISCIPLINES.map((d, i) => {
+                  const href = DISCIPLINE_LINKS[d.title];
                   return (
-                    <li key={d}>
+                    <li key={d.title} className={i === 0 ? "" : "mt-[clamp(22px,2.4vw,34px)]"}>
                       {href ? (
                         <button
                           type="button"
                           onClick={() => transitionTo(href)}
-                          className="group inline-flex items-center gap-2 text-left transition-opacity hover:opacity-60"
+                          className="group inline-flex items-center gap-2 text-left leading-[1.25] transition-opacity hover:opacity-60"
                         >
-                          <span>{d}</span>
+                          <span>{d.title}</span>
                           <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
                             →
                           </span>
                         </button>
                       ) : (
-                        d
+                        <span className="leading-[1.25]">{d.title}</span>
                       )}
+                      {/* Subtle subline under each discipline */}
+                      <p className="mt-[clamp(6px,0.6vw,10px)] max-w-[42ch] text-[clamp(13px,1.05vw,15px)] leading-snug opacity-50">
+                        {d.blurb}
+                      </p>
                     </li>
                   );
                 })}

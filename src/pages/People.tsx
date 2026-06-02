@@ -27,6 +27,18 @@ const SERVICE_LINKS: Record<string, string> = {
   "Employer branding": "/employer-branding",
 };
 
+// Short subtle subline under each service (keyed by the title in pillars.ts).
+const SERVICE_BLURBS: Record<string, string> = {
+  "Employer branding":
+    "We build employer brands with a clear point of view. From the inside out, we give talent a reason to choose you and stick with you.",
+  "Candidate experience":
+    "We streamline the journey from first click to signed contract, because good people don’t wait.",
+  "Employee experience":
+    "Be relevant internally, or irrelevant everywhere. We create the communication, platforms and experiences that keep teams involved.",
+  "Culture and change design":
+    "Don’t let your change programme die in PowerPoint. We help your people see the why and feel part of it.",
+};
+
 // People case placeholders (swap for real cases later).
 const PEOPLE_CASES: CascadingSlide[] = [
   { img: peopleCase1, title: "Placeholder" },
@@ -74,19 +86,17 @@ const People = () => {
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
               <SectionLabel>People</SectionLabel>
-              <ul
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                {SERVICES.map((s) => {
+              <ul className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]">
+                {SERVICES.map((s, i) => {
                   const href = SERVICE_LINKS[s];
+                  const blurb = SERVICE_BLURBS[s];
                   return (
-                    <li key={s}>
+                    <li key={s} className={i === 0 ? "" : "mt-[clamp(22px,2.4vw,34px)]"}>
                       {href ? (
                         <button
                           type="button"
                           onClick={() => transitionTo(href)}
-                          className="group inline-flex items-center gap-2 text-left transition-opacity hover:opacity-60"
+                          className="group inline-flex items-center gap-2 text-left leading-[1.25] transition-opacity hover:opacity-60"
                         >
                           <span>{s}</span>
                           <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
@@ -94,7 +104,13 @@ const People = () => {
                           </span>
                         </button>
                       ) : (
-                        s
+                        <span className="leading-[1.25]">{s}</span>
+                      )}
+                      {/* Subtle subline under each service */}
+                      {blurb && (
+                        <p className="mt-[clamp(6px,0.6vw,10px)] max-w-[42ch] text-[clamp(13px,1.05vw,15px)] leading-snug opacity-50">
+                          {blurb}
+                        </p>
                       )}
                     </li>
                   );
