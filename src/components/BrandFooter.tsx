@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { BrioEffect } from "@/brio-effect";
 import { usePageTransition } from "@/components/PageTransition";
+import { officeLocations as LOCATIONS } from "@/data/officeLocations";
 
 // Footer ported from the /concept page — Osmo "Footer Parallax Effect": as the
 // footer scrolls in, its inner lifts (yPercent -25→0) and a dark overlay fades
@@ -62,6 +63,13 @@ const BrandFooter = ({
   const footerInnerRef = useRef<HTMLElement>(null);
   const emailRef = useRef<HTMLAnchorElement>(null);
   const [legalTop, setLegalTop] = useState(0);
+
+  // Office locations — reveal address + phone on hover, or click/tap to pin one.
+  const [hoverCity, setHoverCity] = useState<string | null>(null);
+  const [pinnedCity, setPinnedCity] = useState<string | null>(null);
+  const activeCity = hoverCity ?? pinnedCity;
+  // 4 columns: Pages · Socials · Locations · Contact.
+  const colWidth = "md:w-1/4";
   useEffect(() => {
     const measure = () => {
       const email = emailRef.current;
@@ -219,50 +227,109 @@ const BrandFooter = ({
           />
         )}
 
-        {/* Link columns — over the video */}
-        <div className="relative z-10 flex flex-col gap-12 md:flex-row md:gap-10">
-          {COLUMNS.map((col) => (
-            <div key={col.label} className="flex w-full flex-col gap-6 md:w-1/3">
-              <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
-                ( {col.label} )
-              </p>
-              <div className="flex flex-col items-start gap-1">
-                {col.links.map((l) => {
-                  const route = PAGE_ROUTES[l];
-                  const cls = "text-[clamp(28px,4.5vw,44px)] leading-none";
-                  if (route) {
+        {/* Link columns — Pages · Socials · Locations · Contact (over the video) */}
+        <div className="relative z-10 flex flex-col gap-12 md:flex-row md:gap-10 md:pr-[clamp(48px,6vw,104px)]">
+          {COLUMNS.map((col) => {
+            const column = (
+              <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
+                <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
+                  ( {col.label} )
+                </p>
+                <div className="flex flex-col items-start gap-3">
+                  {col.links.map((l) => {
+                    const route = PAGE_ROUTES[l];
+                    const cls = "text-[clamp(30px,4.8vw,46px)] leading-none";
+                    if (route) {
+                      return (
+                        <button
+                          key={l}
+                          type="button"
+                          onClick={() => transitionTo(route)}
+                          data-underline-link
+                          className={`${cls} text-left`}
+                        >
+                          {l}
+                        </button>
+                      );
+                    }
+                    const href = l.includes("@")
+                      ? `mailto:${l}`
+                      : /^[+\d]/.test(l)
+                        ? `tel:${l.replace(/\s/g, "")}`
+                        : "#";
                     return (
-                      <button
+                      <a
                         key={l}
-                        type="button"
-                        onClick={() => transitionTo(route)}
+                        ref={l.includes("@") ? emailRef : undefined}
+                        href={href}
                         data-underline-link
-                        className={`${cls} text-left`}
+                        className={cls}
                       >
                         {l}
-                      </button>
+                      </a>
                     );
-                  }
-                  const href = l.includes("@")
-                    ? `mailto:${l}`
-                    : /^[+\d]/.test(l)
-                      ? `tel:${l.replace(/\s/g, "")}`
-                      : "#";
-                  return (
-                    <a
-                      key={l}
-                      ref={l.includes("@") ? emailRef : undefined}
-                      href={href}
-                      data-underline-link
-                      className={cls}
-                    >
-                      {l}
-                    </a>
-                  );
-                })}
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+
+            // Locations is its own column placed just before Contact; city names
+            // at the same size as the other links, each revealing its address +
+            // phone on hover/click. Data from /contact-v2.
+            if (col.label === "Contact") {
+              return (
+                <Fragment key={col.label}>
+                  <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
+                    <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
+                      ( Locations )
+                    </p>
+                    <div className="flex flex-col items-start gap-3">
+                      {LOCATIONS.map((loc) => {
+                        const open = activeCity === loc.city;
+                        return (
+                          <div
+                            key={loc.city}
+                            className="w-full"
+                            onMouseEnter={() => setHoverCity(loc.city)}
+                            onMouseLeave={() => setHoverCity(null)}
+                          >
+                            <button
+                              type="button"
+                              aria-expanded={open}
+                              onClick={() => setPinnedCity((p) => (p === loc.city ? null : loc.city))}
+                              className="text-[clamp(30px,4.8vw,46px)] leading-none text-left"
+                            >
+                              {loc.city}
+                            </button>
+                            {/* Address + phone reveal (grid-rows 0fr→1fr). */}
+                            <div
+                              className={`grid overflow-hidden transition-[grid-template-rows] duration-500 ease-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                            >
+                              <div className="overflow-hidden">
+                                <div className="pb-1 pt-2 text-[clamp(13px,1vw,15px)] leading-snug opacity-60">
+                                  <p>{loc.address}</p>
+                                  <p>{loc.zip}</p>
+                                  <a
+                                    href={`tel:${loc.phone.replace(/\s/g, "")}`}
+                                    className="mt-1 block transition-opacity hover:opacity-100"
+                                  >
+                                    {loc.phone}
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {column}
+                </Fragment>
+              );
+            }
+
+            return <Fragment key={col.label}>{column}</Fragment>;
+          })}
         </div>
 
         {/* Legal — magazine-style vertical strip on the right edge (reads

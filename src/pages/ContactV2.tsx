@@ -31,7 +31,7 @@ const splitColumns = (items: string[], n: number) => {
 
 const LOCATIONS = [
   { city: "BRIGADA ANTWERP", address: "Molenstraat 54", zip: "2018 Antwerpen" },
-  { city: "BRIGADA GENT", address: "Amelia Earhartlaan 2 Bus 401", zip: "9051 Gent" },
+  { city: "BRIGADA GHENT", address: "Amelia Earhartlaan 2 Bus 401", zip: "9051 Ghent" },
   { city: "BRIGADA BRUSSELS", address: "Waelhemstraat 77", zip: "1030 Schaarbeek" },
 ];
 
@@ -55,6 +55,7 @@ const EXPERTISE_CONTACTS = [
   { label: "Product", name: "Jeroen De Bock", email: "jeroen.debock@brigada.be", phone: "+32 477 62 76 01" },
   { label: "People", name: "Marie", email: "marie@brigada.be", phone: "+32 477 44 55 66" },
   { label: "Marketing", name: "Sofie", email: "sofie@brigada.be", phone: "+32 477 77 88 99" },
+  { label: "New bizz", name: "Evert Vermeire", email: "evert.vermeire@brigada.be", phone: "+32 479 59 14 30" },
 ];
 
 const ContactV2 = () => {
