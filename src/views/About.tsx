@@ -4,14 +4,14 @@ import Appear from "@/components/Appear";
 import RevealText from "@/components/RevealText";
 import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
 import ParallaxBanner from "@/components/home-v4-v2/ParallaxBanner";
-import bannerImage from "@/assets/home-banner.jpg";
-import aboutTeam from "@/assets/about/about-team.jpg";
-import aboutCraft from "@/assets/about/about-craft.jpg";
-import aboutStudio from "@/assets/about/about-studio.jpg";
-import evaImg from "@/assets/team/eva.jpg";
-import lukasImg from "@/assets/team/lukas.jpg";
-import marieImg from "@/assets/team/marie.jpg";
-import tomImg from "@/assets/team/tom.jpg";
+const bannerImage = "/assets/home-banner.jpg";
+const aboutTeam = "/assets/about/about-team.jpg";
+const aboutCraft = "/assets/about/about-craft.jpg";
+const aboutStudio = "/assets/about/about-studio.jpg";
+const evaImg = "/assets/team/eva.jpg";
+const lukasImg = "/assets/team/lukas.jpg";
+const marieImg = "/assets/team/marie.jpg";
+const tomImg = "/assets/team/tom.jpg";
 
 const leads = [
   { label: "Brand", name: "Eva", role: "Brand Lead", image: evaImg, email: "eva@brigada.be", phone: "+00 000 00 00" },

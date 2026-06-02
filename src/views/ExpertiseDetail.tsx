@@ -16,14 +16,14 @@ import { type Pillar } from "@/components/wireframe/WorkThumb";
 import BrioImageComposite from "@/components/BrioImageComposite";
 import PillarCasesCarousel from "@/components/PillarCasesCarousel";
 import { DEFAULT_BRIO_SETTINGS } from "@/data/duotones";
-import brandDesignerHero from "@/assets/brand-designer-hero.jpg";
-import productDesignerHero from "@/assets/product-designer-hero.jpg";
-import marketingStrategistHero from "@/assets/marketing-strategist-hero.jpg";
-import peopleLeadHero from "@/assets/people-lead-hero.jpg";
-import evaImg from "@/assets/team/eva.jpg";
-import lukasImg from "@/assets/team/lukas.jpg";
-import marieImg from "@/assets/team/marie.jpg";
-import tomImg from "@/assets/team/tom.jpg";
+const brandDesignerHero = "/assets/brand-designer-hero.jpg";
+const productDesignerHero = "/assets/product-designer-hero.jpg";
+const marketingStrategistHero = "/assets/marketing-strategist-hero.jpg";
+const peopleLeadHero = "/assets/people-lead-hero.jpg";
+const evaImg = "/assets/team/eva.jpg";
+const lukasImg = "/assets/team/lukas.jpg";
+const marieImg = "/assets/team/marie.jpg";
+const tomImg = "/assets/team/tom.jpg";
 
 const pillarMap: Record<string, Pillar | undefined> = {
   brand: "Brand",

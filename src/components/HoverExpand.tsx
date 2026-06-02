@@ -2,10 +2,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-import productCase1 from "@/assets/product-case-1.png";
-import productCase2 from "@/assets/product-case-2.png";
-import productCase3 from "@/assets/product-case-3.png";
-import productCase5 from "@/assets/product-case-5.png";
+const productCase1 = "/assets/product-case-1.png";
+const productCase2 = "/assets/product-case-2.png";
+const productCase3 = "/assets/product-case-3.png";
+const productCase5 = "/assets/product-case-5.png";
 
 // Skiper 52 "HoverExpand_001" (React + Framer Motion) — a FIXED row of images
 // that do NOT translate; the active one expands wide while the others shrink to

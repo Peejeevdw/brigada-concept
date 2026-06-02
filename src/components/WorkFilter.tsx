@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
 import { caseImages } from "@/data/caseImages";
-import brandCrelan from "@/assets/brand-case-crelan.png";
-import brandNanopixel from "@/assets/brand-case-nanopixel.png";
-import marketingCrelan from "@/assets/marketing-case-crelan.jpg";
-import marketingMooimakers from "@/assets/marketing-case-mooimakers.jpg";
-import marketingCupra from "@/assets/marketing-case-cupra.jpg";
-import peoplePolitie from "@/assets/people-case-politie.jpg";
-import peopleLidl from "@/assets/people-case-lidl.jpg";
+const brandCrelan = "/assets/brand-case-crelan.png";
+const brandNanopixel = "/assets/brand-case-nanopixel.png";
+const marketingCrelan = "/assets/marketing-case-crelan.jpg";
+const marketingMooimakers = "/assets/marketing-case-mooimakers.jpg";
+const marketingCupra = "/assets/marketing-case-cupra.jpg";
+const peoplePolitie = "/assets/people-case-politie.jpg";
+const peopleLidl = "/assets/people-case-lidl.jpg";
 
 // Osmo Supply "Basic Filter Setup (Multi Match)" — ported to React. The filter
 // logic (token collection/match + the active/transition-out/not-active state

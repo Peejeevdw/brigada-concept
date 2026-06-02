@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import Work from "@/views/Work";
 
 export default function WorkPage() {
-  return <Work />;
+  return (
+    <Suspense fallback={null}>
+      <Work />
+    </Suspense>
+  );
 }

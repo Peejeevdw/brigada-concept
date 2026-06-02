@@ -8,12 +8,12 @@ import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
 import ParallaxBanner from "@/components/home-v4-v2/ParallaxBanner";
 import FootageColorsSequence from "@/components/FootageColorsSequence";
 import { jobs } from "@/data/jobs";
-import careers1 from "@/assets/careers/careers-1.jpg";
-import careers2 from "@/assets/careers/careers-2.jpg";
-import careers3 from "@/assets/careers/careers-3.jpg";
-import careers4 from "@/assets/careers/careers-4.jpg";
-import careers5 from "@/assets/careers/careers-5.jpg";
-import bannerImage from "@/assets/careers/careers-parallax.png";
+const careers1 = "/assets/careers/careers-1.jpg";
+const careers2 = "/assets/careers/careers-2.jpg";
+const careers3 = "/assets/careers/careers-3.jpg";
+const careers4 = "/assets/careers/careers-4.jpg";
+const careers5 = "/assets/careers/careers-5.jpg";
+const bannerImage = "/assets/careers/careers-parallax.png";
 
 const collageImages = [
   { src: careers1, className: "left-0 -top-24 w-[calc((100%-1.25rem)/4)] aspect-[3/4]" },

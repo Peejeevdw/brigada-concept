@@ -6,16 +6,16 @@ import RevealChildren from "@/components/RevealChildren";
 import { pillarContent } from "@/data/pillars";
 import type { Pillar } from "@/components/wireframe/WorkThumb";
 
-import evaImg from "@/assets/team/eva.jpg";
-import lukasImg from "@/assets/team/lukas.jpg";
-import marieImg from "@/assets/team/marie.jpg";
-import tomImg from "@/assets/team/tom.jpg";
-import brandHero from "@/assets/brand-designer-hero.jpg";
-import productHero from "@/assets/product-designer-hero.jpg";
-import peopleHero from "@/assets/people-lead-hero.jpg";
-import marketingHero from "@/assets/marketing-strategist-hero.jpg";
+const evaImg = "/assets/team/eva.jpg";
+const lukasImg = "/assets/team/lukas.jpg";
+const marieImg = "/assets/team/marie.jpg";
+const tomImg = "/assets/team/tom.jpg";
+const brandHero = "/assets/brand-designer-hero.jpg";
+const productHero = "/assets/product-designer-hero.jpg";
+const peopleHero = "/assets/people-lead-hero.jpg";
+const marketingHero = "/assets/marketing-strategist-hero.jpg";
 import ParallaxBanner from "@/components/home-v4-v2/ParallaxBanner";
-import bannerImage from "@/assets/expertise-banner.png";
+const bannerImage = "/assets/expertise-banner.png";
 
 interface PillarEntry {
   label: Pillar;

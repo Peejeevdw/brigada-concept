@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
-import productCase1 from "@/assets/product-case-1.png";
-import productCase2 from "@/assets/product-case-2.png";
-import productCase3 from "@/assets/product-case-3.png";
-import productCase5 from "@/assets/product-case-5.png";
+const productCase1 = "/assets/product-case-1.png";
+const productCase2 = "/assets/product-case-2.png";
+const productCase3 = "/assets/product-case-3.png";
+const productCase5 = "/assets/product-case-5.png";
 
 // Osmo Supply "Cascading Slider" — ported to React. The animation logic
 // (duration/ease/breakpoints + measure/getSlideProps/layout/goTo) is kept

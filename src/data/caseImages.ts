@@ -1,19 +1,19 @@
-import upload1 from "@/assets/case-upload-1.jpg";
-import upload2 from "@/assets/case-upload-2.jpg";
-import upload3 from "@/assets/case-upload-3.jpg";
-import upload4 from "@/assets/case-upload-4.jpg";
-import upload5 from "@/assets/case-upload-5.jpg";
-import upload6 from "@/assets/case-upload-6.jpg";
-import editorial from "@/assets/case-editorial.jpg";
-import spatial from "@/assets/case-spatial.jpg";
-import fieldNotes from "@/assets/case-field-notes.jpg";
-import signalReport from "@/assets/case-signal-report.jpg";
-import cultureLab from "@/assets/case-culture-lab.jpg";
-import onboarding from "@/assets/case-onboarding.jpg";
-import agristoHero from "@/assets/cases/agristo.jpg";
-import tuiHero from "@/assets/cases/tui.jpg";
-import bmwHero from "@/assets/cases/bmw-tile.jpg";
-import politieHero from "@/assets/cases/politie.jpg";
+const upload1 = "/assets/case-upload-1.jpg";
+const upload2 = "/assets/case-upload-2.jpg";
+const upload3 = "/assets/case-upload-3.jpg";
+const upload4 = "/assets/case-upload-4.jpg";
+const upload5 = "/assets/case-upload-5.jpg";
+const upload6 = "/assets/case-upload-6.jpg";
+const editorial = "/assets/case-editorial.jpg";
+const spatial = "/assets/case-spatial.jpg";
+const fieldNotes = "/assets/case-field-notes.jpg";
+const signalReport = "/assets/case-signal-report.jpg";
+const cultureLab = "/assets/case-culture-lab.jpg";
+const onboarding = "/assets/case-onboarding.jpg";
+const agristoHero = "/assets/cases/agristo.jpg";
+const tuiHero = "/assets/cases/tui.jpg";
+const bmwHero = "/assets/cases/bmw-tile.jpg";
+const politieHero = "/assets/cases/politie.jpg";
 
 export const caseImages: Record<string, string> = {
   bmw: bmwHero,
