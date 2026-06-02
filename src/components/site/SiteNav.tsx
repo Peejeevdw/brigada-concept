@@ -21,7 +21,6 @@ const NAV_LEFT: NavItemDef[] = [
 const NAV_RIGHT: NavItemDef[] = [
   { label: "Careers", items: [] },
   { label: "Contact", items: [] },
-  { label: "More", items: [] },
 ];
 
 // Where each label / sub-item navigates. Only the new-style destinations are
@@ -156,6 +155,17 @@ const SiteNav = ({
       <nav
         className={`relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] ${textClassName}`}
       >
+        {/* Wordmark — first in-flow item so justify-between pins it to the left
+            gutter and spreads the nav items evenly across the rest. Click
+            transitions home. */}
+        <button
+          type="button"
+          onClick={() => transitionTo(homePath)}
+          aria-label="Brigada — home"
+          className="flex items-center"
+        >
+          <BrigadaWordmark className="block h-auto w-[100px]" />
+        </button>
         {NAV_LEFT.map((item) => (
           <NavItem
             key={item.label}
@@ -167,16 +177,6 @@ const SiteNav = ({
             onSub={onSub}
           />
         ))}
-        {/* Wordmark — in-flow centre item so justify-between spreads all 7
-            elements with equal gaps; click transitions home. */}
-        <button
-          type="button"
-          onClick={() => transitionTo(homePath)}
-          aria-label="Brigada — home"
-          className="flex items-center"
-        >
-          <BrigadaWordmark className="block h-auto w-[100px]" />
-        </button>
         {NAV_RIGHT.map((item) => (
           <NavItem
             key={item.label}
