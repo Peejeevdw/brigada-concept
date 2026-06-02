@@ -6,7 +6,8 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   // GitHub Pages serves this project site under /brigada-concept/.
-  base: mode === "production" ? "/brigada-concept/" : "/",
+  // Cloudflare (and local dev) serve at the root.
+  base: mode === "production" && process.env.DEPLOY_TARGET === "gh-pages" ? "/brigada-concept/" : "/",
   server: {
     host: "::",
     port: 8080,
