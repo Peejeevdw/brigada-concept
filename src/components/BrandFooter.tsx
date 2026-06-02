@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -21,7 +21,7 @@ const FOOTER_HLS_SRC =
 const COLUMNS = [
   { label: "Pages", links: ["Work", "Expertise", "About", "Careers", "Contact"] },
   { label: "Socials", links: ["LinkedIn", "Instagram", "X/Twitter"] },
-  { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
+  { label: "Contact", links: ["hello@brigada.be"] },
 ];
 
 // Internal routes for the "Pages" column (new-style destinations).
@@ -55,6 +55,24 @@ const BrandFooter = ({
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
+
+  // Vertical legal strip — measure the email link's top relative to the footer
+  // inner so the strip lines up with hello@brigada.be. (Rects, not offsetTop:
+  // the email's offsetParent is the positioned columns wrapper, not the footer.)
+  const footerInnerRef = useRef<HTMLElement>(null);
+  const emailRef = useRef<HTMLAnchorElement>(null);
+  const [legalTop, setLegalTop] = useState(0);
+  useEffect(() => {
+    const measure = () => {
+      const email = emailRef.current;
+      const inner = footerInnerRef.current;
+      if (!email || !inner) return;
+      setLegalTop(email.getBoundingClientRect().top - inner.getBoundingClientRect().top);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   // Attach the Bunny HLS playlist to the background video — hls.js for
   // Chrome/Firefox, native HLS for Safari (same approach as BunnyReelLightbox).
@@ -152,8 +170,23 @@ const BrandFooter = ({
             transform-origin: left; transform: scaleX(1) rotate(0.001deg);
           }
         }
+        /* Vertical variant — a line running ALONG the text (used by the rotated
+           legal strip), revealing on hover via scaleY so it follows the text. */
+        [data-underline-vert] { position: relative; text-decoration: none; }
+        [data-underline-vert]::before {
+          content: ""; position: absolute; top: 0; bottom: 0; left: -0.16em;
+          width: 0.08em; background-color: currentColor;
+          transform: scaleY(0) rotate(0.001deg); transform-origin: bottom;
+          transition: transform 0.6s cubic-bezier(0.625, 0.05, 0, 1);
+        }
+        @media (hover: hover) and (pointer: fine) {
+          [data-underline-vert]:hover::before {
+            transform-origin: top; transform: scaleY(1) rotate(0.001deg);
+          }
+        }
       `}</style>
       <footer
+        ref={footerInnerRef}
         data-footer-parallax-inner
         className={`relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] ${dark || lightText ? "text-white" : "text-brigada-black"}`}
         style={{ fontFamily: SANS }}
@@ -216,7 +249,13 @@ const BrandFooter = ({
                       ? `tel:${l.replace(/\s/g, "")}`
                       : "#";
                   return (
-                    <a key={l} href={href} data-underline-link className={cls}>
+                    <a
+                      key={l}
+                      ref={l.includes("@") ? emailRef : undefined}
+                      href={href}
+                      data-underline-link
+                      className={cls}
+                    >
                       {l}
                     </a>
                   );
@@ -224,6 +263,21 @@ const BrandFooter = ({
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Legal — magazine-style vertical strip on the right edge (reads
+            top→bottom), its top lined up with hello@brigada.be. */}
+        <div
+          style={{ top: legalTop, writingMode: "vertical-rl" }}
+          className="absolute right-[clamp(12px,2vw,20px)] z-10 flex items-center gap-3 text-[clamp(11px,0.9vw,13px)] tracking-[0.06em] opacity-50"
+        >
+          <button type="button" onClick={() => transitionTo("/cookies")} data-underline-vert>
+            Cookies
+          </button>
+          <span aria-hidden>|</span>
+          <button type="button" onClick={() => transitionTo("/privacy")} data-underline-vert>
+            Privacy Policy
+          </button>
         </div>
 
         {/* goo-1 filter for the optional wordmark "WAVE" reveal */}
