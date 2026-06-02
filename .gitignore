@@ -11,10 +11,13 @@ node_modules
 dist
 dist-ssr
 .wrangler
+.next
+.open-next
 *.local
 .env
 .env.local
 .env.*.local
+.envrc
 
 # Editor directories and files
 .vscode/*
