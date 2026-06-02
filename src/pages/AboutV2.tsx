@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
+import CareersCarousel from "@/components/CareersCarousel";
 import SharpBeatsLoud from "@/components/SharpBeatsLoud";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
@@ -20,9 +21,6 @@ const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const INK = "#ffffff";
 
-// Footer background — reuse the careers page's hero video (Bunny HLS playlist).
-const FOOTER_HLS_SRC =
-  "https://vz-329506f6-bc3.b-cdn.net/c2b163ea-71a6-4fdd-a960-ac6ac4157268/playlist.m3u8";
 
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
@@ -284,20 +282,12 @@ const AboutV2 = () => {
         </section>
       </div>
 
-      {/* Reel — full-viewport looping video. */}
-      <section className="relative h-[100svh] w-full overflow-hidden">
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          src={`${import.meta.env.BASE_URL}reel.mp4`}
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
-      </section>
+      {/* Image carousel (Skiper54 Carousel_006 — expand-on-active), ported from
+          /careers-v2 in place of the reel video. */}
+      <CareersCarousel />
 
-      {/* Footer — parallax reveal, ported from /concept */}
-      <BrandFooter videoSrc={FOOTER_HLS_SRC} lightText />
+      {/* Footer — same as /product: brio "..." (brio-03) backdrop + wordmark. */}
+      <BrandFooter brioPaletteId="brio-03" />
     </motion.main>
   );
 };
