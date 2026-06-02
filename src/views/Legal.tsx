@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useLenis } from "@/hooks/useLenis";

@@ -1,3 +1,5 @@
+"use client";
+
 import Appear from "@/components/Appear";
 import RevealText from "@/components/RevealText";
 import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
@@ -9,7 +11,7 @@ import marieImg from "@/assets/team/marie.jpg";
 import tomImg from "@/assets/team/tom.jpg";
 import arjanImg from "@/assets/team-real/arjan.webp";
 import joostImg from "@/assets/team-real/joost.jpg";
-import joostVideo from "@/assets/team-real/joost-move.mp4";
+const joostVideo = "/team-real/joost-move.mp4";
 import sentaImg from "@/assets/team-real/senta.jpg";
 import evertImg from "@/assets/team-real/evert.png";
 import antwerpImg from "@/assets/locations/antwerp.png";

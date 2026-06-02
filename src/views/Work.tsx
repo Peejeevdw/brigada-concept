@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import WorkThumb, { type Pillar, type WorkThumbHandle } from "@/components/wireframe/WorkThumb";
 import { projects } from "@/data/projects";
 import { caseImages } from "@/data/caseImages";
@@ -21,8 +24,18 @@ const parseActive = (raw: string | null): Pillar[] => {
 };
 
 const Work = () => {
-  const [params, setParams] = useSearchParams();
-  const active = parseActive(params.get("pillars") ?? params.get("pillar"));
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname() ?? "/work";
+  const setParams = (next: Record<string, string> | URLSearchParams) => {
+    const sp =
+      next instanceof URLSearchParams
+        ? next
+        : new URLSearchParams(Object.entries(next));
+    const qs = sp.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  };
+  const active = parseActive(params?.get("pillars") ?? params?.get("pillar"));
   const transition = useWorkTransition();
   const [fadingSlug, setFadingSlug] = useState<string | null>(null);
   const transitionActive = transition.phase !== "idle";
@@ -165,7 +178,8 @@ interface WorkCardProps {
 const WorkCard = ({ project: p, exitingSlug, transitionActive }: WorkCardProps) => {
   const thumbRef = useRef<WorkThumbHandle>(null);
   const imageRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const router = useRouter();
+  const navigate = (to: string) => router.push(to);
   const tagline = p.tagline ?? p.pillars.join(", ");
   const isActive = exitingSlug === p.slug;
   const isFading = exitingSlug !== null && !isActive;
@@ -228,7 +242,7 @@ const WorkCard = ({ project: p, exitingSlug, transitionActive }: WorkCardProps) 
 
   return p.clickable ? (
     <Link
-      to={`/work/${p.slug}`}
+      href={`/work/${p.slug}`}
       onClick={handleClick}
       className={cn("block", wrapperFade)}
       style={{ transitionDuration: `${SOURCE_FADE_MS}ms` }}

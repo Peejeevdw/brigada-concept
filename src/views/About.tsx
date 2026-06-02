@@ -1,3 +1,5 @@
+"use client";
+
 import Appear from "@/components/Appear";
 import RevealText from "@/components/RevealText";
 import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";

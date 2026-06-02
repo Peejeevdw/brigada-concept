@@ -1,7 +1,10 @@
+"use client";
+
 import { ArrowUpRight } from "lucide-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 import ScrollUnderline from "@/components/ScrollUnderline";
-import { Link, useParams } from "react-router-dom";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   expertiseTransition,
   useExpertiseTransition,
@@ -54,7 +57,8 @@ const pillarMeta: Record<Pillar, PillarMeta> = {
 };
 
 const ExpertiseDetail = () => {
-  const { slug = "" } = useParams();
+  const params = useParams<{ slug?: string }>();
+  const slug = params?.slug ?? "";
   const pillar = pillarMap[slug];
 
   const t = useExpertiseTransition();

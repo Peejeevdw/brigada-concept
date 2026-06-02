@@ -1,9 +1,13 @@
-import { Link, useParams } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import Placeholder from "@/components/wireframe/Placeholder";
 import { jobs } from "@/data/jobs";
 
 const JobDetail = () => {
-  const { slug = "" } = useParams();
+  const params = useParams<{ slug?: string }>();
+  const slug = params?.slug ?? "";
   const job = jobs.find((j) => j.slug === slug);
 
   if (!job) {
@@ -16,7 +20,7 @@ const JobDetail = () => {
           Job not found
         </h1>
         <Link
-          to="/careers/jobs"
+          href="/careers/jobs"
           className="text-sm uppercase tracking-widest border-b border-neutral-900 pb-1 link-cta"
         >
           ← All open jobs
@@ -29,7 +33,7 @@ const JobDetail = () => {
     <>
       <div className="px-6 md:px-10 py-24">
         <Link
-          to="/careers/jobs"
+          href="/careers/jobs"
           className="text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 mb-10 inline-block"
         >
           ← All open jobs

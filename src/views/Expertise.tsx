@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowUpRight } from "lucide-react";
 import Appear from "@/components/Appear";
 import RevealChildren from "@/components/RevealChildren";

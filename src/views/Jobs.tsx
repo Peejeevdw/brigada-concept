@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { jobs } from "@/data/jobs";
 
 const Jobs = () => (
@@ -13,7 +15,7 @@ const Jobs = () => (
       {jobs.map((j) => (
         <li key={j.slug} className="border-b border-neutral-200">
           <Link
-            to={`/careers/jobs/${j.slug}`}
+            href={`/careers/jobs/${j.slug}`}
             className="group flex items-center justify-between py-6 gap-6"
           >
             <div className="flex-1">

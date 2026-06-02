@@ -1,6 +1,9 @@
+"use client";
+
 import type { CSSProperties, MouseEvent } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { featuredProject, projects } from "@/data/projects";
 import { caseImages } from "@/data/caseImages";
@@ -79,7 +82,8 @@ const defaultContent: CaseContent = {
 };
 
 const WorkDetail = () => {
-  const { slug } = useParams();
+  const params = useParams<{ slug?: string }>();
+  const slug = params?.slug;
   const project =
     projects.find((p) => p.slug === slug && p.clickable) ?? featuredProject;
   const content = caseContent[project.slug] ?? defaultContent;
@@ -463,7 +467,8 @@ interface MoreWorkCardProps {
 const MoreWorkCard = ({ project: p, index, transitionActive }: MoreWorkCardProps) => {
   const thumbRef = useRef<WorkThumbHandle>(null);
   const imageRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const router = useRouter();
+  const navigate = (to: string) => router.push(to);
   const expertise = p.pillars.join(", ");
   const num = `Brgd.${String(index + 1).padStart(3, "0")}`;
 
@@ -533,7 +538,7 @@ const MoreWorkCard = ({ project: p, index, transitionActive }: MoreWorkCardProps
     </Appear>
   );
   return p.clickable ? (
-    <Link to={`/work/${p.slug}`} onClick={handleClick} className="block">
+    <Link href={`/work/${p.slug}`} onClick={handleClick} className="block">
       {inner}
     </Link>
   ) : (

@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useMemo, useRef } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import Appear from "@/components/Appear";
 import RevealChildren from "@/components/RevealChildren";
 import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
@@ -107,7 +109,7 @@ const Careers = () => {
               style={{ borderColor: "#2D2928" }}
             >
               <div className="md:col-span-2">
-                <Link to={`/careers/jobs/${j.slug}`} className="group inline-block">
+                <Link href={`/careers/jobs/${j.slug}`} className="group inline-block">
                   <p className="font-title uppercase group-hover:underline underline-offset-4">
                     {j.title}
                   </p>
