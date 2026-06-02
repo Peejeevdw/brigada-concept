@@ -20,11 +20,11 @@ CustomEase.create("osmo", "M0,0 C0.625,0.05 0,1 1,1");
 // Self-hosted from /public/orbit (was an external Webflow CDN — moved local to
 // kill the cold-load stall when the orbit scrolls into view on first visit).
 const ORBIT_CASES: { slug: string; img?: string; video?: string }[] = [
-  { slug: "case-1", img: `${import.meta.env.BASE_URL}orbit/case-1.avif` },
-  { slug: "case-2", img: `${import.meta.env.BASE_URL}orbit/case-2.avif` },
-  { slug: "case-3", img: `${import.meta.env.BASE_URL}orbit/case-3.avif` },
-  { slug: "case-4", img: `${import.meta.env.BASE_URL}orbit/case-4.avif` },
-  { slug: "case-5", img: `${import.meta.env.BASE_URL}orbit/case-5.avif` },
+  { slug: "case-1", img: `/orbit/case-1.avif` },
+  { slug: "case-2", img: `/orbit/case-2.avif` },
+  { slug: "case-3", img: `/orbit/case-3.avif` },
+  { slug: "case-4", img: `/orbit/case-4.avif` },
+  { slug: "case-5", img: `/orbit/case-5.avif` },
 ];
 
 // Tunable orbit parameters (Osmo's config, lifted to state so the dev panel can
@@ -257,7 +257,7 @@ const BrandOrbit = () => {
       </div>
 
       {/* Dev-only tuning panel — temporarily hidden (set `false &&` → remove to restore) */}
-      {false && import.meta.env.DEV && (
+      {false && (process.env.NODE_ENV !== "production") && (
         <div
           className="absolute bottom-4 left-4 z-[60] w-[240px] select-none rounded-lg border border-white/15 bg-brigada-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
           style={{ fontFamily: "ui-monospace, monospace" }}

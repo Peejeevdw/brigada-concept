@@ -1,6 +1,8 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 import type { Database } from "@/integrations/supabase/types";
 
 const FALLBACK_SUPABASE_URL = "https://qqytadkdmxnesjlncvkn.supabase.co";
@@ -48,7 +50,7 @@ const STORAGE_KEY = "review:enabled";
 const AUTHOR_KEY = "review:author";
 
 export default function ReviewComments() {
-  const { pathname } = useLocation();
+  const pathname = usePathname() ?? "/";
   const [enabled, setEnabled] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem(STORAGE_KEY) === "1";

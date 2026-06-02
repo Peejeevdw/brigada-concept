@@ -48,7 +48,7 @@ const BrandFooter = ({
   videoSrc = FOOTER_HLS_SRC,
   gooReveal = true,
   brioPaletteId,
-  brioSrc = `${import.meta.env.BASE_URL}concept-hero.jpg`,
+  brioSrc = `/concept-hero.jpg`,
   dark = false,
   lightText = false,
 }: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean; lightText?: boolean } = {}) => {

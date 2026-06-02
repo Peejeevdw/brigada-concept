@@ -1,3 +1,5 @@
+"use client";
+
 import {
   useEffect,
   useLayoutEffect,
@@ -60,7 +62,7 @@ const GOO_ALPHA_OFF = -6;
 // and update `img` here. `bg` is any CSS background value; `fg` is the text colour.
 const TUI_BG =
   "url(" +
-  import.meta.env.BASE_URL +
+  "/" +
   "concept-tui-bg.png) center/cover no-repeat, radial-gradient(140% 120% at 75% 6%, #FFFBEC 0%, #FFE25A 22%, #FFC21E 46%, #FF8A2E 70%, #FF5C46 88%, #FF4E73 100%)";
 // `bg` is any CSS background; `bgVideo` (optional) renders a full-bleed looping
 // video behind the content instead — takes precedence over `bg`.
@@ -692,7 +694,7 @@ const Concept = () => {
       </motion.div>
 
       {/* Dev-only type tuning panel — hidden (set SHOW_TUNING_PANEL = true to restore) */}
-      {SHOW_TUNING_PANEL && import.meta.env.DEV && (
+      {SHOW_TUNING_PANEL && (process.env.NODE_ENV !== "production") && (
         <div
           className="fixed bottom-4 left-4 z-[60] w-[230px] select-none rounded-lg border border-white/15 bg-brigada-black/80 p-3 text-[11px] leading-tight text-white shadow-xl backdrop-blur-md"
           style={{ fontFamily: "ui-monospace, monospace" }}
@@ -861,7 +863,7 @@ const Concept = () => {
                 className="absolute inset-0 overflow-hidden"
               >
                 <img
-                  src={`${import.meta.env.BASE_URL}${AWARDS[hoverAward].img}`}
+                  src={`/${AWARDS[hoverAward].img}`}
                   className="h-full w-full object-cover"
                   alt=""
                 />
@@ -889,7 +891,7 @@ const Concept = () => {
             style={{ opacity: bgOpacity, scale: bgScale }}
           >
             <video
-              src={`${import.meta.env.BASE_URL}reel.mp4`}
+              src={`/reel.mp4`}
               className="h-full w-full object-cover"
               autoPlay
               muted
@@ -900,7 +902,7 @@ const Concept = () => {
             />
             <div className="absolute inset-0 bg-brigada-black/20" />
             {/* Hidden poster — used by the lightbox as the loading placeholder */}
-            <img data-bunny-lightbox-placeholder src={`${import.meta.env.BASE_URL}concept-reel-bg.jpg`} alt="" className="hidden" />
+            <img data-bunny-lightbox-placeholder src={`/concept-reel-bg.jpg`} alt="" className="hidden" />
           </motion.div>
 
           {/* White block that overtakes the image near the end */}
@@ -1016,7 +1018,7 @@ const Concept = () => {
             {c.bgVideo && (
               <video
                 className="absolute inset-0 h-full w-full object-cover"
-                src={`${import.meta.env.BASE_URL}${c.bgVideo}`}
+                src={`/${c.bgVideo}`}
                 autoPlay
                 muted
                 loop
@@ -1055,7 +1057,7 @@ const Concept = () => {
                 <img
                   data-stacking-cards-img
                   className="block aspect-[1342/813] w-full object-cover"
-                  src={`${import.meta.env.BASE_URL}${c.img}`}
+                  src={`/${c.img}`}
                   alt={`${c.name} — ${c.tags}`}
                 />
                 {/* Trail source set — hidden originals the script clones from.
@@ -1064,7 +1066,7 @@ const Concept = () => {
                     <div data-trail-item="" key={ti} className="rotating-image-trail__item">
                       <div className="rotating-image-trail__card">
                         <img
-                          src={`${import.meta.env.BASE_URL}${src}`}
+                          src={`/${src}`}
                           loading="eager"
                           alt=""
                           className="rotating-image-trail__card-img"
@@ -1130,7 +1132,7 @@ const Concept = () => {
         {/* Full-bleed background video */}
         <video
           className="absolute inset-0 h-full w-full object-cover"
-          src={`${import.meta.env.BASE_URL}bg-red.mp4`}
+          src={`/bg-red.mp4`}
           muted
           loop
           playsInline
@@ -1140,7 +1142,7 @@ const Concept = () => {
         {/* Centered reel, blended into the background */}
         <video
           className="relative z-10 aspect-[1090/613] w-[min(1090px,82vw)] object-cover mix-blend-screen"
-          src={`${import.meta.env.BASE_URL}sharp-beats-loud.mp4`}
+          src={`/sharp-beats-loud.mp4`}
           muted
           loop
           playsInline

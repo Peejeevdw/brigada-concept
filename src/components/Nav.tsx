@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
-import { NavLink, Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -30,14 +33,19 @@ interface NavProps {
   showLogo?: boolean;
 }
 
+const isActivePath = (current: string, target: string, end = false) => {
+  if (end || target === "/") return current === target;
+  return current === target || current.startsWith(`${target}/`);
+};
+
 const Nav = ({ variant }: NavProps = {}) => {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const location = useLocation();
-  if (location.pathname === "/animation") return null;
-  const isHome = location.pathname === "/";
-  const isWorkDetail = /^\/work\/[^/]+/.test(location.pathname);
-  const isCareers = location.pathname === "/careers";
+  const pathname = usePathname() ?? "/";
+  if (pathname === "/animation") return null;
+  const isHome = pathname === "/";
+  const isWorkDetail = /^\/work\/[^/]+/.test(pathname);
+  const isCareers = pathname === "/careers";
   const isFixedOverlay = isWorkDetail || isCareers;
   const isHomeFlowNav = false;
   const isTransparentOverlay = true;
@@ -49,9 +57,6 @@ const Nav = ({ variant }: NavProps = {}) => {
   const logoRef = useRef<HTMLAnchorElement>(null);
   const logoSpacerRef = useRef<HTMLSpanElement>(null);
 
-  // Compose vertical transform: on home the nav starts pushed down to sit
-  // right below the hero, then sticks at top once the hero has scrolled past.
-  // The footer shift slides the whole nav up when the footer reveals.
   useEffect(() => {
     const apply = () => {
       const footer = document.querySelector<HTMLElement>("[data-site-footer]");
@@ -131,7 +136,7 @@ const Nav = ({ variant }: NavProps = {}) => {
           </span>
           <Link
             ref={logoRef}
-            to="/"
+            href="/"
             className="absolute inset-0 flex items-center text-sm normal-case tracking-normal font-bold"
             style={{
               fontFamily: "'Brigada Serif', serif",
@@ -144,9 +149,10 @@ const Nav = ({ variant }: NavProps = {}) => {
             Brigada
           </Link>
         </span>
-        {items.map((item, idx) => {
+        {items.map((item) => {
           const hasChildren = !!item.children?.length;
           const isOpen = openKey === item.to;
+          const isActive = isActivePath(pathname, item.to, item.to === "/");
           return (
             <div
               key={item.to}
@@ -163,32 +169,25 @@ const Nav = ({ variant }: NavProps = {}) => {
                 }
               }}
             >
-              <NavLink
-                to={item.to}
-                end={item.to === "/"}
-                className={({ isActive }) =>
-                  cn(
-                    "group relative pb-1 inline-block transition-opacity",
-                    isActive ? "opacity-100" : "opacity-90 hover:opacity-100"
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {item.label}
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "pointer-events-none absolute left-0 right-0 bottom-0 h-px transition-opacity duration-150",
-                        isActive
-                          ? "opacity-100"
-                          : "opacity-0 group-hover:opacity-100"
-                      )}
-                      style={{ backgroundColor: navTextColor }}
-                    />
-                  </>
+              <Link
+                href={item.to}
+                className={cn(
+                  "group relative pb-1 inline-block transition-opacity",
+                  isActive ? "opacity-100" : "opacity-90 hover:opacity-100"
                 )}
-              </NavLink>
+              >
+                {item.label}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute left-0 right-0 bottom-0 h-px transition-opacity duration-150",
+                    isActive
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
+                  )}
+                  style={{ backgroundColor: navTextColor }}
+                />
+              </Link>
 
               {hasChildren && (
                 <div
@@ -214,12 +213,12 @@ const Nav = ({ variant }: NavProps = {}) => {
                             : undefined
                         }
                       >
-                        <NavLink
-                          to={child.to}
+                        <Link
+                          href={child.to}
                           className="inline-block whitespace-nowrap py-1 border-b border-transparent transition-colors hover:border-white/60"
                         >
                           {child.label}
-                        </NavLink>
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -235,4 +234,3 @@ const Nav = ({ variant }: NavProps = {}) => {
 };
 
 export default Nav;
-

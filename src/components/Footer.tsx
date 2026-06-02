@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { pillarContent } from "@/data/pillars";
 import type { Pillar } from "@/components/wireframe/WorkThumb";
 
@@ -269,12 +271,12 @@ const Footer = () => {
           <div className="md:col-start-1 md:col-span-1 md:row-start-1">
             <p className="font-nav text-[#2D2928]/60 mb-2">WEBSITE</p>
             <ul className="font-meta text-[#2D2928] space-y-1">
-              <li><Link to="/" className="hover:opacity-70 transition-opacity">Home</Link></li>
-              <li><Link to="/expertise" className="hover:opacity-70 transition-opacity">Expertise</Link></li>
-              <li><Link to="/work" className="hover:opacity-70 transition-opacity">Work</Link></li>
-              <li><Link to="/about" className="hover:opacity-70 transition-opacity">About</Link></li>
-              <li><Link to="/careers" className="hover:opacity-70 transition-opacity">Careers</Link></li>
-              <li><Link to="/contact" className="hover:opacity-70 transition-opacity">Contact</Link></li>
+              <li><Link href="/" className="hover:opacity-70 transition-opacity">Home</Link></li>
+              <li><Link href="/expertise" className="hover:opacity-70 transition-opacity">Expertise</Link></li>
+              <li><Link href="/work" className="hover:opacity-70 transition-opacity">Work</Link></li>
+              <li><Link href="/about" className="hover:opacity-70 transition-opacity">About</Link></li>
+              <li><Link href="/careers" className="hover:opacity-70 transition-opacity">Careers</Link></li>
+              <li><Link href="/contact" className="hover:opacity-70 transition-opacity">Contact</Link></li>
             </ul>
           </div>
           {/* Column 1, row 2: socials */}
@@ -300,7 +302,7 @@ const Footer = () => {
                 <ul className="font-meta text-[#2D2928] space-y-1">
                   {pillarContent[p.label].services.slice(0, 5).map((s) => (
                     <li key={s.title}>
-                      <Link to={`/expertise/${p.slug}`} className="hover:opacity-70 transition-opacity">
+                      <Link href={`/expertise/${p.slug}`} className="hover:opacity-70 transition-opacity">
                         {s.title}
                       </Link>
                     </li>

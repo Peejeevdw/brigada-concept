@@ -1,3 +1,5 @@
+"use client";
+
 import {
   createContext,
   useCallback,
@@ -6,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 // Page transition — Osmo "Cross Fade Page Transition", default behaviour, adapted
@@ -31,7 +33,7 @@ export const usePageTransition = () => useContext(PageTransitionContext);
 type Phase = "idle" | "leaving" | "entering";
 
 const PageTransitionProvider = ({ children }: { children: ReactNode }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [phase, setPhase] = useState<Phase>("idle");
   const busy = useRef(false);
   const pending = useRef<string | null>(null);
@@ -40,21 +42,21 @@ const PageTransitionProvider = ({ children }: { children: ReactNode }) => {
     (to) => {
       if (busy.current) return;
       if (reduceMotion) {
-        navigate(to);
+        router.push(to);
         return;
       }
       busy.current = true;
       pending.current = to;
       setPhase("leaving"); // fade current page out
     },
-    [navigate]
+    [router]
   );
 
   const handleAnimationComplete = () => {
     if (phase === "leaving") {
       // Current page is gone — swap the route, then fade the new page in.
       if (pending.current) {
-        navigate(pending.current);
+        router.push(pending.current);
         pending.current = null;
       }
       setPhase("entering");

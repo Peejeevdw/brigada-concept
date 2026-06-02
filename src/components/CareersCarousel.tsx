@@ -21,7 +21,7 @@ import {
  * the rest of the page). Titles are left empty for now — add a `title` per
  * slide to show the subtle caption beneath the active one.
  */
-const BASE = import.meta.env.BASE_URL;
+const BASE = "/";
 const SLIDES: { src: string; alt: string; title: string }[] = [
   { src: `${BASE}careers-1.png`, alt: "Working at Brigada", title: "" },
   { src: `${BASE}careers-2.png`, alt: "Working at Brigada", title: "" },

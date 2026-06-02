@@ -1,10 +1,12 @@
+"use client";
+
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 import { workTransition } from "@/lib/workTransition";
 import { expertiseTransition } from "@/lib/expertiseTransition";
 
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   useEffect(() => {
     if (workTransition.get().phase !== "idle") return;
     if (expertiseTransition.get().phase !== "idle") return;
