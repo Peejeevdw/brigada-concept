@@ -127,19 +127,21 @@ const Concept = () => {
   };
   // Dev-only live tuning (see the on-page panel below).
   const [baseStart, setBaseStart] = useState(42);
-  const [baseEnd, setBaseEnd] = useState(105);
+  const [baseEnd, setBaseEnd] = useState(61);
   // Hero scroll length in vh — shorter = the whole sequence (and the cut) is faster.
-  const [heroVh, setHeroVh] = useState(150);
+  const [heroVh, setHeroVh] = useState(148);
   // Cut position as a fraction of scroll progress (independent of hero length).
   // The whole choreography completes by this point, so it stays coherent.
-  const [cutAt, setCutAt] = useState(0.3);
+  const [cutAt, setCutAt] = useState(0.24);
   // How far the video section is pulled up under the hero (vh) — higher = revealed sooner.
-  const [videoPull, setVideoPull] = useState(20);
+  const [videoPull, setVideoPull] = useState(35);
   // Dev-only multiplier on the auto-fitted paragraph size (1 = exactly fills width).
-  const [paraScale, setParaScale] = useState(0.84);
+  const [paraScale, setParaScale] = useState(0.58);
   // Dev-only vertical nudge of the paragraph (px) — negative pulls it up, closer
   // to SHARP BEATS LOUD.
-  const [paraOffsetY, setParaOffsetY] = useState(-40);
+  const [paraOffsetY, setParaOffsetY] = useState(-94);
+  // Gap between the SHARP / BEATS / LOUD words (px) — the block stays centred.
+  const [taglineGap, setTaglineGap] = useState(40);
 
   // Reel section (above the footer) — its videos only start playing once the
   // section scrolls into view, and pause again when it leaves.
@@ -490,19 +492,39 @@ const Concept = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseStart, baseEnd, cutAt]);
 
-  // Tagline block width: starts full (gutter-to-gutter) and converges to the
-  // paragraph width (paraScale of available) by the cut, staying centred — so
-  // SHARP/BEATS/LOUD ends up exactly as wide as the "We cut…" block.
+  // Tagline block width: starts full (gutter-to-gutter, so SHARP/LOUD align to
+  // the logo edges via justify-between) and converges by the cut to exactly
+  // `taglineGap` px between the three words, staying centred. justify-between
+  // distributes (width − words) over the two gaps, so width = words + 2·gap
+  // lands each gap on taglineGap.
+  const taglineRowRef = useRef<HTMLDivElement>(null);
   const taglineWidth = useMotionValue("100%");
   useEffect(() => {
     const update = (v: number) => {
+      const row = taglineRowRef.current;
+      const wrap = row?.parentElement;
+      if (!row || !wrap) return;
       const tt = Math.min(1, Math.max(0, v / cutAt));
-      taglineWidth.set(`${(1 - (1 - paraScale) * tt) * 100}%`);
+      const cs = getComputedStyle(wrap);
+      const full =
+        wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const words = Array.from(row.children).reduce(
+        (sum, el) => sum + (el as HTMLElement).offsetWidth,
+        0
+      );
+      const end = Math.min(words + 2 * taglineGap, full);
+      taglineWidth.set(`${full + (end - full) * tt}px`);
     };
     update(p.get());
-    return p.on("change", update);
+    const onResize = () => update(p.get());
+    window.addEventListener("resize", onResize);
+    const unsub = p.on("change", update);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      unsub();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paraScale, cutAt]);
+  }, [cutAt, taglineGap, baseStart, baseEnd]);
 
   // Paragraph: one shared font size so the WIDEST line fills the full width.
   const paraRef = useRef<HTMLDivElement>(null);
@@ -799,7 +821,7 @@ const Concept = () => {
               className="mt-1 w-full accent-white"
             />
           </label>
-          <label className="block">
+          <label className="mb-2 block">
             Paragraph offset — {paraOffsetY}px <span className="text-white/40">(↑ closer to SBL)</span>
             <input
               type="range"
@@ -807,6 +829,17 @@ const Concept = () => {
               max={100}
               value={paraOffsetY}
               onChange={(e) => setParaOffsetY(+e.target.value)}
+              className="mt-1 w-full accent-white"
+            />
+          </label>
+          <label className="block">
+            Tagline gap — {taglineGap}px <span className="text-white/40">(between SHARP · BEATS · LOUD)</span>
+            <input
+              type="range"
+              min={0}
+              max={160}
+              value={taglineGap}
+              onChange={(e) => setTaglineGap(+e.target.value)}
               className="mt-1 w-full accent-white"
             />
           </label>
@@ -900,17 +933,6 @@ const Concept = () => {
       {/* Scroll track — drives the pinned hero through its states */}
       <section ref={heroRef} className="relative z-10" style={{ height: `${heroVh}vh` }}>
         <div className="sticky top-0 h-screen select-none overflow-hidden bg-brigada-black">
-          {/* Replay intro — scoped so scrolling/clicking the page never restarts it */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              run();
-            }}
-            className="absolute bottom-5 right-5 z-30 text-[11px] uppercase tracking-[0.2em] text-white/50 mix-blend-difference transition-colors hover:text-white"
-          >
-            Replay
-          </button>
           {/* Background reel — also the lightbox trigger: clicking opens the HLS
               player. (Custom "Play reel" pill cursor is behind USE_REEL_CURSOR;
               currently off → plain cursor.) */}
@@ -993,7 +1015,7 @@ const Concept = () => {
             style={{ color: textColor }}
             className="absolute inset-x-0 top-[76vh] px-[clamp(24px,5vw,72px)]"
           >
-            <motion.div style={{ width: taglineWidth }} className="mx-auto flex justify-between">
+            <motion.div ref={taglineRowRef} style={{ width: taglineWidth }} className="mx-auto flex justify-between">
             {TAGLINE.map((word, i) => (
               <motion.span
                 key={word}
