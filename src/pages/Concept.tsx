@@ -16,7 +16,7 @@ import {
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import BrigadaWordmark from "@/components/BrigadaWordmark";
+import BrandFooter from "@/components/BrandFooter";
 import BunnyReelLightbox from "@/components/BunnyReelLightbox";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
@@ -54,7 +54,6 @@ const USE_REEL_CURSOR = false;
 const GOO_BLUR_START = 50;
 const GOO_ALPHA_MUL = 31;
 const GOO_ALPHA_OFF = -6;
-const GOO_DUR = 2;
 
 // Stacking case cards (Osmo "Stacking Cards Parallax" mechanic).
 // First card = TUI (real). The rest are placeholders — drop visuals in /public
@@ -209,8 +208,6 @@ const Concept = () => {
   const p = useMotionValue(0);
   const heroRef = useRef<HTMLElement>(null);
   const collectionRef = useRef<HTMLDivElement>(null);
-  const footerRef = useRef<HTMLDivElement>(null);
-  const footerWordmarkRef = useRef<HTMLDivElement>(null);
 
   // Custom cursor: a "Watch case" pill that trails the real cursor (with delay)
   // while hovering a case visual. The native cursor stays visible.
@@ -409,59 +406,6 @@ const Concept = () => {
   }, []);
   */
 
-  // ---- Footer parallax (Osmo "Footer Parallax Effect") ----
-  // As the footer scrolls in, its inner lifts (yPercent -25→0) and a dark
-  // overlay fades out (opacity 0.5→0).
-  useEffect(() => {
-    const el = footerRef.current;
-    if (!el) return;
-    const ctx = gsap.context(() => {
-      const inner = el.querySelector("[data-footer-parallax-inner]");
-      const dark = el.querySelector("[data-footer-parallax-dark]");
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: el,
-          start: "clamp(top bottom)",
-          end: "clamp(top top)",
-          scrub: true,
-        },
-      });
-      if (inner) tl.from(inner, { yPercent: -25, ease: "none" });
-      if (dark) tl.from(dark, { opacity: 0.5, ease: "none" }, "<");
-    }, footerRef);
-    return () => ctx.revert();
-  }, []);
-
-  // codrops gooey-blur reveal on the footer wordmark — plays as it scrolls into
-  // view (center 85%) and reverses back to the start state on scroll up.
-  useEffect(() => {
-    const el = footerWordmarkRef.current;
-    const feBlur = document.querySelector<SVGFEGaussianBlurElement>("#concept-footer-goo feGaussianBlur");
-    if (!el || !feBlur) return;
-    const vals = { stdDeviation: GOO_BLUR_START };
-    feBlur.setAttribute("stdDeviation", String(GOO_BLUR_START));
-    el.style.filter = "url(#concept-footer-goo)";
-    gsap.set(el, { opacity: 0 });
-    const ctx = gsap.context(() => {
-      gsap
-        .timeline({
-          defaults: { duration: GOO_DUR, ease: "expo" },
-          onUpdate: () => feBlur.setAttribute("stdDeviation", String(vals.stdDeviation)),
-          scrollTrigger: {
-            trigger: el,
-            start: "center 85%",
-            toggleActions: "play none none reverse",
-          },
-        })
-        .fromTo(vals, { stdDeviation: GOO_BLUR_START }, { stdDeviation: 0 }, 0)
-        .fromTo(el, { opacity: 0 }, { opacity: 1 }, 0);
-    }, footerRef);
-    return () => {
-      ctx.revert();
-      el.style.filter = "none";
-      gsap.set(el, { opacity: 1 });
-    };
-  }, []);
   // Logo + baseline + paragraph move up together as one group (uniform 44vh).
   // Runs to p=1 (the exact pin-release point) so the group never freezes before
   // the sticky lets go — the text keeps scrolling instead of pausing at the end.
@@ -1204,84 +1148,8 @@ const Concept = () => {
         />
       </section>
 
-      {/* Footer — parallax reveal (Osmo "Footer Parallax Effect") */}
-      <div ref={footerRef} data-footer-parallax className="relative z-10 overflow-hidden">
-        <footer
-          data-footer-parallax-inner
-          className="relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] bg-white px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] text-brigada-black"
-          style={{ fontFamily: SANS }}
-        >
-          {/* Link columns */}
-          <div className="flex flex-col gap-12 md:flex-row md:gap-10">
-            {[
-              { label: "Pages", links: ["Work", "Expertise", "About", "Careers", "Contact"] },
-              { label: "Socials", links: ["LinkedIn", "Instagram", "X/Twitter"] },
-              { label: "Contact", links: ["hello@brigada.be", "+32 9 123 45 67"] },
-            ].map((col) => (
-              <div key={col.label} className="flex w-full flex-col gap-6 md:w-1/3">
-                <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
-                  ( {col.label} )
-                </p>
-                <div className="flex flex-col items-start gap-1">
-                  {col.links.map((l) => {
-                    const routes: Record<string, string> = {
-                      Work: "/work-v2",
-                      Expertise: "/expertise-v2",
-                      About: "/about-v2",
-                      Careers: "/careers-v2",
-                      Contact: "/contact-v2",
-                    };
-                    const cls = "text-[clamp(28px,4.5vw,44px)] leading-none";
-                    if (routes[l]) {
-                      return (
-                        <button
-                          key={l}
-                          type="button"
-                          onClick={() => transitionTo(routes[l])}
-                          data-underline-link
-                          className={`${cls} text-left`}
-                        >
-                          {l}
-                        </button>
-                      );
-                    }
-                    const href = l.includes("@")
-                      ? `mailto:${l}`
-                      : /^[+\d]/.test(l)
-                        ? `tel:${l.replace(/\s/g, "")}`
-                        : "#";
-                    return (
-                      <a key={l} href={href} data-underline-link className={cls}>
-                        {l}
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* goo-1 filter for the wordmark "WAVE" reveal */}
-          <svg aria-hidden width="0" height="0" className="absolute">
-            <defs>
-              <filter id="concept-footer-goo" x="-20%" y="-100%" width="140%" height="300%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="0" result="blur" />
-                <feColorMatrix in="blur" mode="matrix" values={`1 0 0 0 0  0 1 0 0 0  1 0 1 0 0  0 0 0 ${GOO_ALPHA_MUL} ${GOO_ALPHA_OFF}`} result="goo" />
-                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-              </filter>
-            </defs>
-          </svg>
-          {/* Logo row — full-width wordmark, bottom clipped off the footer edge */}
-          <div ref={footerWordmarkRef} className="aspect-[1260/230] w-full overflow-hidden">
-            <BrigadaWordmark className="block h-auto w-full" />
-          </div>
-        </footer>
-        <div
-          data-footer-parallax-dark
-          className="pointer-events-none absolute inset-0 bg-[#201D1D] opacity-0"
-          aria-hidden
-        />
-      </div>
+      {/* Footer — shared BrandFooter (black/dark variant), same as /contact-v2. */}
+      <BrandFooter dark />
     </main>
   );
 };
