@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +12,6 @@ import SiteGridOverlay from "./components/SiteGridOverlay";
 import ReviewComments from "./components/review/ReviewComments";
 import Nav from "./components/Nav";
 import PageTransitionProvider from "./components/PageTransition";
-import IndexV2 from "./pages/IndexV2.tsx";
 import WorkDetail from "./pages/WorkDetail";
 import Animation from "./pages/Animation";
 
@@ -51,7 +50,7 @@ const WorkV2 = lazy(() => import("./pages/WorkV2"));
 const ContactV2 = lazy(() => import("./pages/ContactV2"));
 
 const queryClient = new QueryClient();
-const HIDE_NAV_ROUTES = ["/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept", "/concept-lab", "/brand", "/careers-v2", "/about-v2", "/employer-branding", "/brand-v2", "/wave-test", "/sharp-beats", "/brio", "/expertise-v2", "/product", "/people", "/marketing", "/work-v2", "/contact-v2"];
+const HIDE_NAV_ROUTES = ["/", "/fantastic", "/wotz", "/today", "/mortierbrigade", "/onlyhumans", "/concept-lab", "/brand", "/careers-v2", "/about-v2", "/employer-branding", "/brand-v2", "/wave-test", "/sharp-beats", "/brio", "/expertise-v2", "/product", "/people", "/marketing", "/work-v2", "/contact-v2"];
 const ConditionalNav = () => {
   const { pathname } = useLocation();
   // Normalise a trailing slash so e.g. "/brand-v2/" still matches "/brand-v2".
@@ -76,7 +75,7 @@ const App = () => (
         <PageTransitionProvider>
         <Suspense fallback={<div className="min-h-screen bg-[#f3f2ef]" />}>
           <Routes>
-            <Route path="/" element={<IndexV2 />} />
+            <Route path="/" element={<Concept />} />
             <Route path="/font" element={<Font />} />
             <Route path="/wotz" element={<Wotz />} />
             <Route path="/fantastic" element={<Fantastic />} />
@@ -85,7 +84,7 @@ const App = () => (
             <Route path="/today" element={<Today />} />
             <Route path="/animation" element={<Animation />} />
             <Route path="/styles" element={<Styles />} />
-            <Route path="/concept" element={<Concept />} />
+            <Route path="/concept" element={<Navigate to="/" replace />} />
             <Route path="/concept-lab" element={<ConceptLab />} />
             <Route path="/brand" element={<Brand />} />
             <Route path="/careers-v2" element={<CareersV2 />} />
