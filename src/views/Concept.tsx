@@ -13,7 +13,6 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
-  animate,
 } from "framer-motion";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -125,6 +124,11 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   // ---- Intro: 0 = blurred + thick stroke · 1 = crisp full logo ----
   const t = useMotionValue(0);
   const [revealed, setRevealed] = useState(false);
+  // Hero morph: tagline ("Sharp Beats Loud") fades in first, then crossfades
+  // into the paragraph ("We cut through the noise…") after a beat. Once the
+  // morph flips, it stays — the rest of the scroll choreography keeps both
+  // elements in place and only shifts their group up.
+  const [morphedToPara, setMorphedToPara] = useState(false);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   // Hover-intent voor het nav-submenu: een korte sluit-vertraging zodat de muis
   // tussen het label en zijn submenu (of net links/rechts van het label) bewegen
@@ -190,16 +194,27 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const bgOpacity = useTransform(t, [0.55, 0.85], [0, 1], { clamp: true });
   const bgScale = useTransform(t, [0.3, 1], [1.08, 1], { clamp: true });
 
-  const run = () => {
-    setRevealed(false);
-    t.set(0);
-    animate(t, 1, { duration: 2.6, ease: EASE_OUT });
-  };
-
+  // Logo entrance: drive `t` from 0 → 1 over 2.6s. We use a manual rAF loop
+  // because the imperative `animate(motionValue, ...)` was not progressing
+  // under Next 16 + React 19 strict mode in this codebase — the value stayed
+  // pinned at 0 and the change-listeners never fired. rAF is simpler and the
+  // ease approximation (cubic-out) is visually indistinguishable from the
+  // original cubic-bezier(0.16, 1, 0.3, 1).
   useEffect(() => {
-    run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setRevealed(false);
+    setMorphedToPara(false);
+    t.set(0);
+    let raf = 0;
+    const start = performance.now();
+    const DURATION = 2600;
+    const step = (ts: number) => {
+      const k = Math.min(1, (ts - start) / DURATION);
+      t.set(1 - Math.pow(1 - k, 3));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [t]);
 
   // Reveal the rest as soon as the logo is essentially sharp.
   useEffect(() => {
@@ -208,6 +223,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     });
     return unsub;
   }, [t]);
+
+  // Tagline → paragraph morph. Holds the tagline visible for a beat so it
+  // reads as a complete phrase, then crossfades into the paragraph.
+  useEffect(() => {
+    if (!revealed) return;
+    const id = window.setTimeout(() => setMorphedToPara(true), 1500);
+    return () => window.clearTimeout(id);
+  }, [revealed]);
 
   // Hero logo entrance = codrops "WAVE" goo reveal instead of a plain blur: drive
   // the goo feGaussianBlur from the pre-roll t (GOO_BLUR_START → 0 as t 0 → 1).
@@ -986,8 +1009,18 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 className="uppercase tracking-[-0.015em]"
                 style={{ fontFamily: SANS, fontStretch: "125%", fontSize: baselineSize }}
                 initial={{ opacity: 0, y: 24 }}
-                animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-                transition={{ duration: 0.55, ease: EASE_OUT, delay: revealed ? 0.05 + i * 0.12 : 0 }}
+                animate={
+                  morphedToPara
+                    ? { opacity: 0, y: -14 }
+                    : revealed
+                      ? { opacity: 1, y: 0 }
+                      : { opacity: 0, y: 24 }
+                }
+                transition={{
+                  duration: morphedToPara ? 0.5 : 0.55,
+                  ease: EASE_OUT,
+                  delay: morphedToPara ? i * 0.04 : revealed ? 0.05 + i * 0.12 : 0,
+                }}
               >
                 {word}
               </motion.span>
@@ -1000,6 +1033,9 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             ref={paraRef}
             style={{ color: textColor, y: paraOffsetY }}
             className="absolute inset-x-0 top-[96vh] px-[clamp(24px,5vw,72px)]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: morphedToPara ? 1 : 0 }}
+            transition={{ duration: 0.7, ease: EASE_OUT, delay: morphedToPara ? 0.18 : 0 }}
           >
             {paragraphLines.map((line, i) => (
               <div key={`${line}-${i}`} className="overflow-hidden">
