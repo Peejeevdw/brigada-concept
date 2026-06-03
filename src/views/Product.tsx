@@ -9,35 +9,25 @@ import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
-import { pillarContent } from "@/data/pillars";
 import type { PillarViewProps } from "./pillar-types";
 
 // Product page — the Product expertise detail, built on the shared site
 // foundation (SiteNav, Reveal, SectionLabel, useLenis, .font-* roles, tokens)
 // with the same section rhythm as /brand: intro → services → contact → orbit
-// → parallax footer. Content from src/data/pillars.ts.
+// → parallax footer. All content read from the matching `expertise` doc.
 
-const content = pillarContent.Product;
-const SERVICES = content.services.map((s) => s.title);
-
-const FALLBACK_LEAD = {
-  firstName: "Jeroen",
-  fullName: "Jeroen De Bock",
-  position: "Client Partner",
-  phone: "+32 477 62 76 01",
-  email: "jeroen.debock@brigada.be",
-};
-
-const Product = ({ expertise }: PillarViewProps = {}) => {
+const Product = ({ expertise }: PillarViewProps) => {
   const lead = expertise?.lead;
-  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
-  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
-  const position = lead?.position ?? FALLBACK_LEAD.position;
-  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
-  const email = lead?.email ?? FALLBACK_LEAD.email;
-  const leadInTemplate = expertise?.leadIn ?? "Have you met {name} yet?";
-  const leadInText = leadInTemplate.replace("{name}", firstName);
-  const brioPalette = expertise?.brioPaletteId ?? "brio-03";
+  const firstName = lead?.name ? lead.name.split(" ")[0] : "";
+  const fullName = lead?.name ?? "";
+  const position = lead?.position ?? "";
+  const phone = lead?.phone ?? "";
+  const email = lead?.email ?? "";
+  const leadInText = (expertise?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? undefined;
+  const pillarName = expertise?.name ?? "Product";
+  const intro = expertise?.intro ?? "";
+  const services = expertise?.services ?? [];
 
   // Scroll-driven background — warms from white to a soft blue-green tint across
   // the content block, reaching full tint as the dark orbit slides over.
@@ -60,12 +50,10 @@ const Product = ({ expertise }: PillarViewProps = {}) => {
         {/* Intro */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p className="font-eyebrow text-brigada-black">
-              Product
-            </p>
+            <p className="font-eyebrow text-brigada-black">{pillarName}</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">{content.intro}</h1>
+            <h1 className="font-display w-full text-brigada-black">{intro}</h1>
           </Reveal>
         </section>
 
@@ -77,13 +65,13 @@ const Product = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>Product</SectionLabel>
+              <SectionLabel>{pillarName}</SectionLabel>
               <ul
                 className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
                 style={{ lineHeight: "40px" }}
               >
-                {SERVICES.map((s) => (
-                  <li key={s}>{s}</li>
+                {services.map((s, i) => (
+                  <li key={s.title ?? `s${i}`}>{s.title}</li>
                 ))}
               </ul>
             </div>
@@ -98,7 +86,7 @@ const Product = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-              <SectionLabel>Product contact</SectionLabel>
+              <SectionLabel>{pillarName} contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
                   <p>{leadInText}</p>

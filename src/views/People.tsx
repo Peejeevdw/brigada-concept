@@ -10,7 +10,6 @@ import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
-import { pillarContent } from "@/data/pillars";
 import type { CascadingSlide } from "@/components/CascadingSlider";
 import type { PillarViewProps } from "./pillar-types";
 const peopleCase1 = "/assets/people-case-1.png";
@@ -22,27 +21,13 @@ const peopleCase4 = "/assets/people-case-4.png";
 // foundation with the same section rhythm as /brand: intro → services →
 // contact → orbit → parallax footer. Content from src/data/pillars.ts.
 
-const content = pillarContent.People;
-const SERVICES = content.services.map((s) => s.title);
-
-// Some services link to a detail page.
+// Some services link to a detail page (keyed by title).
 const SERVICE_LINKS: Record<string, string> = {
   "Employer branding": "/employer-branding",
 };
 
-// Short subtle subline under each service (keyed by the title in pillars.ts).
-const SERVICE_BLURBS: Record<string, string> = {
-  "Employer branding":
-    "We build employer brands with a clear point of view. From the inside out, we give talent a reason to choose you and stick with you.",
-  "Candidate experience":
-    "We streamline the journey from first click to signed contract, because good people don’t wait.",
-  "Employee experience":
-    "Be relevant internally, or irrelevant everywhere. We create the communication, platforms and experiences that keep teams involved.",
-  "Culture and change design":
-    "Don’t let your change programme die in PowerPoint. We help your people see the why and feel part of it.",
-};
-
-// People case placeholders (swap for real cases later).
+// People case placeholders (swap for real cases later — these are visual
+// stand-ins, not editorial copy).
 const PEOPLE_CASES: CascadingSlide[] = [
   { img: peopleCase1, title: "Placeholder" },
   { img: peopleCase2, title: "Placeholder" },
@@ -50,24 +35,18 @@ const PEOPLE_CASES: CascadingSlide[] = [
   { img: peopleCase4, title: "Placeholder" },
 ];
 
-const FALLBACK_LEAD = {
-  firstName: "Marie",
-  fullName: "Marie",
-  position: "People Lead",
-  phone: "",
-  email: "marie@brigada.be",
-};
-
-const People = ({ expertise }: PillarViewProps = {}) => {
+const People = ({ expertise }: PillarViewProps) => {
   const lead = expertise?.lead;
-  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
-  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
-  const position = lead?.position ?? FALLBACK_LEAD.position;
-  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
-  const email = lead?.email ?? FALLBACK_LEAD.email;
-  const leadInTemplate = expertise?.leadIn ?? "{name} is the one to talk to.";
-  const leadInText = leadInTemplate.replace("{name}", firstName);
-  const brioPalette = expertise?.brioPaletteId ?? "brio-02";
+  const firstName = lead?.name ? lead.name.split(" ")[0] : "";
+  const fullName = lead?.name ?? "";
+  const position = lead?.position ?? "";
+  const phone = lead?.phone ?? "";
+  const email = lead?.email ?? "";
+  const leadInText = (expertise?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? undefined;
+  const pillarName = expertise?.name ?? "People";
+  const intro = expertise?.intro ?? "";
+  const services = expertise?.services ?? [];
   const transitionTo = usePageTransition();
   // Scroll-driven background — warms from white to a soft lilac tint across the
   // content block, reaching full tint as the dark orbit slides over.
@@ -90,10 +69,10 @@ const People = ({ expertise }: PillarViewProps = {}) => {
         {/* Intro */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p className="font-eyebrow text-brigada-black">People</p>
+            <p className="font-eyebrow text-brigada-black">{pillarName}</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">{content.intro}</h1>
+            <h1 className="font-display w-full text-brigada-black">{intro}</h1>
           </Reveal>
         </section>
 
@@ -105,26 +84,27 @@ const People = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>People</SectionLabel>
+              <SectionLabel>{pillarName}</SectionLabel>
               <ul className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]">
-                {SERVICES.map((s, i) => {
-                  const href = SERVICE_LINKS[s];
-                  const blurb = SERVICE_BLURBS[s];
+                {services.map((s, i) => {
+                  const title = s.title ?? "";
+                  const href = SERVICE_LINKS[title];
+                  const blurb = s.description ?? undefined;
                   return (
-                    <li key={s} className={i === 0 ? "" : "mt-[clamp(22px,2.4vw,34px)]"}>
+                    <li key={title || `s${i}`} className={i === 0 ? "" : "mt-[clamp(22px,2.4vw,34px)]"}>
                       {href ? (
                         <button
                           type="button"
                           onClick={() => transitionTo(href)}
                           className="group inline-flex items-center gap-2 text-left leading-[1.25] transition-opacity hover:opacity-60"
                         >
-                          <span>{s}</span>
+                          <span>{title}</span>
                           <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
                             →
                           </span>
                         </button>
                       ) : (
-                        <span className="leading-[1.25]">{s}</span>
+                        <span className="leading-[1.25]">{title}</span>
                       )}
                       {/* Subtle subline under each service */}
                       {blurb && (
@@ -148,7 +128,7 @@ const People = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-              <SectionLabel>People contact</SectionLabel>
+              <SectionLabel>{pillarName} contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
                   <p>{leadInText}</p>

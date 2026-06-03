@@ -11,36 +11,14 @@ import { GUTTER } from "@/lib/siteTokens";
 
 type LegalKind = "privacy" | "cookies";
 
-/**
- * Used when Sanity is unconfigured or has no `legalPage` doc yet. Final copy
- * always comes from Sanity once the page is wired.
- */
-const FALLBACK: Record<LegalKind, { title: string; body: string[] }> = {
-  privacy: {
-    title: "Privacy Policy",
-    body: [
-      "This page is a placeholder for Brigada's privacy policy. It will describe what personal data we collect, why we collect it, how long we keep it, and the rights you have over it.",
-      "Final copy to follow.",
-    ],
-  },
-  cookies: {
-    title: "Cookie Policy",
-    body: [
-      "This page is a placeholder for Brigada's cookie policy. It will explain which cookies and similar technologies this site uses, what they do, and how you can manage your preferences.",
-      "Final copy to follow.",
-    ],
-  },
-};
-
 export type LegalData = {
   title?: string | null;
   body?: PortableTextBlock[] | null;
 } | null;
 
-const Legal = ({ kind, data }: { kind: LegalKind; data?: LegalData }) => {
-  const title = data?.title || FALLBACK[kind].title;
-  const sanityBody = data?.body && data.body.length > 0 ? data.body : null;
-  const fallbackBody = FALLBACK[kind].body;
+const Legal = ({ kind: _kind, data }: { kind: LegalKind; data?: LegalData }) => {
+  const title = data?.title ?? "";
+  const body = data?.body ?? null;
 
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, matching /expertise-v2.
@@ -67,18 +45,12 @@ const Legal = ({ kind, data }: { kind: LegalKind; data?: LegalData }) => {
             <h1 className="font-display w-full text-brigada-black">{title}</h1>
           </Reveal>
           <div className="mt-[clamp(40px,5vw,72px)] flex flex-col gap-6 md:w-[60%]">
-            {sanityBody ? (
+            {body && body.length > 0 && (
               <Reveal>
                 <div className="font-body text-brigada-black [&_p]:mb-6 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:mb-3 [&_h2]:mt-8 [&_h3]:font-body [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-6 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline">
-                  <PortableText value={sanityBody} />
+                  <PortableText value={body} />
                 </div>
               </Reveal>
-            ) : (
-              fallbackBody.map((paragraph, i) => (
-                <Reveal key={i} delay={i === 0 ? 0 : 0.04}>
-                  <p className="font-body text-brigada-black">{paragraph}</p>
-                </Reveal>
-              ))
             )}
           </div>
         </section>

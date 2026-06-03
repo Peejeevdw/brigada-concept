@@ -13,13 +13,6 @@ import type { PillarViewProps } from "./pillar-types";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FALLBACK_LEAD = {
-  firstName: "Mathias",
-  fullName: "Mathias",
-  position: "Brand Lead",
-  phone: "",
-  email: "mathias@brigada.be",
-};
 
 // Brand page — implemented from Figma (node 308:2369), built in the concept-page
 // idiom (self-contained, framer-motion, Antarctica, public/ assets via BASE_URL).
@@ -30,35 +23,7 @@ const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const INK = "#2d2928";
 
-// Brand disciplines list (Figma 308:2434) — each with a short subline. Some
-// titles link to a detail page.
-const DISCIPLINES = [
-  {
-    title: "Brand strategy & platforms",
-    blurb:
-      "A sharp strategy gives brands the story and focus to move with intent, instead of reacting to anything that moves.",
-  },
-  {
-    title: "Naming, verbal & sonic identity",
-    blurb:
-      "The right name, tone of voice and sound make a brand feel familiar and trusted, even if you haven’t heard from them in a while.",
-  },
-  {
-    title: "Brand identity concept & design",
-    blurb:
-      "Strong identity design creates recognition through simplicity, giving brands a glowing presence without needing to shout.",
-  },
-  {
-    title: "Motion to spatial identity design",
-    blurb:
-      "Brands come alive when they move convincingly across time and space, like the real world does.",
-  },
-  {
-    title: "Brand implementation & management",
-    blurb:
-      "A brand can only gain traction if it is usable and aligned across every channel, tool and touchpoint.",
-  },
-];
+// Some discipline titles link to a detail page (keyed by title). Empty for now.
 const DISCIPLINE_LINKS: Record<string, string> = {};
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
@@ -95,16 +60,19 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const Brand = ({ expertise }: PillarViewProps = {}) => {
+const Brand = ({ expertise }: PillarViewProps) => {
   const lead = expertise?.lead;
-  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
-  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
-  const position = lead?.position ?? FALLBACK_LEAD.position;
-  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
-  const email = lead?.email ?? FALLBACK_LEAD.email;
-  const leadInTemplate = expertise?.leadIn ?? "{name} is the guy to talk to.";
-  const leadInText = leadInTemplate.replace("{name}", firstName);
-  const brioPalette = expertise?.brioPaletteId ?? "brio-06";
+  const firstName = lead?.name ? lead.name.split(" ")[0] : "";
+  const fullName = lead?.name ?? "";
+  const position = lead?.position ?? "";
+  const phone = lead?.phone ?? "";
+  const email = lead?.email ?? "";
+  const leadInText = (expertise?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? undefined;
+  const eyebrow = expertise?.eyebrow ?? "";
+  const pillarName = expertise?.name ?? "Brand";
+  const intro = expertise?.intro ?? "";
+  const services = expertise?.services ?? [];
   const transitionTo = usePageTransition();
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll
@@ -167,7 +135,7 @@ const Brand = ({ expertise }: PillarViewProps = {}) => {
               className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-brigada-black"
               style={{ fontWeight: 500, fontStretch: "125%" }}
             >
-              How we move your brand
+              {[eyebrow, pillarName.toLowerCase()].filter(Boolean).join(" ")}
             </p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
@@ -175,8 +143,7 @@ const Brand = ({ expertise }: PillarViewProps = {}) => {
               className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-brigada-black"
               style={{ fontWeight: 400 }}
             >
-              We craft brands. We give them purpose and personality, and we make
-              them look, sounds and feel like they&rsquo;ve got a pulse.
+              {intro}
             </h1>
           </Reveal>
         </section>
@@ -186,30 +153,32 @@ const Brand = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>Brand</SectionLabel>
+              <SectionLabel>{pillarName}</SectionLabel>
               <ul className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]">
-                {DISCIPLINES.map((d, i) => {
-                  const href = DISCIPLINE_LINKS[d.title];
+                {services.map((d, i) => {
+                  const title = d.title ?? "";
+                  const href = DISCIPLINE_LINKS[title];
                   return (
-                    <li key={d.title} className={i === 0 ? "" : "mt-[clamp(22px,2.4vw,34px)]"}>
+                    <li key={title || `s${i}`} className={i === 0 ? "" : "mt-[clamp(22px,2.4vw,34px)]"}>
                       {href ? (
                         <button
                           type="button"
                           onClick={() => transitionTo(href)}
                           className="group inline-flex items-center gap-2 text-left leading-[1.25] transition-opacity hover:opacity-60"
                         >
-                          <span>{d.title}</span>
+                          <span>{title}</span>
                           <span className="relative top-[-2px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
                             →
                           </span>
                         </button>
                       ) : (
-                        <span className="leading-[1.25]">{d.title}</span>
+                        <span className="leading-[1.25]">{title}</span>
                       )}
-                      {/* Subtle subline under each discipline */}
-                      <p className="mt-[clamp(6px,0.6vw,10px)] max-w-[42ch] text-[clamp(13px,1.05vw,15px)] leading-snug opacity-50">
-                        {d.blurb}
-                      </p>
+                      {d.description && (
+                        <p className="mt-[clamp(6px,0.6vw,10px)] max-w-[42ch] text-[clamp(13px,1.05vw,15px)] leading-snug opacity-50">
+                          {d.description}
+                        </p>
+                      )}
                     </li>
                   );
                 })}
@@ -226,7 +195,7 @@ const Brand = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK }} />
             <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-              <SectionLabel>Brand contact</SectionLabel>
+              <SectionLabel>{pillarName} contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
                   <p>{leadInText}</p>

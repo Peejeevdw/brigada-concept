@@ -9,34 +9,24 @@ import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
-import { pillarContent } from "@/data/pillars";
 import type { PillarViewProps } from "./pillar-types";
 
 // Marketing page — the Marketing expertise detail, built on the shared site
 // foundation with the same section rhythm as /product and /people: intro →
-// services → contact → cases → parallax footer. Content from data/pillars.ts.
+// services → contact → cases → parallax footer. All content from Sanity.
 
-const content = pillarContent.Marketing;
-const SERVICES = content.services.map((s) => s.title);
-
-const FALLBACK_LEAD = {
-  firstName: "Sofie",
-  fullName: "Sofie",
-  position: "Marketing Lead",
-  phone: "",
-  email: "sofie@brigada.be",
-};
-
-const Marketing = ({ expertise }: PillarViewProps = {}) => {
+const Marketing = ({ expertise }: PillarViewProps) => {
   const lead = expertise?.lead;
-  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
-  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
-  const position = lead?.position ?? FALLBACK_LEAD.position;
-  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
-  const email = lead?.email ?? FALLBACK_LEAD.email;
-  const leadInTemplate = expertise?.leadIn ?? "{name} is the one to talk to.";
-  const leadInText = leadInTemplate.replace("{name}", firstName);
-  const brioPalette = expertise?.brioPaletteId ?? "brio-04";
+  const firstName = lead?.name ? lead.name.split(" ")[0] : "";
+  const fullName = lead?.name ?? "";
+  const position = lead?.position ?? "";
+  const phone = lead?.phone ?? "";
+  const email = lead?.email ?? "";
+  const leadInText = (expertise?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? undefined;
+  const pillarName = expertise?.name ?? "Marketing";
+  const intro = expertise?.intro ?? "";
+  const services = expertise?.services ?? [];
   // Scroll-driven background — warms from white to a soft yellow-green tint
   // across the content block, reaching full tint as the dark cases slide over.
   const contentRef = useRef<HTMLDivElement>(null);
@@ -58,10 +48,10 @@ const Marketing = ({ expertise }: PillarViewProps = {}) => {
         {/* Intro */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p className="font-eyebrow text-brigada-black">Marketing</p>
+            <p className="font-eyebrow text-brigada-black">{pillarName}</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">{content.intro}</h1>
+            <h1 className="font-display w-full text-brigada-black">{intro}</h1>
           </Reveal>
         </section>
 
@@ -73,13 +63,13 @@ const Marketing = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>Marketing</SectionLabel>
+              <SectionLabel>{pillarName}</SectionLabel>
               <ul
                 className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
                 style={{ lineHeight: "40px" }}
               >
-                {SERVICES.map((s) => (
-                  <li key={s}>{s}</li>
+                {services.map((s, i) => (
+                  <li key={s.title ?? `s${i}`}>{s.title}</li>
                 ))}
               </ul>
             </div>
@@ -94,7 +84,7 @@ const Marketing = ({ expertise }: PillarViewProps = {}) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-              <SectionLabel>Marketing contact</SectionLabel>
+              <SectionLabel>{pillarName} contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
                   <p>{leadInText}</p>
