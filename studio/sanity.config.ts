@@ -17,30 +17,13 @@ const projectId = process.env.SANITY_STUDIO_PROJECT_ID ?? ''
 const dataset = process.env.SANITY_STUDIO_DATASET ?? 'production'
 
 /**
- * Locale picker query: resolves each locale's `title` (an internationalizedArrayString)
- * by preferring the English value, falling back to the first available translation.
+ * Active locales. The site is English-only for now: we ignore any extra
+ * `locale` documents in the dataset and always hand the plugins
+ * `STATIC_LOCALES`. To re-enable a second language later, append it to
+ * `STATIC_LOCALES` (or swap this for the previous Sanity-fetching variant
+ * — kept in git history).
  */
-const LOCALE_QUERY = `*[_type == "locale"] | order(orderRank asc){
-  "id": localeId,
-  "title": coalesce(title[_key == "en"][0].value, title[0].value, "Untitled")
-}`
-
-async function fetchLocales(client: {
-  fetch: <T>(query: string, params?: Record<string, unknown>) => Promise<T>
-}) {
-  try {
-    const locales = await client.fetch<{id: string | null; title: string | null}[]>(LOCALE_QUERY)
-    const valid = (locales || []).filter(
-      (l): l is {id: string; title: string} =>
-        typeof l.id === 'string' &&
-        l.id.length > 0 &&
-        typeof l.title === 'string' &&
-        l.title.length > 0,
-    )
-    if (valid.length > 0) return valid
-  } catch (error) {
-    console.error('Failed to fetch locales:', error)
-  }
+async function fetchLocales() {
   return STATIC_LOCALES
 }
 

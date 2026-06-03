@@ -36,10 +36,15 @@ export const I18N_DOCUMENTS = ['work', 'expertise', 'person', 'job'] as const
 export const LOCALIZED_TYPES: string[] = [...LOCALE_SINGLETONS, ...I18N_DOCUMENTS]
 
 /**
- * Static fallback list of locales used when no `locale` documents exist yet.
- * Mutable because plugin callbacks must return `Language[]`, not readonly.
+ * Active locales the Studio and FE operate on. The site is English-only for
+ * now; the schema field shapes (internationalizedArrayString, localeField,
+ * the per-locale singleton pattern, the locale document type) stay in place
+ * so we can re-enable a second language by adding it back to this list and
+ * the matching `locale` doc in Sanity.
+ *
+ * Mutable because Sanity plugin callbacks must return `Language[]`, not
+ * readonly.
  */
 export const STATIC_LOCALES: {id: string; title: string}[] = [
   {id: 'en', title: 'English'},
-  {id: 'nl', title: 'Nederlands'},
 ]

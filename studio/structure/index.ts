@@ -1,13 +1,16 @@
-import {CogIcon, TranslateIcon} from '@sanity/icons'
+import {CogIcon} from '@sanity/icons'
 import type {StructureResolver} from 'sanity/structure'
 import {createDocumentsSection} from './documentsSection'
 import {localePicker} from './helpers'
 import {createPagesSection} from './pagesSection'
 
-export const structure: StructureResolver = (S, context) => {
-  const {currentUser} = context
-  const isAdmin = currentUser?.roles.some((role) => role.name === 'administrator')
-
+/**
+ * Desk structure. The "Languages" admin section is hidden while the site is
+ * English-only — `locale` documents stay in the schema but aren't surfaced
+ * in the desk. Restore the bottom item to bring it back when re-enabling
+ * a second language.
+ */
+export const structure: StructureResolver = (S) => {
   return S.list()
     .title('Content')
     .items([
@@ -24,12 +27,5 @@ export const structure: StructureResolver = (S, context) => {
         .title('Site settings')
         .icon(CogIcon)
         .child(localePicker(S, 'siteSettings')),
-
-      ...(isAdmin
-        ? [
-            S.divider(),
-            S.documentTypeListItem('locale').id('locale').title('Languages').icon(TranslateIcon),
-          ]
-        : []),
     ])
 }
