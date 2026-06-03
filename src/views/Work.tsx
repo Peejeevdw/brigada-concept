@@ -9,6 +9,7 @@ import WorkFilter, { type WorkItem } from "@/components/WorkFilter";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER } from "@/lib/siteTokens";
 import { caseImages } from "@/data/caseImages";
+import { urlFor } from "@/lib/sanity";
 
 export interface WorkIndexData {
   page?: { hero?: { eyebrow?: string | null; title?: string | null } | null } | null;
@@ -18,6 +19,7 @@ export interface WorkIndexData {
     client?: string | null;
     slug?: string | null;
     intro?: string | null;
+    image?: unknown;
     expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
   }> | null;
 }
@@ -28,11 +30,19 @@ export interface WorkIndexData {
 const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
   const eyebrow = data?.page?.hero?.eyebrow ?? "";
   const title = data?.page?.hero?.title ?? "";
-  const items: WorkItem[] = (data?.items ?? []).map((w) => ({
-    client: w.client || w.name || "",
-    tags: (w.expertises ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
-    img: (w.slug && caseImages[w.slug]) || "/assets/placeholder.svg",
-  }));
+  const items: WorkItem[] = (data?.items ?? []).map((w) => {
+    const sanityImg = w.image
+      ? urlFor(w.image)?.width(1200).height(800).fit("crop").auto("format").url()
+      : null;
+    return {
+      client: w.client || w.name || "",
+      tags: (w.expertises ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
+      img:
+        sanityImg ||
+        (w.slug && caseImages[w.slug]) ||
+        "/assets/placeholder.svg",
+    };
+  });
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, the way the sibling pages warm toward the footer.
   const contentRef = useRef<HTMLDivElement>(null);
