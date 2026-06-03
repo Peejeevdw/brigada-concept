@@ -731,7 +731,12 @@ const BunnyReelLightbox = () => {
           >
             <div data-player-before className="bunny-lightbox-player__before" />
             <video preload="auto" width={1920} height={1080} playsInline className="bunny-lightbox-player__video" />
-            <img data-bunny-lightbox-placeholder src="" alt="" className="bunny-lightbox-player__placeholder" />
+            <img
+              data-bunny-lightbox-placeholder
+              src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+              alt=""
+              className="bunny-lightbox-player__placeholder"
+            />
             <div className="bunny-lightbox-player__dark" />
             <div data-player-control="playpause" className="bunny-lightbox-player__playpause">
               <div className="bunny-lightbox-player__big-btn">
