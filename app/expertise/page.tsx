@@ -1,5 +1,7 @@
-import Expertise from "@/views/Expertise";
+import Expertise, { type ExpertiseOverviewData } from "@/views/Expertise";
+import { getExpertiseIndex } from "@/lib/sanity-fetch";
 
-export default function ExpertisePage() {
-  return <Expertise />;
+export default async function ExpertisePage() {
+  const data = (await getExpertiseIndex()) as ExpertiseOverviewData | null;
+  return <Expertise data={data} />;
 }

@@ -10,26 +10,34 @@ import Reveal from "@/components/site/Reveal";
 import SectionLabel from "@/components/site/SectionLabel";
 import BrandFooter from "@/components/BrandFooter";
 import { EASE_OUT, GUTTER, INK } from "@/lib/siteTokens";
-import { pillarContent } from "@/data/pillars";
-import type { Pillar } from "@/components/wireframe/WorkThumb";
+
+export interface ExpertiseOverviewData {
+  page?: {
+    hero?: { eyebrow?: string | null; title?: string | null } | null;
+    pillars?: ExpertiseOverviewPillar[] | null;
+  } | null;
+  pillars?: ExpertiseOverviewPillar[] | null;
+}
+
+export interface ExpertiseOverviewPillar {
+  _id?: string;
+  name?: string | null;
+  slug?: string | null;
+  intro?: string | null;
+  brioPaletteId?: string | null;
+}
 
 // Expertise overview — the four domains (Brand / Product / People / Marketing)
 // under one roof, built in the /brand idiom on the shared site foundation
-// (SiteNav, Reveal, SectionLabel, useLenis, the .font-* roles + tokens). First
-// page assembled entirely from reusable pieces rather than copy-paste.
+// (SiteNav, Reveal, SectionLabel, useLenis, the .font-* roles + tokens). Hero
+// + pillar order all come from the expertiseIndexPage Sanity doc.
 
-// Display order + where each pillar's "(more)" link goes. Brand has its own
-// new-style page (/brand); the others fall back to their existing detail pages
-// until a new-style version exists.
-const PILLARS: { label: Pillar; to: string }[] = [
-  { label: "Brand", to: "/brand" },
-  { label: "Marketing", to: "/marketing" },
-  { label: "People", to: "/people" },
-  { label: "Product", to: "/product" },
-];
-
-const ExpertiseV2 = () => {
+const ExpertiseV2 = ({ data }: { data?: ExpertiseOverviewData | null } = {}) => {
   const transitionTo = usePageTransition();
+  const eyebrow = data?.page?.hero?.eyebrow ?? "";
+  const intro = data?.page?.hero?.title ?? "";
+  // Prefer the curated page.pillars order; fall back to the dataset-wide list.
+  const pillars = data?.page?.pillars?.length ? data.page.pillars : (data?.pillars ?? []);
 
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, the way /brand warms toward its pink before the footer.
@@ -59,15 +67,10 @@ const ExpertiseV2 = () => {
         {/* Intro */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p className="font-eyebrow text-brigada-black">
-              Our services
-            </p>
+            <p className="font-eyebrow text-brigada-black">{eyebrow}</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">
-              To make sharp decisions, you need to see the bigger picture &mdash;
-              so we bring brand, product, people and marketing under one roof.
-            </h1>
+            <h1 className="font-display w-full text-brigada-black">{intro}</h1>
           </Reveal>
         </section>
 
@@ -79,41 +82,39 @@ const ExpertiseV2 = () => {
           style={{ color: INK.dark }}
         >
           <div ref={rowsRef} data-directional-hover data-type="y">
-            {PILLARS.map((p, i) => {
-              const content = pillarContent[p.label];
+            {pillars.map((p, i) => {
+              const href = p.slug ? `/${p.slug}` : "#";
+              const label = p.name ?? p.slug ?? "";
               return (
-                <Reveal key={p.label} delay={i === 0 ? 0 : 0.04}>
+                <Reveal key={p._id ?? p.slug ?? `p${i}`} delay={i === 0 ? 0 : 0.04}>
                   <div
                     data-directional-hover-item
                     role="link"
                     tabIndex={0}
-                    aria-label={`${p.label} — more`}
-                    onClick={() => transitionTo(p.to)}
+                    aria-label={`${label} — more`}
+                    onClick={() => transitionTo(href)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        transitionTo(p.to);
+                        transitionTo(href);
                       }
                     }}
                     className="group relative block w-full cursor-pointer overflow-hidden border-t py-[clamp(36px,4.5vw,64px)] mt-[clamp(28px,3vw,42px)] first:mt-0 text-left transition-colors duration-500 hover:text-white"
                     style={{
                       borderColor: INK.dark,
-                      // Full-bleed row; text keeps its exact position = the old
-                      // section gutter + the row's old inner padding.
                       paddingLeft: "calc(clamp(24px,5vw,72px) + clamp(8px,1.2vw,18px))",
                       paddingRight: "calc(clamp(24px,5vw,72px) + clamp(8px,1.2vw,18px))",
                     }}
                   >
-                    {/* Directional fill tile — slides in from the cursor edge. */}
                     <div
                       data-directional-hover-tile
                       aria-hidden
                       className="pointer-events-none absolute inset-0 bg-brigada-black"
                     />
                     <div className="relative z-10 flex flex-col gap-6 md:flex-row md:justify-between">
-                      <SectionLabel>{p.label}</SectionLabel>
+                      <SectionLabel>{label}</SectionLabel>
                       <div className="w-full md:w-[49%]">
-                        <p className="font-body">{content.intro}</p>
+                        <p className="font-body">{p.intro ?? ""}</p>
                         <span className="mt-6 inline-flex items-center gap-2 text-[clamp(15px,1.25vw,18px)] md:hidden">
                           <span className="link-underline">(More)</span>
                           <span>&rarr;</span>
