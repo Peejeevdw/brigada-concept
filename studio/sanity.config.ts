@@ -1,5 +1,6 @@
 import {defineConfig, type ObjectSchemaType} from 'sanity'
 import {structureTool} from 'sanity/structure'
+import {presentationTool, defineLocations} from 'sanity/presentation'
 import {visionTool} from '@sanity/vision'
 import {documentInternationalization} from '@sanity/document-internationalization'
 import {internationalizedArray} from 'sanity-plugin-internationalized-array'
@@ -9,6 +10,8 @@ import {LOCALIZED_TYPES, STATIC_LOCALES, isSingletonType} from './structure/cons
 import {localeSingletonTemplates} from './templates'
 import {FilteredLanguageMenu} from './components/FilteredLanguageMenu'
 import {API_VERSION} from './schemaTypes/helpers'
+
+const previewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL ?? 'http://localhost:3000'
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID ?? ''
 const dataset = process.env.SANITY_STUDIO_DATASET ?? 'production'
@@ -50,6 +53,69 @@ export default defineConfig({
 
   plugins: [
     structureTool({structure}),
+    presentationTool({
+      previewUrl: {
+        origin: previewOrigin,
+        preview: '/',
+        previewMode: {enable: '/api/draft/enable'},
+      },
+      resolve: {
+        locations: {
+          homePage: defineLocations({
+            select: {title: 'title'},
+            resolve: () => ({locations: [{title: 'Home', href: '/'}]}),
+          }),
+          workIndexPage: defineLocations({
+            select: {title: 'title'},
+            resolve: () => ({locations: [{title: 'Work', href: '/work'}]}),
+          }),
+          expertiseIndexPage: defineLocations({
+            select: {title: 'title'},
+            resolve: () => ({locations: [{title: 'Expertise', href: '/expertise'}]}),
+          }),
+          aboutPage: defineLocations({
+            select: {title: 'title'},
+            resolve: () => ({locations: [{title: 'About', href: '/about'}]}),
+          }),
+          careersPage: defineLocations({
+            select: {title: 'title'},
+            resolve: () => ({locations: [{title: 'Careers', href: '/careers'}]}),
+          }),
+          contactPage: defineLocations({
+            select: {title: 'title'},
+            resolve: () => ({locations: [{title: 'Contact', href: '/contact'}]}),
+          }),
+          legalPage: defineLocations({
+            select: {title: 'title', kind: 'kind'},
+            resolve: (doc) =>
+              doc?.kind
+                ? {locations: [{title: doc.title ?? doc.kind, href: `/${doc.kind}`}]}
+                : null,
+          }),
+          work: defineLocations({
+            select: {name: 'name', slug: 'slug.current'},
+            resolve: (doc) =>
+              doc?.slug
+                ? {locations: [{title: doc.name ?? doc.slug, href: `/work/${doc.slug}`}]}
+                : null,
+          }),
+          expertise: defineLocations({
+            select: {name: 'name', slug: 'slug.current'},
+            resolve: (doc) =>
+              doc?.slug
+                ? {locations: [{title: doc.name ?? doc.slug, href: `/${doc.slug}`}]}
+                : null,
+          }),
+          job: defineLocations({
+            select: {name: 'name', slug: 'slug.current'},
+            resolve: (doc) =>
+              doc?.slug
+                ? {locations: [{title: doc.name ?? doc.slug, href: `/careers/jobs/${doc.slug}`}]}
+                : null,
+          }),
+        },
+      },
+    }),
     visionTool(),
     documentInternationalization({
       supportedLanguages: fetchLocales,

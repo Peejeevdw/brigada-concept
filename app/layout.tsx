@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { Providers } from "./providers";
+import { DraftModeBanner } from "@/components/DraftModeBanner";
+import { SiteChromeProvider } from "@/lib/site-chrome";
+import { getChrome } from "@/lib/sanity-fetch";
 import "@/index.css";
 
 export const metadata: Metadata = {
@@ -17,7 +21,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [isDraft, chrome] = await Promise.all([
+    draftMode().then((dm) => dm.isEnabled),
+    getChrome(),
+  ]);
+
   return (
     <html lang="en">
       <head>
@@ -29,7 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <SiteChromeProvider value={chrome}>
+          <Providers>{children}</Providers>
+        </SiteChromeProvider>
+        {isDraft && <DraftModeBanner />}
       </body>
     </html>
   );
