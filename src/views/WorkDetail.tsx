@@ -4,16 +4,16 @@ import type { CSSProperties, MouseEvent } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toPlainText, type PortableTextBlock } from "@portabletext/react";
 import { ArrowUpRight } from "lucide-react";
 import { projects } from "@/data/projects";
 import { caseImages } from "@/data/caseImages";
+import { BlockRenderer } from "@/components/case-blocks/BlockRenderer";
+import type { CaseBlock } from "@/components/case-blocks/types";
 import WorkThumb, { type WorkThumbHandle } from "@/components/wireframe/WorkThumb";
 import Appear from "@/components/Appear";
 import { cn } from "@/lib/utils";
 import BrioImageComposite from "@/components/BrioImageComposite";
 import PillarCasesCarousel from "@/components/PillarCasesCarousel";
-import RevealText from "@/components/RevealText";
 import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
 import { DEFAULT_BRIO_SETTINGS, quadtones } from "@/data/duotones";
 import { useWorkTransition, workTransition } from "@/lib/workTransition";
@@ -91,18 +91,10 @@ export interface WorkDocData {
   year?: number | null;
   code?: string | null;
   expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
-  brief?: PortableTextBlock[] | null;
-  approach?: PortableTextBlock[] | null;
-  context?: PortableTextBlock[] | null;
-  outcome?: PortableTextBlock[] | null;
+  body?: CaseBlock[] | null;
   gallery?: unknown[] | null;
   related?: unknown[] | null;
 }
-
-const blockParas = (blocks: PortableTextBlock[] | null | undefined, fallback: readonly string[]) => {
-  if (!blocks || blocks.length === 0) return [...fallback];
-  return blocks.map((b) => toPlainText([b]));
-};
 
 const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
   // Derive a project-shaped object (matches the old projects.ts shape) from
@@ -116,21 +108,7 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
     year: work?.year ?? null,
     pillars: (work?.expertises ?? []).map((e) => e?.name).filter(Boolean) as string[],
   };
-  // Per-section paragraphs — derived from Sanity portable text. Falls back to
-  // the legacy hardcoded copy for case slugs that haven't been ported yet.
-  const legacyContent = caseContent[slug] ?? defaultContent;
-  const briefParas = blockParas(work?.brief, legacyContent.brief);
-  const approachParas = blockParas(work?.approach, legacyContent.approach);
-  const contextParas = blockParas(work?.context, [legacyContent.context]);
-  const outcomeParas = blockParas(work?.outcome, legacyContent.outcome);
-  const content = {
-    brief: briefParas as [string, string?],
-    approach: approachParas as [string, string?],
-    context: contextParas[0] ?? "",
-    outcome: outcomeParas as [string, string?],
-    images: legacyContent.images,
-  };
-  const extraImages = content.images;
+  const body: CaseBlock[] = (work?.body ?? []) as CaseBlock[];
 
   const transition = useWorkTransition();
   const isTransitioning =
@@ -335,87 +313,11 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
         style={{ transitionDuration: "400ms", transitionDelay: heroOnly ? "0ms" : "180ms" }}
       >
       <ScrollPhysicsGroup>
-      {/* INTRO + SERVICES, mirrors the "Who we are" layout */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-2">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-5 items-start">
-          <div className="md:col-span-2">
-            <p className="font-title">A NEW CHAPTER FOR THE ULTIMATE DRIVING MACHINE</p>
-          </div>
-          <div className="md:col-span-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 font-body text-left">
-              {content.brief[0] && <RevealText as="p" text={content.brief[0]} stagger={18} duration={650} />}
-              {content.brief[1] && <RevealText as="p" text={content.brief[1]} stagger={18} duration={650} />}
-            </div>
-          </div>
-        </div>
-      </section>
-      {/* SINGLE IMAGE, same as hero */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-1">
-        <img
-          src={extraImages[4]}
-          alt={`${project.client}, ${project.title}`}
-          className="w-full h-[calc(100vh-4.5rem-var(--ws-0))] md:h-[calc(100vh-4.5rem-var(--ws-0-md))] object-cover"
-        />
-      </section>
-
-      {/* TWO-UP IMAGES, same height and padding as the hero */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-0">
-        <div className="grid grid-cols-6 gap-3 md:gap-5">
-          <img
-            src={extraImages[1]}
-            alt={`${project.client}, ${project.title} 1`}
-            className="col-span-3 w-full h-[calc(100vh-4.5rem-var(--ws-0))] md:h-[calc(100vh-4.5rem-var(--ws-0-md))] object-cover"
-          />
-          <img
-            src={extraImages[2]}
-            alt={`${project.client}, ${project.title} 2`}
-            className="col-span-3 w-full h-[calc(100vh-4.5rem-var(--ws-0))] md:h-[calc(100vh-4.5rem-var(--ws-0-md))] object-cover"
-          />
-        </div>
-      </section>
-
-      {/* CONTEXT, mirrors the brief layout */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-2">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-5 items-start">
-          <div className="md:col-span-2">
-            <p className="font-title">CONTEXT</p>
-          </div>
-          <div className="md:col-span-4 font-body text-left">
-            <RevealText as="p" text={content.context} stagger={18} duration={650} />
-          </div>
-        </div>
-      </section>
-
-      {/* LANDSCAPE + WIDE IMAGE */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-2">
-        <div className="grid grid-cols-6 gap-3 md:gap-5 items-start">
-          <img
-            src={extraImages[3]}
-            alt={`${project.client}, ${project.title} landscape`}
-            className="col-span-2 w-full aspect-[4/3] object-cover"
-          />
-          <img
-            src={extraImages[0]}
-            alt={`${project.client}, ${project.title} wide`}
-            className="col-span-4 w-full h-[calc(100vh-4.5rem-var(--ws-0))] md:h-[calc(100vh-4.5rem-var(--ws-0-md))] object-cover"
-          />
-        </div>
-      </section>
-
-      {/* OUTCOME, title in col 1, text spans cols 2 and 3 */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-2">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-5 items-start">
-          <div className="md:col-span-2">
-            <p className="font-title">OUTCOME</p>
-          </div>
-          <div className="md:col-span-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 font-body text-left">
-              {content.outcome[0] && <RevealText as="p" text={content.outcome[0]} stagger={18} duration={650} />}
-              {content.outcome[1] && <RevealText as="p" text={content.outcome[1]} stagger={18} duration={650} />}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Case story — editor-composed stream of richText, image, video,
+          quote and stat blocks via the Sanity body[] pageBuilder. */}
+      {body.map((block) => (
+        <BlockRenderer key={block._key} block={block} />
+      ))}
       <div className="ws-2" />
 
       {/* RELATED WORK */}

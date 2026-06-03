@@ -122,7 +122,16 @@ const WORK_FULL_PROJECTION = `{
   ...,
   "slug": slug.current,
   "expertises": expertises[]->{_id, name, "slug": slug.current},
-  "related": related[]->${WORK_LIST_PROJECTION}
+  "related": related[]->${WORK_LIST_PROJECTION},
+  // Expand any file-asset refs nested inside the body so the FE has direct
+  // URLs (Sanity images resolve their URL via urlFor() from just the _ref).
+  "body": body[]{
+    ...,
+    _type == "videoEmbed" => {
+      ...,
+      "file": file{..., asset->{url}}
+    }
+  }
 }`;
 
 const EXPERTISE_PROJECTION = `{
