@@ -3,9 +3,10 @@
 import type { CSSProperties, MouseEvent } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { toPlainText, type PortableTextBlock } from "@portabletext/react";
 import { ArrowUpRight } from "lucide-react";
-import { featuredProject, projects } from "@/data/projects";
+import { projects } from "@/data/projects";
 import { caseImages } from "@/data/caseImages";
 import WorkThumb, { type WorkThumbHandle } from "@/components/wireframe/WorkThumb";
 import Appear from "@/components/Appear";
@@ -81,12 +82,54 @@ const defaultContent: CaseContent = {
   images: [extra1, extra2, extra3, extra4, bmwOldTile],
 };
 
-const WorkDetail = () => {
-  const params = useParams<{ slug?: string }>();
-  const slug = params?.slug;
-  const project =
-    projects.find((p) => p.slug === slug && p.clickable) ?? featuredProject;
-  const content = caseContent[project.slug] ?? defaultContent;
+export interface WorkDocData {
+  _id?: string;
+  name?: string | null;
+  client?: string | null;
+  slug?: string | null;
+  intro?: string | null;
+  year?: number | null;
+  code?: string | null;
+  expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
+  brief?: PortableTextBlock[] | null;
+  approach?: PortableTextBlock[] | null;
+  context?: PortableTextBlock[] | null;
+  outcome?: PortableTextBlock[] | null;
+  gallery?: unknown[] | null;
+  related?: unknown[] | null;
+}
+
+const blockParas = (blocks: PortableTextBlock[] | null | undefined, fallback: readonly string[]) => {
+  if (!blocks || blocks.length === 0) return [...fallback];
+  return blocks.map((b) => toPlainText([b]));
+};
+
+const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
+  // Derive a project-shaped object (matches the old projects.ts shape) from
+  // the Sanity work doc so the page's transition + thumb logic keeps working.
+  const slug = work?.slug ?? "";
+  const project = {
+    slug,
+    client: work?.client || work?.name || "",
+    title: work?.name || "",
+    tagline: work?.intro ?? undefined,
+    year: work?.year ?? null,
+    pillars: (work?.expertises ?? []).map((e) => e?.name).filter(Boolean) as string[],
+  };
+  // Per-section paragraphs — derived from Sanity portable text. Falls back to
+  // the legacy hardcoded copy for case slugs that haven't been ported yet.
+  const legacyContent = caseContent[slug] ?? defaultContent;
+  const briefParas = blockParas(work?.brief, legacyContent.brief);
+  const approachParas = blockParas(work?.approach, legacyContent.approach);
+  const contextParas = blockParas(work?.context, [legacyContent.context]);
+  const outcomeParas = blockParas(work?.outcome, legacyContent.outcome);
+  const content = {
+    brief: briefParas as [string, string?],
+    approach: approachParas as [string, string?],
+    context: contextParas[0] ?? "",
+    outcome: outcomeParas as [string, string?],
+    images: legacyContent.images,
+  };
   const extraImages = content.images;
 
   const transition = useWorkTransition();
@@ -300,8 +343,8 @@ const WorkDetail = () => {
           </div>
           <div className="md:col-span-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 font-body text-left">
-              <RevealText as="p" text={content.brief[0]} stagger={18} duration={650} />
-              <RevealText as="p" text={content.brief[1]} stagger={18} duration={650} />
+              {content.brief[0] && <RevealText as="p" text={content.brief[0]} stagger={18} duration={650} />}
+              {content.brief[1] && <RevealText as="p" text={content.brief[1]} stagger={18} duration={650} />}
             </div>
           </div>
         </div>
@@ -367,8 +410,8 @@ const WorkDetail = () => {
           </div>
           <div className="md:col-span-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 font-body text-left">
-              <RevealText as="p" text={content.outcome[0]} stagger={18} duration={650} />
-              <RevealText as="p" text={content.outcome[1]} stagger={18} duration={650} />
+              {content.outcome[0] && <RevealText as="p" text={content.outcome[0]} stagger={18} duration={650} />}
+              {content.outcome[1] && <RevealText as="p" text={content.outcome[1]} stagger={18} duration={650} />}
             </div>
           </div>
         </div>

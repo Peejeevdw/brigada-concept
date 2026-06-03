@@ -5,13 +5,21 @@ import { useRef } from "react";
 import { useLenis } from "@/hooks/useLenis";
 import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
-import WorkFilter from "@/components/WorkFilter";
+import WorkFilter, { type WorkItem } from "@/components/WorkFilter";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER } from "@/lib/siteTokens";
+import { caseImages } from "@/data/caseImages";
 
 export interface WorkIndexData {
   page?: { hero?: { eyebrow?: string | null; title?: string | null } | null } | null;
-  items?: unknown[] | null;
+  items?: Array<{
+    _id?: string;
+    name?: string | null;
+    client?: string | null;
+    slug?: string | null;
+    intro?: string | null;
+    expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
+  }> | null;
 }
 
 // Work page — "Meet the clients" overview, built on the shared site foundation
@@ -20,6 +28,11 @@ export interface WorkIndexData {
 const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
   const eyebrow = data?.page?.hero?.eyebrow ?? "";
   const title = data?.page?.hero?.title ?? "";
+  const items: WorkItem[] = (data?.items ?? []).map((w) => ({
+    client: w.client || w.name || "",
+    tags: (w.expertises ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
+    img: (w.slug && caseImages[w.slug]) || "/assets/placeholder.svg",
+  }));
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, the way the sibling pages warm toward the footer.
   const contentRef = useRef<HTMLDivElement>(null);
@@ -51,7 +64,7 @@ const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
         {/* Work grid — Osmo multi-match button filter (All / pillars). */}
         <section className={`${GUTTER} pt-[clamp(36px,4.5vw,72px)] pb-[clamp(80px,12vw,160px)]`}>
           <Reveal>
-            <WorkFilter />
+            <WorkFilter items={items} />
           </Reveal>
         </section>
       </div>
