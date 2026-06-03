@@ -159,6 +159,109 @@ export const job = defineType({
       to: [{type: 'person'}],
     }),
     defineField({
+      name: 'form',
+      title: 'Application form',
+      type: 'object',
+      group: 'content',
+      description:
+        'Fields shown in the apply form at the bottom of the job page. ' +
+        'Same shape as the contact form so the structure is familiar.',
+      fields: [
+        defineField({name: 'intro', title: 'Intro', type: 'string'}),
+        defineField({
+          name: 'submitLabel',
+          title: 'Submit label',
+          type: 'string',
+          initialValue: 'Send application',
+        }),
+        defineField({name: 'successMessage', title: 'Success message', type: 'text', rows: 2}),
+        defineField({
+          name: 'fields',
+          title: 'Form fields',
+          type: 'array',
+          description: 'Fields shown on the form, in display order.',
+          of: [
+            defineArrayMember({
+              type: 'object',
+              name: 'formField',
+              fields: [
+                defineField({
+                  name: 'name',
+                  title: 'Name (machine-readable)',
+                  type: 'string',
+                  description: 'Used in the submission payload (e.g. "email", "company").',
+                  validation: (Rule) =>
+                    Rule.required()
+                      .regex(/^[a-z][a-z0-9_-]*$/, {name: 'field name'})
+                      .error('Lowercase letters, digits, underscores or dashes only.'),
+                }),
+                defineField({
+                  name: 'label',
+                  title: 'Label',
+                  type: 'string',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'type',
+                  title: 'Type',
+                  type: 'string',
+                  options: {
+                    list: [
+                      {title: 'Text', value: 'text'},
+                      {title: 'Email', value: 'email'},
+                      {title: 'Phone', value: 'tel'},
+                      {title: 'Textarea (multi-line)', value: 'textarea'},
+                      {title: 'Select', value: 'select'},
+                      {title: 'File upload', value: 'file'},
+                    ],
+                    layout: 'radio',
+                  },
+                  initialValue: 'text',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'required',
+                  title: 'Required',
+                  type: 'boolean',
+                  initialValue: false,
+                }),
+                defineField({name: 'placeholder', title: 'Placeholder', type: 'string'}),
+                defineField({
+                  name: 'options',
+                  title: 'Select options',
+                  type: 'array',
+                  of: [defineArrayMember({type: 'string'})],
+                  hidden: ({parent}) => parent?.type !== 'select',
+                }),
+                defineField({
+                  name: 'span',
+                  title: 'Column span',
+                  type: 'string',
+                  options: {
+                    list: [
+                      {title: 'Half-width', value: 'half'},
+                      {title: 'Full-width', value: 'full'},
+                    ],
+                    layout: 'radio',
+                  },
+                  initialValue: 'full',
+                }),
+              ],
+              preview: {
+                select: {label: 'label', type: 'type', required: 'required'},
+                prepare({label, type, required}) {
+                  return {
+                    title: label || 'Field',
+                    subtitle: `${type}${required ? ' · required' : ''}`,
+                  }
+                },
+              },
+            }),
+          ],
+        }),
+      ],
+    }),
+    defineField({
       name: 'showOnHome',
       title: 'Feature on home page',
       type: 'boolean',

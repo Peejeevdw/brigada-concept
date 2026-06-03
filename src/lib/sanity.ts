@@ -30,6 +30,11 @@ export const sanityClient: SanityClient | null = SANITY_PROJECT_ID
       apiVersion: SANITY_API_VERSION,
       useCdn: process.env.NODE_ENV === "production",
       perspective: "published",
+      // Pass the viewer token: some doc types in this dataset (e.g. `job`,
+      // imported from Recruitee) are not readable by anonymous queries.
+      // `perspective: "published"` still hides drafts, so this only grants
+      // read access — never exposes unpublished content.
+      token: SANITY_VIEWER_TOKEN || undefined,
       stega: { studioUrl: SANITY_STUDIO_URL, enabled: false },
     })
   : null;

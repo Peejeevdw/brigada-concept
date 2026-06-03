@@ -1,179 +1,316 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import Placeholder from "@/components/wireframe/Placeholder";
-import { jobs } from "@/data/jobs";
+import { PortableText, type PortableTextBlock } from "@portabletext/react";
 
-const JobDetail = () => {
-  const params = useParams<{ slug?: string }>();
-  const slug = params?.slug ?? "";
-  const job = jobs.find((j) => j.slug === slug);
+interface JobFormField {
+  _key?: string;
+  name?: string | null;
+  label?: string | null;
+  type?: string | null;
+  required?: boolean | null;
+  placeholder?: string | null;
+  options?: string[] | null;
+  span?: "half" | "full" | null;
+}
+
+export interface JobData {
+  _id?: string;
+  slug?: string | null;
+  name?: string | null;
+  type?: string | null;
+  introIndex?: string | null;
+  introDetail?: string | null;
+  jobDescription?: PortableTextBlock[] | null;
+  profile?: PortableTextBlock[] | null;
+  offer?: PortableTextBlock[] | null;
+  expertise?: { _id?: string; name?: string | null; slug?: string | null } | null;
+  location?: { _id?: string; title?: string | null; city?: string | null } | null;
+  contact?: {
+    _id?: string;
+    name?: string | null;
+    position?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+  form?: {
+    intro?: string | null;
+    submitLabel?: string | null;
+    successMessage?: string | null;
+    fields?: JobFormField[] | null;
+  } | null;
+}
+
+const portableBody = {
+  block: {
+    h2: ({ children }: { children?: React.ReactNode }) => (
+      <h2 className="font-display mt-[clamp(28px,3vw,44px)] text-[clamp(22px,2vw,30px)] font-medium leading-[1.15] tracking-[-0.01em]">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: { children?: React.ReactNode }) => (
+      <h3 className="mt-[clamp(20px,2vw,32px)] text-[clamp(18px,1.6vw,22px)] font-medium leading-[1.2]">
+        {children}
+      </h3>
+    ),
+    normal: ({ children }: { children?: React.ReactNode }) => (
+      <p className="mt-[clamp(12px,1vw,18px)] text-[clamp(16px,1.2vw,18px)] leading-[1.55] text-brigada-black/80">
+        {children}
+      </p>
+    ),
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
+      <blockquote className="mt-[clamp(20px,2vw,32px)] border-l-2 border-brigada-black/30 pl-5 text-[clamp(18px,1.4vw,22px)] italic">
+        {children}
+      </blockquote>
+    ),
+  },
+  list: {
+    bullet: ({ children }: { children?: React.ReactNode }) => (
+      <ul className="mt-[clamp(12px,1vw,16px)] list-disc space-y-2 pl-5 text-[clamp(16px,1.2vw,18px)] leading-[1.55] text-brigada-black/80">
+        {children}
+      </ul>
+    ),
+    number: ({ children }: { children?: React.ReactNode }) => (
+      <ol className="mt-[clamp(12px,1vw,16px)] list-decimal space-y-2 pl-5 text-[clamp(16px,1.2vw,18px)] leading-[1.55] text-brigada-black/80">
+        {children}
+      </ol>
+    ),
+  },
+};
+
+const inputClass =
+  "w-full border-b border-brigada-black bg-transparent pb-3 text-[clamp(16px,1.4vw,20px)] outline-none transition-colors placeholder:opacity-40 focus:border-opacity-100";
+
+const JobDetail = ({ job }: { job: JobData | null }) => {
+  // Local "sent" state — see TODO at the submit handler for the wiring plan.
+  const [sent, setSent] = useState(false);
 
   if (!job) {
     return (
-      <div className="px-6 md:px-10 py-24">
-        <p className="text-xs uppercase tracking-widest text-neutral-500 mb-6">
-          Careers
-        </p>
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-          Job not found
-        </h1>
+      <main className="px-[clamp(24px,5vw,72px)] py-24">
+        <p className="text-xs uppercase tracking-widest text-neutral-500 mb-6">Careers</p>
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">Job not found</h1>
         <Link
           href="/careers/jobs"
-          className="text-sm uppercase tracking-widest border-b border-neutral-900 pb-1 link-cta"
+          className="text-sm uppercase tracking-widest border-b border-neutral-900 pb-1"
         >
           ← All open jobs
         </Link>
-      </div>
+      </main>
     );
   }
 
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: wire to /api/jobs/apply. Local optimistic state only for now —
+    // intentionally no network call so we surface the UI without a backend.
+    setSent(true);
+  };
+
+  const meta = [job.expertise?.name, job.location?.city || job.location?.title, job.type]
+    .filter(Boolean)
+    .join(" · ");
+
+  const formIntro = job.form?.intro ?? "";
+  const submitLabel = job.form?.submitLabel ?? "Send application";
+  const successMessage = job.form?.successMessage ?? "";
+  const formFields = job.form?.fields ?? [];
+
   return (
-    <>
-      <div className="px-6 md:px-10 py-24">
+    <main className="min-h-screen w-full">
+      <div className="px-[clamp(24px,5vw,72px)] pt-[clamp(120px,18vw,200px)] pb-[clamp(60px,8vw,120px)]">
         <Link
           href="/careers/jobs"
-          className="text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 mb-10 inline-block"
+          className="mb-10 inline-block text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60 transition-opacity hover:opacity-100"
         >
           ← All open jobs
         </Link>
 
-        <p className="text-xs uppercase tracking-widest text-neutral-500 mb-6">
-          {job.team} · {job.location} · {job.type}
-        </p>
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-8">
-          {job.title}
+        {meta && (
+          <p className="mb-6 text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+            {meta}
+          </p>
+        )}
+        <h1 className="font-display text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em]">
+          {job.name}
         </h1>
-        <p className="max-w-2xl text-lg text-neutral-600 mb-12">
-          Placeholder description of the role. Responsibilities, profile, and
-          what we offer go here.
-        </p>
+        {job.introDetail && (
+          <p className="mt-[clamp(20px,2vw,32px)] max-w-3xl text-[clamp(18px,1.5vw,22px)] leading-[1.45] text-brigada-black/70">
+            {job.introDetail}
+          </p>
+        )}
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-20">
+      <div className="grid grid-cols-1 gap-12 px-[clamp(24px,5vw,72px)] pb-[clamp(80px,10vw,160px)] md:grid-cols-3">
+        {job.jobDescription && job.jobDescription.length > 0 && (
           <section>
-            <h2 className="text-xs uppercase tracking-widest text-neutral-500 mb-4">
-              About the role
+            <h2 className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+              The role
             </h2>
-            <p className="text-neutral-700">
-              [ Placeholder paragraph describing the role and its impact within
-              the team. ]
-            </p>
+            <div className="mt-2">
+              <PortableText value={job.jobDescription} components={portableBody} />
+            </div>
           </section>
+        )}
+        {job.profile && job.profile.length > 0 && (
           <section>
-            <h2 className="text-xs uppercase tracking-widest text-neutral-500 mb-4">
-              Responsibilities
+            <h2 className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+              Your profile
             </h2>
-            <ul className="space-y-2 text-neutral-700 list-disc pl-5">
-              <li>[ Placeholder responsibility ]</li>
-              <li>[ Placeholder responsibility ]</li>
-              <li>[ Placeholder responsibility ]</li>
-            </ul>
+            <div className="mt-2">
+              <PortableText value={job.profile} components={portableBody} />
+            </div>
           </section>
+        )}
+        {job.offer && job.offer.length > 0 && (
           <section>
-            <h2 className="text-xs uppercase tracking-widest text-neutral-500 mb-4">
-              Profile
+            <h2 className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+              What we offer
             </h2>
-            <ul className="space-y-2 text-neutral-700 list-disc pl-5">
-              <li>[ Placeholder requirement ]</li>
-              <li>[ Placeholder requirement ]</li>
-              <li>[ Placeholder requirement ]</li>
-            </ul>
+            <div className="mt-2">
+              <PortableText value={job.offer} components={portableBody} />
+            </div>
           </section>
-        </div>
+        )}
+      </div>
 
-        <Placeholder
-          label="TEAM IMAGE"
-          shade="light"
-          className="aspect-[16/9] w-full mb-20"
-        />
-
-        <div className="border border-neutral-200 p-8 max-w-2xl flex flex-col sm:flex-row gap-6 items-start">
-          <Placeholder
-            label="PORTRAIT"
-            shade="light"
-            className="w-32 h-32 shrink-0"
-          />
-          <div className="flex-1">
-            <p className="text-xs uppercase tracking-widest text-neutral-500 mb-2">
+      {job.contact && (
+        <div className="px-[clamp(24px,5vw,72px)] pb-[clamp(80px,10vw,160px)]">
+          <div className="flex max-w-2xl flex-col gap-2 border-t border-brigada-black/10 pt-[clamp(28px,3vw,42px)]">
+            <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
               Questions about this role?
             </p>
-            <p className="text-lg font-semibold">{job.contact.name}</p>
-            <p className="text-sm text-neutral-600 mb-4">{job.contact.role}</p>
-            <div className="space-y-1 text-sm">
-              <p>
+            <p className="mt-2 text-[clamp(18px,1.4vw,22px)] font-medium">
+              {job.contact.name}
+            </p>
+            {job.contact.position && (
+              <p className="text-brigada-black/70">{job.contact.position}</p>
+            )}
+            <div className="mt-2 space-y-1 text-[clamp(14px,1.1vw,16px)]">
+              {job.contact.email && (
                 <a
                   href={`mailto:${job.contact.email}`}
-                  className="border-b border-neutral-900 pb-0.5 link-cta"
+                  className="block transition-opacity hover:opacity-60"
                 >
                   {job.contact.email}
                 </a>
-              </p>
-              <p className="text-neutral-600">{job.contact.phone}</p>
+              )}
+              {job.contact.phone && (
+                <a
+                  href={`tel:${job.contact.phone.replace(/\s/g, "")}`}
+                  className="block text-brigada-black/70 transition-opacity hover:opacity-60"
+                >
+                  {job.contact.phone}
+                </a>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
+      {job.form && formFields.length > 0 && (
+        <section
+          id="apply"
+          className="border-t border-brigada-black/10 px-[clamp(24px,5vw,72px)] py-[clamp(80px,10vw,160px)]"
+        >
+          <div className="max-w-3xl">
+            <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+              Apply
+            </p>
+            <h2 className="font-display mt-4 text-[clamp(28px,4vw,56px)] leading-[1.1] tracking-[-0.01em]">
+              Apply for {job.name}
+            </h2>
+            {formIntro && (
+              <p className="mt-[clamp(16px,1.4vw,24px)] text-[clamp(16px,1.3vw,20px)] leading-[1.5] text-brigada-black/70">
+                {formIntro}
+              </p>
+            )}
 
-      <section
-        id="apply"
-        className="border-t border-neutral-200 px-6 md:px-10 py-24"
-      >
-        <div className="max-w-3xl">
-          <p className="text-xs uppercase tracking-widest text-neutral-500 mb-6">
-            Apply
-          </p>
-          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-4">
-            Apply for {job.title}
-          </h2>
-          <p className="text-lg text-neutral-600 mb-12">
-            Send us your details and a CV. We'll get back to you shortly.
-          </p>
-
-          <form className="space-y-6 max-w-2xl">
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">
-                Name
-              </label>
-              <div className="h-12 border border-neutral-300 bg-neutral-50" />
+            <div className="mt-[clamp(36px,4vw,56px)]">
+              {sent ? (
+                <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.5]">{successMessage}</p>
+              ) : (
+                <form
+                  onSubmit={onSubmit}
+                  className="grid grid-cols-1 gap-y-[clamp(28px,3vw,40px)] sm:grid-cols-2 sm:gap-x-[clamp(20px,2vw,32px)]"
+                >
+                  {formFields.map((f, i) => {
+                    const fieldName = f.name ?? `f${i}`;
+                    const colSpan = f.span === "half" ? "sm:col-span-1" : "sm:col-span-2";
+                    return (
+                      <div key={f._key ?? fieldName} className={colSpan}>
+                        <label
+                          htmlFor={fieldName}
+                          className="mb-3 block text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60"
+                        >
+                          {f.label}
+                          {f.required ? " *" : ""}
+                        </label>
+                        {f.type === "textarea" ? (
+                          <textarea
+                            id={fieldName}
+                            name={fieldName}
+                            rows={5}
+                            required={f.required ?? false}
+                            placeholder={f.placeholder ?? ""}
+                            className={`${inputClass} resize-none`}
+                          />
+                        ) : f.type === "select" ? (
+                          <select
+                            id={fieldName}
+                            name={fieldName}
+                            required={f.required ?? false}
+                            className={inputClass}
+                          >
+                            <option value="">{f.placeholder ?? "Select…"}</option>
+                            {(f.options ?? []).map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : f.type === "file" ? (
+                          <input
+                            id={fieldName}
+                            name={fieldName}
+                            type="file"
+                            required={f.required ?? false}
+                            accept=".pdf,.doc,.docx"
+                            className={`${inputClass} pb-2 file:mr-4 file:border-0 file:bg-transparent file:text-[clamp(13px,1vw,15px)] file:uppercase file:tracking-[0.1em]`}
+                          />
+                        ) : (
+                          <input
+                            id={fieldName}
+                            name={fieldName}
+                            type={f.type ?? "text"}
+                            required={f.required ?? false}
+                            placeholder={f.placeholder ?? ""}
+                            autoComplete="off"
+                            className={inputClass}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="sm:col-span-2">
+                    <button
+                      type="submit"
+                      className="group flex items-center gap-2 bg-brigada-black px-[clamp(32px,3vw,48px)] py-[clamp(16px,1.4vw,20px)] text-[clamp(13px,1.05vw,15px)] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
+                    >
+                      <span>{submitLabel}</span>
+                      <span className="relative top-[-1px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
+                        →
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">
-                Email
-              </label>
-              <div className="h-12 border border-neutral-300 bg-neutral-50" />
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">
-                Motivation
-              </label>
-              <div className="h-40 border border-neutral-300 bg-neutral-50" />
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-2">
-                CV
-              </label>
-              <div className="border border-dashed border-neutral-400 bg-neutral-50 px-6 py-10 flex flex-col items-center justify-center text-center gap-2">
-                <p className="text-sm text-neutral-700">
-                  Drop your CV here or click to upload
-                </p>
-                <p className="text-xs uppercase tracking-widest text-neutral-500">
-                  PDF, DOC, DOCX · max 10MB
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="mt-4 text-sm uppercase tracking-widest border-b border-neutral-900 pb-1 link-cta"
-            >
-              Send application →
-            </button>
-          </form>
-        </div>
-      </section>
-    </>
+          </div>
+        </section>
+      )}
+    </main>
   );
 };
 

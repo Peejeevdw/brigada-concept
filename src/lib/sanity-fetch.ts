@@ -279,7 +279,8 @@ export function getJob(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
   return fetch(
     groq`*[_type == "job" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]{
       ...,
-      "expertise": expertise->name,
+      "slug": slug.current,
+      "expertise": expertise->{_id, name, "slug": slug.current},
       "location": location->${LOCATION_PROJECTION},
       "contact": contact->${PERSON_PROJECTION}
     }`,
