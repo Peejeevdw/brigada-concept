@@ -249,7 +249,7 @@ export function getCareersPage(locale: string = DEFAULT_SANITY_LOCALE) {
           "curated": curated[]->{
             _id, "slug": slug.current, name, introIndex,
             "expertise": expertise->name,
-            "location": location->{${LOCATION_PROJECTION}},
+            "location": location->${LOCATION_PROJECTION},
             type
           }
         }
@@ -257,7 +257,7 @@ export function getCareersPage(locale: string = DEFAULT_SANITY_LOCALE) {
       "jobs": *[_type == "job" && (locale == $locale || locale == null)] | order(order asc, _createdAt desc){
         _id, "slug": slug.current, name, introIndex,
         "expertise": expertise->name,
-        "location": location->{${LOCATION_PROJECTION}},
+        "location": location->${LOCATION_PROJECTION},
         type
       }
     }`,
@@ -271,7 +271,7 @@ export function getJob(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
     groq`*[_type == "job" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]{
       ...,
       "expertise": expertise->name,
-      "location": location->{${LOCATION_PROJECTION}},
+      "location": location->${LOCATION_PROJECTION},
       "contact": contact->${PERSON_PROJECTION}
     }`,
     { slug, locale },

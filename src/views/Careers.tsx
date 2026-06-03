@@ -27,15 +27,31 @@ const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const INK = "#2d2928";
 
-// Open positions — placeholder list (same copy repeated for now).
-const VACANCY_BLURB =
-  "As a Senior Client Manager you will be responsible for leading and delivering complex client projects and mid-size accounts; creating clarity, consistency and momentum while growing your commercial and strategic impact.";
-const VACANCIES = [
-  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
-  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
-  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
-  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
-];
+export interface CareersData {
+  page?: {
+    hero?: {
+      eyebrow?: string | null;
+      title?: string | null;
+      brioPaletteId?: string | null;
+      image?: unknown;
+    } | null;
+    vacancies?: {
+      title?: string | null;
+      intro?: string | null;
+      mode?: string | null;
+      emptyMessage?: string | null;
+      highlights?: Array<{ _key?: string; title?: string | null; description?: string | null }> | null;
+      curated?: unknown[] | null;
+    } | null;
+  } | null;
+  jobs?: Array<{
+    _id?: string;
+    slug?: string | null;
+    name?: string | null;
+    introIndex?: string | null;
+    expertise?: string | null;
+  }> | null;
+}
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
 // centred max-width), gutters only.
@@ -71,8 +87,36 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const CareersV2 = () => {
+const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
   const transitionTo = usePageTransition();
+  const hero = data?.page?.hero;
+  const eyebrow = hero?.eyebrow ?? "";
+  const title = hero?.title ?? "";
+  const brioPalette = hero?.brioPaletteId ?? undefined;
+
+  // Resolve the vacancies block: prefer curated/custom highlights from Sanity,
+  // otherwise list every published `job` document.
+  const vacancies = data?.page?.vacancies;
+  const mode = vacancies?.mode ?? "all";
+  const jobsList = data?.jobs ?? [];
+  type VacancyEntry = { _key: string; title: string; description: string; href?: string };
+  const entries: VacancyEntry[] = (() => {
+    if (mode === "hidden") return [];
+    if (mode === "custom") {
+      return (vacancies?.highlights ?? []).map((h, i) => ({
+        _key: h._key ?? `h${i}`,
+        title: h.title ?? "",
+        description: h.description ?? "",
+      }));
+    }
+    return jobsList.map((j, i) => ({
+      _key: j._id ?? `j${i}`,
+      title: j.name ?? "",
+      description: j.introIndex ?? "",
+      href: j.slug ? `/careers/jobs/${j.slug}` : undefined,
+    }));
+  })();
+  const emptyMessage = vacancies?.emptyMessage ?? "";
 
   // Smooth scroll — same Lenis setup as /concept, so the carousel + parallax
   // footer glide instead of stepping with the native wheel. ScrollTrigger is
@@ -114,7 +158,7 @@ const CareersV2 = () => {
             <BrioEffect
               src={`/concept-hero.jpg`}
               mode="palette"
-              paletteId="brio-03"
+              paletteId={brioPalette ?? "brio-03"}
               className="h-full w-full"
             />
           </div>
@@ -124,7 +168,7 @@ const CareersV2 = () => {
                 className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-brigada-black"
                 style={{ fontWeight: 500, fontStretch: "125%" }}
               >
-                Baby make your move
+                {eyebrow}
               </p>
             </Reveal>
             <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
@@ -132,30 +176,46 @@ const CareersV2 = () => {
                 className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-brigada-black"
                 style={{ fontWeight: 400 }}
               >
-                We think for ourselves. We want to keep learning and pushing for
-                better, even after a substantial lunch. We make the hard choices
-                and say what needs to be said.
+                {title}
               </h1>
             </Reveal>
           </div>
         </section>
 
-        {/* Disciplines (Figma 308:2633) */}
+        {/* Open positions — curated highlights or auto-listed jobs from Sanity. */}
         <section
           className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`}
           style={{ color: INK }}
         >
-          {VACANCIES.map((v, i) => (
-            <Reveal key={i} delay={i * 0.05}>
-              <div className="border-t" style={{ borderColor: INK }} />
-              <div className="mt-[clamp(20px,2vw,26px)] mb-[clamp(28px,3.5vw,52px)] flex flex-col gap-8 md:flex-row md:justify-between">
-                <SectionLabel>{v.title}</SectionLabel>
-                <p className="w-full text-[clamp(15px,1.25vw,18px)] leading-[1.6] md:w-[49%]">
-                  {v.description}
-                </p>
-              </div>
+          {entries.length > 0 ? (
+            entries.map((v, i) => (
+              <Reveal key={v._key} delay={i * 0.05}>
+                <div className="border-t" style={{ borderColor: INK }} />
+                <div className="mt-[clamp(20px,2vw,26px)] mb-[clamp(28px,3.5vw,52px)] flex flex-col gap-8 md:flex-row md:justify-between">
+                  <SectionLabel>
+                    {v.href ? (
+                      <button
+                        type="button"
+                        onClick={() => transitionTo(v.href!)}
+                        className="text-left transition-opacity hover:opacity-60"
+                      >
+                        {v.title}
+                      </button>
+                    ) : (
+                      v.title
+                    )}
+                  </SectionLabel>
+                  <p className="w-full text-[clamp(15px,1.25vw,18px)] leading-[1.6] md:w-[49%]">
+                    {v.description}
+                  </p>
+                </div>
+              </Reveal>
+            ))
+          ) : emptyMessage ? (
+            <Reveal>
+              <p className="text-[clamp(15px,1.25vw,18px)] leading-[1.6]">{emptyMessage}</p>
             </Reveal>
-          ))}
+          ) : null}
         </section>
       </div>
 

@@ -1,5 +1,7 @@
-import Careers from "@/views/Careers";
+import Careers, { type CareersData } from "@/views/Careers";
+import { getCareersPage } from "@/lib/sanity-fetch";
 
-export default function CareersPage() {
-  return <Careers />;
+export default async function CareersPage() {
+  const data = (await getCareersPage()) as CareersData | null;
+  return <Careers data={data} />;
 }
