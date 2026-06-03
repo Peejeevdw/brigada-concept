@@ -1,204 +1,294 @@
 "use client";
 
-import Appear from "@/components/Appear";
-import RevealText from "@/components/RevealText";
-import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
-import ParallaxBanner from "@/components/home-v4-v2/ParallaxBanner";
-const bannerImage = "/assets/contact-banner.png";
-const evaImg = "/assets/team/eva.jpg";
-const lukasImg = "/assets/team/lukas.jpg";
-const marieImg = "/assets/team/marie.jpg";
-const tomImg = "/assets/team/tom.jpg";
-const arjanImg = "/assets/team-real/arjan.webp";
-const joostImg = "/assets/team-real/joost.jpg";
-const joostVideo = "/team-real/joost-move.mp4";
-const sentaImg = "/assets/team-real/senta.jpg";
-const evertImg = "/assets/team-real/evert.png";
-const antwerpImg = "/assets/locations/antwerp.png";
-const brusselsImg = "/assets/locations/brussels.jpg";
-const gentImg = "/assets/locations/gent.jpg";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { useRef, useState } from "react";
+import { useLenis } from "@/hooks/useLenis";
+import SiteNav from "@/components/site/SiteNav";
+import Reveal from "@/components/site/Reveal";
+import BrandFooter from "@/components/BrandFooter";
+import { BrioEffect } from "@/brio-effect";
+import { GUTTER, INK } from "@/lib/siteTokens";
+const gallery1 = "/assets/contact/c1.avif";
+const gallery2 = "/assets/contact/c2.avif";
+const gallery3 = "/assets/contact/c3.avif";
+const gallery4 = "/assets/contact/c4.avif";
+const gallery5 = "/assets/contact/c5.avif";
+const gallery6 = "/assets/contact/c6.avif";
 
-const FOOTER_PHONE = "+32 (0)000 00 00 00";
-const FOOTER_PHONE_HREF = "tel:+3200000000000";
-const FOOTER_EMAIL = "hello@brigada.be";
+// Contact page — built on the shared site foundation in the new-style idiom.
+// Section rhythm follows the brief: hero (modelled on /careers-v2) → contact
+// form → locations → mood photo → parallax footer.
 
-const FOOTER_LOCATIONS = [
-  { city: "BRIGADA ANTWERP", address: "Molenstraat 54", zip: "2018 Antwerpen", image: antwerpImg },
-  { city: "BRIGADA GENT", address: "Amelia Earhartlaan 2 Bus 401", zip: "9051 Gent", image: gentImg },
-  { city: "BRIGADA BRUSSELS", address: "Waelhemstraat 77", zip: "1030 Schaarbeek", image: brusselsImg },
+// Office locations (same data as the legacy /contact page).
+// Masonry gallery images (varying aspect ratios → column-flow masonry).
+const GALLERY = [gallery1, gallery2, gallery3, gallery4, gallery5, gallery6];
+
+// Split images round-robin into n columns, so we can render a column-flex
+// masonry whose columns stay equal-height (straight bottom edge).
+const splitColumns = (items: string[], n: number) => {
+  const cols: string[][] = Array.from({ length: n }, () => []);
+  items.forEach((src, i) => cols[i % n].push(src));
+  return cols;
+};
+
+const LOCATIONS = [
+  { city: "BRIGADA ANTWERP", address: "Molenstraat 54", zip: "2018 Antwerpen" },
+  { city: "BRIGADA GHENT", address: "Amelia Earhartlaan 2 Bus 401", zip: "9051 Ghent" },
+  { city: "BRIGADA BRUSSELS", address: "Waelhemstraat 77", zip: "1030 Schaarbeek" },
 ];
 
-const MANAGEMENT = [
-  { label: "CEO", name: "Arjan Pomper", role: "Chief Executive Officer", image: arjanImg, email: "ceo@brigada.be", phone: "+00 000 00 00" },
-  { label: "COO", name: "Evert Vermeire", role: "Chief Operating Officer", image: evertImg, email: "coo@brigada.be", phone: "+00 000 00 00" },
-  { label: "CCO", name: "Joost Berends", role: "Chief Creative Officer", image: joostImg, video: joostVideo, email: "cco@brigada.be", phone: "+00 000 00 00" },
-  { label: "CSO", name: "Senta Slingerland", role: "Chief Strategy Officer", image: sentaImg, email: "cso@brigada.be", phone: "+00 000 00 00" },
+// Form fields — single-column underline inputs in the new-style aesthetic.
+const FIELDS = [
+  { name: "name", label: "Name", type: "text", full: false },
+  { name: "company", label: "Company", type: "text", full: false },
+  { name: "email", label: "Email", type: "email", full: false },
+  { name: "phone", label: "Phone", type: "tel", full: false },
+  { name: "project", label: "Project", type: "text", full: true },
+] as const;
+
+// General contact details.
+const GENERAL = { email: "hello@brigada.be", phone: "+32 9 123 45 67" };
+
+// Per-expertise leads (pulled from the /brand, /product, /people, /marketing
+// contact blocks). Shown under "Hi there" so visitors can reach a discipline
+// lead directly.
+const EXPERTISE_CONTACTS = [
+  { label: "Brand", name: "Mathias", email: "mathias@brigada.be", phone: "+32 477 11 22 33" },
+  { label: "Product", name: "Jeroen De Bock", email: "jeroen.debock@brigada.be", phone: "+32 477 62 76 01" },
+  { label: "People", name: "Marie", email: "marie@brigada.be", phone: "+32 477 44 55 66" },
+  { label: "Marketing", name: "Sofie", email: "sofie@brigada.be", phone: "+32 477 77 88 99" },
+  { label: "New bizz", name: "Evert Vermeire", email: "evert.vermeire@brigada.be", phone: "+32 479 59 14 30" },
 ];
 
-const PRACTICE_LEADS = [
-  { label: "BRAND", name: "Mathias Delmote", role: "Brand Lead", image: evaImg, email: "mathias@brigada.be", phone: "+00 000 00 00" },
-  { label: "PRODUCT", name: "Jeroen De Bock", role: "Product Lead", image: lukasImg, email: "jeroen@brigada.be", phone: "+00 000 00 00" },
-  { label: "PEOPLE", name: "Bartel Van Iseghem", role: "People Lead", image: marieImg, email: "bartel@brigada.be", phone: "+00 000 00 00" },
-  { label: "MARKETING", name: "Dennis Nicholls", role: "Marketing Lead", image: tomImg, email: "dennis@brigada.be", phone: "+00 000 00 00" },
-];
+const ContactV2 = () => {
+  // Scroll-driven background — warms from white to a soft tint across the
+  // content block (same polish as /people).
+  const contentRef = useRef<HTMLDivElement>(null);
+  const scrollP = useMotionValue(0);
+  const bgColor = useTransform(scrollP, [0, 1], ["#FFFFFF", "#F2EEF4"]);
 
-const Contact = () => {
+  useLenis(() => {
+    const el = contentRef.current;
+    const range = el ? el.offsetHeight - window.innerHeight : window.innerHeight;
+    scrollP.set(range > 0 ? Math.min(1, Math.max(0, window.scrollY / range)) : 0);
+  });
+
+  const [sent, setSent] = useState(false);
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // No backend yet — acknowledge locally so the interaction feels complete.
+    setSent(true);
+  };
+
+  // Shared input styling — transparent field with a single ink underline.
+  const inputClass =
+    "w-full border-b bg-transparent pb-3 text-[clamp(16px,1.4vw,20px)] outline-none transition-colors placeholder:opacity-40 focus:border-opacity-100";
+
   return (
-    <article className="bg-[#f3f2ef]" style={{ color: "#2D2928" }}>
-      {/* HERO */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 pt-6 md:pt-10">
-        <div className="relative w-full aspect-[8/3] flex flex-col items-center justify-center text-center">
-          <Appear from="up" delay={60}>
-            <p className="font-nav" style={{ color: "#2D2928" }}>COME ON</p>
-          </Appear>
-          <Appear from="up" delay={140}>
-            <h2 className="font-hero mt-3 md:mt-4" style={{ color: "#2D2928" }}>GET IN TOUCH</h2>
-          </Appear>
-          <Appear from="up" delay={240}>
-            <p className="font-meta mt-4 md:mt-5 mx-auto max-w-xl" style={{ color: "#2D2928" }}>
-              Fill out the form or email us, and we'll get back to you within two working days. You can also call us, or swing by one of our offices. In any case, we're most useful when you involve us early on.
-            </p>
-          </Appear>
-        </div>
-      </section>
+    <motion.main className="min-h-screen w-full" style={{ backgroundColor: bgColor }}>
+      <SiteNav homePath="/concept" textClassName="text-white" />
 
-      <div className="pt-8 md:pt-12" />
+      {/* Content — full width (gutters only). Its height drives the bg tint. */}
+      <div ref={contentRef} className="w-full">
+        {/* Hero — modelled on /careers-v2: brio "Purple & Red" (brio-05) over the
+            concept hero image, full-bleed behind the nav and intro text. */}
+        <section
+          className={`relative overflow-hidden ${GUTTER} pt-[clamp(120px,18vw,250px)] pb-[clamp(80px,12vw,160px)]`}
+        >
+          <div className="absolute inset-0 z-0">
+            <BrioEffect
+              src={`/concept-hero.jpg`}
+              mode="palette"
+              paletteId="brio-05"
+              className="h-full w-full"
+            />
+          </div>
+          <div className="relative z-10">
+            <Reveal>
+              <p className="font-eyebrow text-white">Get in touch</p>
+            </Reveal>
+            <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
+              <h1 className="font-display w-full text-white">
+                Fill out the form or email us, and we'll get back to you within
+                two working days.
+              </h1>
+            </Reveal>
+          </div>
+        </section>
 
-      <div className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96">
-        <hr className="border-0 border-t" style={{ borderColor: "#2D2928" }} />
+        {/* Contact form */}
+        <section
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`}
+          style={{ color: INK.dark }}
+        >
+          <Reveal>
+            <div className="flex flex-col gap-[clamp(40px,5vw,72px)]">
+              {/* Intro + general contact — spans above the two columns. */}
+              <div className="flex w-full flex-col gap-[clamp(20px,2vw,28px)] md:w-[42%]">
+                <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.4]">
+                  You can also call us, or swing by one of our offices. In any
+                  case, we're most useful when you involve us early on.
+                </p>
+                <div className="text-[clamp(14px,1.1vw,16px)] leading-[1.6]">
+                  <a
+                    href={`mailto:${GENERAL.email}`}
+                    className="block transition-opacity hover:opacity-60"
+                  >
+                    {GENERAL.email}
+                  </a>
+                  <a
+                    href={`tel:${GENERAL.phone.replace(/\s/g, "")}`}
+                    className="block transition-opacity hover:opacity-60"
+                  >
+                    {GENERAL.phone}
+                  </a>
+                </div>
+              </div>
+              {/* People + addresses (left) · form (right), top-aligned. */}
+              <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
+                {/* Left column — people + office addresses. */}
+                <div className="flex w-full flex-col gap-[clamp(28px,3vw,40px)] md:w-[42%]">
+                  <div className="grid grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)]">
+                  {EXPERTISE_CONTACTS.map((c) => (
+                    <div key={c.label} className="text-[clamp(14px,1.1vw,16px)] leading-[1.5]">
+                      <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+                        {c.label}
+                      </p>
+                      <p className="mt-2">{c.name}</p>
+                      <a
+                        href={`tel:${c.phone.replace(/\s/g, "")}`}
+                        className="block transition-opacity hover:opacity-60"
+                      >
+                        {c.phone}
+                      </a>
+                      <a
+                        href={`mailto:${c.email}`}
+                        className="block transition-opacity hover:opacity-60"
+                      >
+                        {c.email}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+                {/* Office addresses — spaced apart from the people above. */}
+                <div className="grid grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)] pt-[clamp(28px,3vw,40px)]">
+                  {LOCATIONS.map((l) => (
+                    <div key={l.city} className="text-[clamp(14px,1.1vw,16px)] leading-[1.5]">
+                      <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+                        {l.city}
+                      </p>
+                      <p className="mt-2">{l.address}</p>
+                      <p>{l.zip}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="w-full md:w-[36%]">
+                {sent ? (
+                  <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.5]">
+                    Thanks — your message is on its way. We'll get back to you
+                    within two working days.
+                  </p>
+                ) : (
+                  <form
+                    onSubmit={onSubmit}
+                    className="grid grid-cols-1 gap-y-[clamp(28px,3vw,40px)]"
+                  >
+                    {FIELDS.map((f) => (
+                      <div key={f.name}>
+                        <label
+                          htmlFor={f.name}
+                          className="mb-3 block text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60"
+                        >
+                          {f.label}
+                        </label>
+                        <input
+                          id={f.name}
+                          name={f.name}
+                          type={f.type}
+                          autoComplete="off"
+                          className={inputClass}
+                          style={{ borderColor: INK.dark }}
+                        />
+                      </div>
+                    ))}
+                    <div>
+                      <label
+                        htmlFor="message"
+                        className="mb-3 block text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60"
+                      >
+                        Message
+                      </label>
+                      <textarea
+                        id="message"
+                        name="message"
+                        rows={4}
+                        className={`${inputClass} resize-none`}
+                        style={{ borderColor: INK.dark }}
+                      />
+                    </div>
+                    <div>
+                      <button
+                        type="submit"
+                        className="group flex w-full items-center justify-center gap-2 bg-brigada-black py-[clamp(16px,1.4vw,20px)] text-[clamp(15px,1.25vw,18px)] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
+                      >
+                        <span>Send</span>
+                        <span className="relative top-[-1px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
+                          →
+                        </span>
+                      </button>
+                    </div>
+                  </form>
+                )}
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </section>
       </div>
 
-      <ScrollPhysicsGroup>
-        {/* FORM */}
-        <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 pt-10">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-5 items-start">
-            <div className="md:col-span-2">
-              <p className="font-title">HI THERE</p>
-            </div>
-            <div className="md:col-span-4">
-              <form className="grid grid-cols-1 md:grid-cols-2 gap-x-3 md:gap-x-5 gap-y-8">
-                {[
-                  { label: "NAME", span: 1 },
-                  { label: "COMPANY", span: 1 },
-                  { label: "EMAIL", span: 1 },
-                  { label: "PHONE", span: 1 },
-                  { label: "PROJECT", span: 2 },
-                  { label: "MESSAGE", span: 2, tall: true },
-                ].map((f) => (
-                  <div
-                    key={f.label}
-                    className={f.span === 2 ? "md:col-span-2" : "md:col-span-1"}
-                  >
-                    <label className="font-nav block mb-2">{f.label}</label>
-                    <div
+      {/* Masonry gallery — full-bleed to the viewport edges. Column-flex layout:
+          columns stay equal-height and the last image in each column fills the
+          remaining space so the grid ends flush along a straight bottom edge. */}
+      <section className="pt-[clamp(24px,4vw,64px)] pb-[clamp(24px,4vw,64px)]">
+        <Reveal>
+          {[
+            { cols: 2, className: "flex md:hidden" },
+            { cols: 3, className: "hidden md:flex" },
+          ].map(({ cols, className }) => (
+            <div
+              key={cols}
+              className={`${className} items-stretch gap-[clamp(8px,1vw,16px)]`}
+            >
+              {splitColumns(GALLERY, cols).map((col, ci) => (
+                <div
+                  key={ci}
+                  className="flex flex-1 flex-col gap-[clamp(8px,1vw,16px)]"
+                >
+                  {col.map((src, idx) => (
+                    <img
+                      key={idx}
+                      src={src}
+                      alt=""
+                      loading="lazy"
                       className={
-                        f.tall
-                          ? "h-32 border-b border-[#2D2928]"
-                          : "h-10 border-b border-[#2D2928]"
+                        idx === col.length - 1
+                          ? "block min-h-0 w-full flex-1 object-cover"
+                          : "block w-full"
                       }
                     />
-                  </div>
-                ))}
-                <div className="md:col-span-2 flex justify-end">
-                  <button type="button" className="font-nav link-cta">
-                    SEND
-                  </button>
+                  ))}
                 </div>
-              </form>
+              ))}
             </div>
-          </div>
-        </section>
+          ))}
+        </Reveal>
+      </section>
 
-
-
-        {/* MANAGEMENT */}
-        <div className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-2">
-          <hr className="border-0 border-t" style={{ borderColor: "#2D2928" }} />
-        </div>
-        <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 pt-10">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-x-3 md:gap-x-5 gap-y-12 items-start">
-            <div className="md:col-span-2">
-              <p className="font-title">MANAGEMENT</p>
-            </div>
-            {MANAGEMENT.map((p, i) => (
-              <div key={p.label} className={i === 0 ? "md:col-span-1 md:col-start-3 font-body" : "md:col-span-1 font-body"}>
-                <div className="aspect-[4/5] overflow-hidden w-full relative group">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover grayscale" />
-                  {("video" in p && p.video) ? (
-                    <video
-                      src={p.video as string}
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                      className="absolute inset-0 w-full h-full object-cover grayscale opacity-0 group-hover:opacity-100"
-                      onMouseEnter={(e) => { e.currentTarget.currentTime = 0; e.currentTarget.play().catch(() => {}); }}
-                      onMouseLeave={(e) => { e.currentTarget.pause(); }}
-                    />
-                  ) : null}
-                </div>
-                <p className="font-nav mt-4">{p.label}</p>
-                <div className="font-meta mt-4 text-left">
-                  <p>{p.name}</p>
-                  <p>{p.role}</p>
-                  <p>{p.email}</p>
-                  <p>{p.phone}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* TALK TO A PRACTICE LEAD */}
-        <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-1">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-x-3 md:gap-x-5 gap-y-12 items-start">
-            <div className="md:col-span-2">
-              <p className="font-title">EXPERTISE LEADS</p>
-            </div>
-            {PRACTICE_LEADS.map((p, i) => (
-              <div key={p.label} className={i === 0 ? "md:col-span-1 md:col-start-3 font-body" : "md:col-span-1 font-body"}>
-                <div className="aspect-[4/5] overflow-hidden w-full">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover grayscale" />
-                </div>
-                <p className="font-nav mt-4">{p.label}</p>
-                <div className="font-meta mt-4 text-left">
-                  <p>{p.name}</p>
-                  <p>{p.role}</p>
-                  <p>{p.email}</p>
-                  <p>{p.phone}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* DIRECT */}
-        <div className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 ws-2">
-          <hr className="border-0 border-t" style={{ borderColor: "#2D2928" }} />
-        </div>
-        <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 pt-10">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-3 md:gap-5 items-start">
-            {FOOTER_LOCATIONS.map((l) => (
-              <div key={l.city} className="md:col-span-2 font-body text-left">
-                <div className="aspect-[4/3] overflow-hidden w-full mb-4">
-                  <img src={l.image} alt={l.city} className="w-full h-full object-cover" />
-                </div>
-                <p className="font-nav mb-2">{l.city}</p>
-                <p>{l.address}</p>
-                <p>{l.zip}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <div className="ws-2" />
-
-      </ScrollPhysicsGroup>
-
-      {/* PARALLAX BANNER */}
-      <ParallaxBanner src={bannerImage} alt="Brigada studio" />
-    </article>
+      {/* Parallax footer — solid black, links wired to the pages. */}
+      <BrandFooter dark />
+    </motion.main>
   );
 };
 
-export default Contact;
+export default ContactV2;

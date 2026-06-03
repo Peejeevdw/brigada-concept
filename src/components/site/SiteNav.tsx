@@ -26,15 +26,15 @@ const NAV_RIGHT: NavItemDef[] = [
 // Where each label / sub-item navigates. Only the new-style destinations are
 // wired; unknown labels are no-ops (placeholders) until their page exists.
 const DEFAULT_NAV_TARGETS: Record<string, string> = {
-  Expertise: "/expertise-v2",
-  Work: "/work-v2",
+  Expertise: "/expertise",
+  Work: "/work",
   Brand: "/brand",
   Product: "/product",
   People: "/people",
   Marketing: "/marketing",
-  About: "/about-v2",
-  Careers: "/careers-v2",
-  Contact: "/contact-v2",
+  About: "/about",
+  Careers: "/careers",
+  Contact: "/contact",
 };
 
 // One nav entry (label + optional hover dropdown).

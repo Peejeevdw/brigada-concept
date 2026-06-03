@@ -1,134 +1,171 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import Link from "next/link";
-import Appear from "@/components/Appear";
-import RevealChildren from "@/components/RevealChildren";
-import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
-import ParallaxBanner from "@/components/home-v4-v2/ParallaxBanner";
-import FootageColorsSequence from "@/components/FootageColorsSequence";
-import { jobs } from "@/data/jobs";
-const careers1 = "/assets/careers/careers-1.jpg";
-const careers2 = "/assets/careers/careers-2.jpg";
-const careers3 = "/assets/careers/careers-3.jpg";
-const careers4 = "/assets/careers/careers-4.jpg";
-const careers5 = "/assets/careers/careers-5.jpg";
-const bannerImage = "/assets/careers/careers-parallax.png";
+import { motion } from "framer-motion";
+import { useEffect, useRef, type ReactNode } from "react";
+import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import SiteNav from "@/components/site/SiteNav";
+import CareersCarousel from "@/components/CareersCarousel";
+import CareersFooter from "@/components/CareersFooter";
+import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
+import { BrioEffect } from "@/brio-effect";
+import { usePageTransition } from "@/components/PageTransition";
 
-const collageImages = [
-  { src: careers1, className: "left-0 -top-24 w-[calc((100%-1.25rem)/4)] aspect-[3/4]" },
-  { src: careers2, className: "left-[calc((2*100%+2*1.25rem)/3)] -translate-x-full -top-12 w-[calc((100%-1.25rem)/4)] aspect-square" },
-  { src: careers3, className: "left-[24%] top-24 w-[calc((100%-1.25rem)/4)] aspect-[3/4]" },
-  { src: careers5, className: "right-0 -top-28 w-[calc((100%-1.25rem)/4)] aspect-[3/4]" },
-  { src: careers4, className: "left-[calc(62%-0.09375rem)] top-[calc(5%+5.9375rem)] w-[calc(20%-0.21875rem)] aspect-[3/4]" },
+gsap.registerPlugin(ScrollTrigger);
+
+// Bunny HLS stream that plays full-bleed behind the careers hero text.
+const HERO_HLS_SRC =
+  "https://vz-329506f6-bc3.b-cdn.net/c2b163ea-71a6-4fdd-a960-ac6ac4157268/playlist.m3u8";
+
+// Careers page (v2) — started as a copy of the /brand page, in the concept-page
+// idiom (self-contained, framer-motion, Antarctica, public/ assets via BASE_URL).
+// Lives standalone at /careers-v2 (its own nav, outside SiteLayout). Content is
+// still the brand copy — to be replaced with careers content from here.
+
+const SANS = '"Antarctica", system-ui, sans-serif';
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+const INK = "#2d2928";
+
+// Open positions — placeholder list (same copy repeated for now).
+const VACANCY_BLURB =
+  "As a Senior Client Manager you will be responsible for leading and delivering complex client projects and mid-size accounts; creating clarity, consistency and momentum while growing your commercial and strategic impact.";
+const VACANCIES = [
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
+  { title: "Senior Brand Strategist", description: VACANCY_BLURB },
 ];
 
-const jobBlurb =
-  "As a Senior Client Manager you will be responsible for leading and delivering complex client projects and mid-size accounts; creating clarity, consistency and momentum while growing your commercial and strategic impact.";
+// Shared gutter — same as the /concept page so content runs full-bleed (no
+// centred max-width), gutters only.
+const GUTTER = "px-[clamp(24px,5vw,72px)]";
 
-const HERO_SEQUENCE_SOURCES = [careers1, careers2, careers3, careers4, careers5];
-// Seconds spent on each frame before wiping to the next.
-const HERO_CYCLE_SECONDS = 5;
+// Subtle fade-up reveal on scroll into view (concept-style polish).
+const Reveal = ({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) => (
+  <motion.div
+    className={className}
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-10% 0px" }}
+    transition={{ duration: 0.7, ease: EASE_OUT, delay }}
+  >
+    {children}
+  </motion.div>
+);
 
-const Careers = () => {
-  const progressRef = useRef(0);
-  // Append the first image so the wipe goes last -> first, then loops cleanly.
-  const sequenceSources = useMemo(
-    () => [...HERO_SEQUENCE_SOURCES, HERO_SEQUENCE_SOURCES[0]],
-    [],
-  );
+const SectionLabel = ({ children }: { children: ReactNode }) => (
+  <h2
+    className="shrink-0 text-[clamp(18px,1.5vw,22px)] uppercase leading-none"
+    style={{ fontWeight: 500 }}
+  >
+    {children}
+  </h2>
+);
 
-  // Auto-cycle the sequence progress so the wipe animates without scroll.
+const CareersV2 = () => {
+  const transitionTo = usePageTransition();
+
+  // Smooth scroll — same Lenis setup as /concept, so the carousel + parallax
+  // footer glide instead of stepping with the native wheel. ScrollTrigger is
+  // kept in sync each frame; reduced-motion falls back to native scroll. (The
+  // page background is intentionally static here — no scroll-driven tint.)
   useEffect(() => {
-    const segments = HERO_SEQUENCE_SOURCES.length; // number of wipes per loop
-    if (segments < 1) return;
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduce) return;
+
+    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    lenis.on("scroll", ScrollTrigger.update);
     let raf = 0;
-    const start = performance.now();
-    const loop = () => {
-      const elapsed = (performance.now() - start) / 1000;
-      const cycle = HERO_CYCLE_SECONDS * segments;
-      progressRef.current = (elapsed % cycle) / HERO_CYCLE_SECONDS;
+    const loop = (time: number) => {
+      lenis.raf(time);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
   }, []);
-
-
   return (
-    <article className="bg-[#f3f2ef]" style={{ color: "#2D2928" }}>
-      {/* HERO: text overlay on top of the footage-colors sequence background. */}
-      <section className="relative w-full h-[66.6667vh]" style={{ zIndex: 50 }}>
-        <div className="absolute inset-x-0 top-0 h-[calc(66.6667vh-3rem+(100vw-3rem-1.25rem)/4)] md:h-[calc(66.6667vh-3rem+(100vw-5rem-1.25rem)/4)] xl:h-[calc(66.6667vh-3rem+(100vw-12rem-1.25rem)/4)] 2xl:h-[calc(66.6667vh-3rem+(100vw-24rem-1.25rem)/4)] min-[1800px]:h-[calc(66.6667vh-3rem+(100vw-36rem-1.25rem)/4)] min-[2400px]:h-[calc(66.6667vh-3rem+(100vw-48rem-1.25rem)/4)] overflow-hidden bg-[#2D2928]">
-          {sequenceSources.length > 0 && (
-            <FootageColorsSequence sources={sequenceSources} progressRef={progressRef} />
-          )}
-          <div className="absolute inset-0 bg-brigada-black/25 pointer-events-none" />
-        </div>
-        <div className="relative z-10 h-full px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 text-white flex flex-col items-center justify-center text-center">
-          <Appear from="up" delay={60}>
-            <p className="font-nav text-white/90">CAREERS</p>
-          </Appear>
-          <Appear from="up" delay={140}>
-            <h1 className="font-hero mt-3 md:mt-4">
-              BABY MAKE YOUR MOVE
-            </h1>
-          </Appear>
-          <Appear from="up" delay={240}>
-            <p className="font-meta mt-4 md:mt-5 mx-auto max-w-xl text-white/90">
-              We think for ourselves. We want to keep learning and pushing for better, even after a substantial lunch. We make the hard choices and say what needs to be said. Sounds like you, too? Then we're off to a great start.
-            </p>
-          </Appear>
-        </div>
-      </section>
+    <main className="min-h-screen w-full bg-white" style={{ fontFamily: SANS }}>
+      <SiteNav />
 
-      {/* COLLAGE: 5 images overlapping the hero into the page */}
-      <section className="relative h-[60vh] md:h-[70vh] px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96" style={{ zIndex: 50 }}>
-        <ScrollPhysicsGroup>
-          {collageImages.map((img, i) => (
-            <Appear key={i} from="up" delay={80 + i * 80}>
-              <div className={`absolute overflow-hidden ${img.className}`}>
-                <img src={img.src} alt="" className="w-full h-full object-cover" />
+      {/* Content — full width (gutters only, no centred max-width), like /concept.
+          Its height drives the white→#FEECF2 background progress. */}
+      <div className="w-full">
+        {/* Hero — careers intro text over a full-bleed HLS background video. */}
+        <section
+          className={`relative overflow-hidden ${GUTTER} pt-[clamp(120px,18vw,250px)] pb-[clamp(80px,12vw,160px)]`}
+        >
+          {/* Background — brio "Green & Blue" (palette brio-03) over the concept
+              hero image, full-bleed behind the nav and hero text. Wrapped because
+              BrioEffect forces position:relative on its own container. */}
+          <div className="absolute inset-0 z-0">
+            <BrioEffect
+              src={`/concept-hero.jpg`}
+              mode="palette"
+              paletteId="brio-03"
+              className="h-full w-full"
+            />
+          </div>
+          <div className="relative z-10">
+            <Reveal>
+              <p
+                className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-brigada-black"
+                style={{ fontWeight: 500, fontStretch: "125%" }}
+              >
+                Baby make your move
+              </p>
+            </Reveal>
+            <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
+              <h1
+                className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-brigada-black"
+                style={{ fontWeight: 400 }}
+              >
+                We think for ourselves. We want to keep learning and pushing for
+                better, even after a substantial lunch. We make the hard choices
+                and say what needs to be said.
+              </h1>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Disciplines (Figma 308:2633) */}
+        <section
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`}
+          style={{ color: INK }}
+        >
+          {VACANCIES.map((v, i) => (
+            <Reveal key={i} delay={i * 0.05}>
+              <div className="border-t" style={{ borderColor: INK }} />
+              <div className="mt-[clamp(20px,2vw,26px)] mb-[clamp(28px,3.5vw,52px)] flex flex-col gap-8 md:flex-row md:justify-between">
+                <SectionLabel>{v.title}</SectionLabel>
+                <p className="w-full text-[clamp(15px,1.25vw,18px)] leading-[1.6] md:w-[49%]">
+                  {v.description}
+                </p>
               </div>
-            </Appear>
+            </Reveal>
           ))}
-        </ScrollPhysicsGroup>
-      </section>
+        </section>
+      </div>
 
-      {/* OPEN POSITIONS */}
-      <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 pb-24">
-        <Appear from="up" delay={60}>
-          <p className="font-nav">OPEN POSITIONS</p>
-        </Appear>
+      {/* Careers image carousel (Skiper54 Carousel_006 — expand-on-active). */}
+      <CareersCarousel />
 
-        <div className="mt-6 border-t" style={{ borderColor: "#2D2928" }}>
-          {jobs.map((j) => (
-            <div
-              key={j.slug}
-              className="grid grid-cols-1 md:grid-cols-6 gap-x-3 md:gap-x-5 gap-y-4 border-b last:border-b-0 py-10 items-start"
-              style={{ borderColor: "#2D2928" }}
-            >
-              <div className="md:col-span-2">
-                <Link href={`/careers/jobs/${j.slug}`} className="group inline-block">
-                  <p className="font-title uppercase group-hover:underline underline-offset-4">
-                    {j.title}
-                  </p>
-                </Link>
-              </div>
-              <div className="md:col-span-3 md:col-start-4">
-                <RevealChildren as="p" className="font-body text-left">
-                  {jobBlurb}
-                </RevealChildren>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-
-      <ParallaxBanner src={bannerImage} alt="Brigada at work" />
-    </article>
+      {/* Footer — parallax reveal, white background + black wordmark */}
+      <CareersFooter />
+    </main>
   );
 };
 
-export default Careers;
+export default CareersV2;

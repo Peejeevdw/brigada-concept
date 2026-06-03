@@ -10,7 +10,6 @@ import WorkTransitionOverlay from "@/components/WorkTransitionOverlay";
 import ExpertiseTransitionOverlay from "@/components/ExpertiseTransitionOverlay";
 import SiteGridOverlay from "@/components/SiteGridOverlay";
 import ReviewComments from "@/components/review/ReviewComments";
-import Nav from "@/components/Nav";
 import PageTransitionProvider from "@/components/PageTransition";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -24,7 +23,6 @@ export function Providers({ children }: { children: ReactNode }) {
         <ExpertiseTransitionOverlay />
         <SiteGridOverlay />
         <ReviewComments />
-        <Nav />
         <PageTransitionProvider>{children}</PageTransitionProvider>
         <Toaster />
         <Sonner />

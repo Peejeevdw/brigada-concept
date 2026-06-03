@@ -22,11 +22,11 @@ const COLUMNS = [
 
 // Internal routes for the "Pages" column (new-style destinations).
 const PAGE_ROUTES: Record<string, string> = {
-  Work: "/work-v2",
-  Expertise: "/expertise-v2",
-  About: "/about-v2",
-  Careers: "/careers-v2",
-  Contact: "/contact-v2",
+  Work: "/work",
+  Expertise: "/expertise",
+  About: "/about",
+  Careers: "/careers",
+  Contact: "/contact",
 };
 
 // goo-1 "WAVE" reveal values (codrops), shared with BrandFooter.

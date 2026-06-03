@@ -646,11 +646,11 @@ const Concept = () => {
                   className="cursor-pointer text-[14px] uppercase tracking-[0.1em] opacity-90 transition-opacity hover:opacity-100"
                   style={{ fontFamily: SANS }}
                   onClick={() => {
-                    if (item.label === "Careers") transitionTo("/careers-v2");
-                    else if (item.label === "About") transitionTo("/about-v2");
-                    else if (item.label === "Expertise") transitionTo("/expertise-v2");
-                    else if (item.label === "Work") transitionTo("/work-v2");
-                    else if (item.label === "Contact") transitionTo("/contact-v2");
+                    if (item.label === "Careers") transitionTo("/careers");
+                    else if (item.label === "About") transitionTo("/about");
+                    else if (item.label === "Expertise") transitionTo("/expertise");
+                    else if (item.label === "Work") transitionTo("/work");
+                    else if (item.label === "Contact") transitionTo("/contact");
                   }}
                 >
                   {item.label}
