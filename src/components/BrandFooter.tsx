@@ -1,11 +1,14 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+"use client";
+
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { BrioEffect } from "@/brio-effect";
 import { usePageTransition } from "@/components/PageTransition";
-import { officeLocations as LOCATIONS } from "@/data/officeLocations";
+import { officeLocations as FALLBACK_LOCATIONS } from "@/data/officeLocations";
+import { useSiteChrome } from "@/lib/site-chrome";
 
 // Footer ported from the /concept page — Osmo "Footer Parallax Effect": as the
 // footer scrolls in, its inner lifts (yPercent -25→0) and a dark overlay fades
@@ -53,6 +56,18 @@ const BrandFooter = ({
   lightText = false,
 }: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean; lightText?: boolean } = {}) => {
   const transitionTo = usePageTransition();
+  const chrome = useSiteChrome();
+  /** Office cards — Sanity-driven when available, otherwise the hardcoded set. */
+  const LOCATIONS = useMemo<{ city: string; address: string; zip: string; phone: string }[]>(() => {
+    const sanityLocations = chrome?.locations ?? [];
+    if (sanityLocations.length === 0) return FALLBACK_LOCATIONS;
+    return sanityLocations.map((loc) => ({
+      city: loc.city ?? loc.title ?? "",
+      address: [loc.street, loc.number].filter(Boolean).join(" "),
+      zip: [loc.postalCode, loc.city].filter(Boolean).join(" "),
+      phone: loc.phone ?? "",
+    }));
+  }, [chrome?.locations]);
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);

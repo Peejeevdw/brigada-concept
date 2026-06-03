@@ -1,9 +1,12 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+"use client";
+
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { usePageTransition } from "@/components/PageTransition";
-import { officeLocations as LOCATIONS } from "@/data/officeLocations";
+import { officeLocations as FALLBACK_LOCATIONS } from "@/data/officeLocations";
+import { useSiteChrome } from "@/lib/site-chrome";
 
 // Careers footer — same layout/parallax as BrandFooter (Osmo "Footer Parallax
 // Effect": inner lifts yPercent -25→0 as it scrolls in), but on a plain black
@@ -37,6 +40,18 @@ const GOO_DUR = 2;
 
 const CareersFooter = () => {
   const transitionTo = usePageTransition();
+  const chrome = useSiteChrome();
+  /** Office cards — Sanity-driven when available, otherwise the hardcoded set. */
+  const LOCATIONS = useMemo<{ city: string; address: string; zip: string; phone: string }[]>(() => {
+    const sanityLocations = chrome?.locations ?? [];
+    if (sanityLocations.length === 0) return FALLBACK_LOCATIONS;
+    return sanityLocations.map((loc) => ({
+      city: loc.city ?? loc.title ?? "",
+      address: [loc.street, loc.number].filter(Boolean).join(" "),
+      zip: [loc.postalCode, loc.city].filter(Boolean).join(" "),
+      phone: loc.phone ?? "",
+    }));
+  }, [chrome?.locations]);
   const footerRef = useRef<HTMLDivElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
 

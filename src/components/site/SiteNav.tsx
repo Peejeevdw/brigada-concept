@@ -1,8 +1,11 @@
+"use client";
+
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { usePageTransition } from "@/components/PageTransition";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
+import { useSiteChrome } from "@/lib/site-chrome";
 
 // Shared navigation for the new-style pages — the /concept nav (progressive
 // blur backdrop + Expertise hover-dropdown), arranged as a left group · centred
@@ -128,7 +131,20 @@ const SiteNav = ({
     }, 180);
   };
 
-  const targets = { ...DEFAULT_NAV_TARGETS, ...navTargets };
+  // Pick URLs from the Sanity `main` menu when available. Falls back to the
+  // hardcoded `DEFAULT_NAV_TARGETS` map for items the editor hasn't curated
+  // yet (e.g. the Expertise submenu, which doesn't live in Sanity yet).
+  const chrome = useSiteChrome();
+  const sanityTargets = useMemo<Record<string, string>>(() => {
+    const items = chrome?.mainMenu?.items ?? [];
+    const map: Record<string, string> = {};
+    for (const item of items) {
+      if (item?.label && item?.url) map[item.label] = item.url;
+    }
+    return map;
+  }, [chrome?.mainMenu?.items]);
+
+  const targets = { ...DEFAULT_NAV_TARGETS, ...sanityTargets, ...navTargets };
   const onSub = (sub: string) => {
     const to = targets[sub];
     if (to) transitionTo(to);
