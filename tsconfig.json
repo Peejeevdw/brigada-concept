@@ -43,13 +43,8 @@
     "node_modules",
     "studio",
     ".next",
+    ".open-next",
     "dist",
-    ".wrangler",
-    "src/App.tsx",
-    "src/main.tsx",
-    "src/_pages_legacy",
-    "vite.config.ts",
-    "vitest.config.ts",
-    "src/test"
+    ".wrangler"
   ]
 }

@@ -1,6 +1,6 @@
 # Brigada
 
-Brigada website — Vite + React frontend, Sanity Studio for content.
+Brigada website — Next.js 16 (App Router) on Cloudflare Workers via OpenNext, Sanity Studio for content.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ Brigada website — Vite + React frontend, Sanity Studio for content.
 ```bash
 # Frontend
 npm install
-npm run dev          # → http://localhost:8080
+npm run dev          # → http://localhost:3000
 
 # Studio (separate terminal)
 cd studio
@@ -20,29 +20,33 @@ pnpm install
 pnpm dev             # → http://localhost:3333
 ```
 
-Copy `.env.example` to `.env.local` for the frontend Sanity connection.
-Copy `studio/.env.example` to `studio/.env` to override the Studio connection.
+Copy `.env.example` to `.env` for the Sanity connection. Recommended: install [direnv](https://direnv.net) and add `dotenv .env` to `.envrc` so the vars are auto-loaded for `claude` / the MCP server.
 
-Frontend Sanity variables:
+Sanity variables:
 
 | Variable | Description |
 | -------- | ----------- |
-| `VITE_SANITY_PROJECT_ID` | Public Sanity project ID used by the website. |
-| `VITE_SANITY_DATASET` | Dataset to read from, defaults to `production`. |
-| `VITE_SANITY_API_VERSION` | Content Lake API version, defaults to `2026-04-08`. |
-| `VITE_SANITY_LOCALE` | Locale document to read for singleton content, defaults to `en`. |
+| `SANITY_PROJECT_ID` | Sanity project ID, server-side. |
+| `SANITY_DATASET` | Dataset to read from, defaults to `production`. |
+| `SANITY_API_VERSION` | Content Lake API version, defaults to `2026-04-08`. |
+| `SANITY_LOCALE` | Locale document to read for singleton content, defaults to `en`. |
+| `SANITY_API_TOKEN` | Used by the Sanity MCP server only (never by the Next.js app). |
+
+> All Sanity queries run server-side in Server Components, so no `NEXT_PUBLIC_` prefix is needed.
 
 ## Scripts
 
 **Frontend** — `npm run …`
 
-| Command       | Description                |
-| ------------- | -------------------------- |
-| `dev`         | Dev server on :8080        |
-| `build`       | Production build           |
-| `preview`     | Preview production build   |
-| `lint`        | ESLint                     |
-| `test`        | Vitest                     |
+| Command       | Description                                       |
+| ------------- | ------------------------------------------------- |
+| `dev`         | Next.js dev server on :3000 (Turbopack)           |
+| `build`       | Next.js production build                          |
+| `start`       | Serve the production build locally                |
+| `preview`     | OpenNext build + Wrangler preview on Cloudflare   |
+| `deploy`      | OpenNext build + deploy to Cloudflare Workers     |
+| `lint`        | ESLint                                            |
+| `types`       | Extract Sanity schema + regenerate types          |
 
 **Studio** — `cd studio && pnpm …`
 
@@ -55,25 +59,40 @@ Frontend Sanity variables:
 ## Project Structure
 
 ```
-src/                    # Frontend (Vite + React + Tailwind + shadcn-ui)
-├── components/         # Shared components (ui/ = shadcn primitives)
-├── pages/              # Route components
-├── data/               # Static content (source of truth until Sanity wiring)
-└── App.tsx, main.tsx
+app/                    # Next.js App Router
+├── layout.tsx          # Root layout (Providers, fonts, metadata)
+├── providers.tsx       # Client-side providers (React Query, transitions, Nav)
+├── page.tsx            # / → Concept
+├── (site)/             # Route group with shared SiteLayout (Footer)
+│   ├── work/           # /work + /work/[slug]
+│   ├── expertise/      # /expertise + /expertise/[slug]
+│   ├── about/, careers/, contact/
+└── privacy/, cookies/, not-found.tsx
+
+src/
+├── views/              # Page components (client, render under app/ routes)
+├── components/         # Shared components
+├── lib/
+│   ├── sanity.ts          # Sanity client (server, uses process.env)
+│   └── sanity-fetch.ts    # Server-side fetch helpers (server-only)
+├── hooks/, data/, types/, integrations/
 
 studio/                 # Sanity Studio v5
-├── schemaTypes/
-│   ├── singletons/     # homePage, aboutPage, careersPage, contactPage
-│   ├── documents/      # work, expertise, lead, location, locale
-│   └── objects/        # linkItem + page-builder blocks (hero, textblock, selectedWork)
-├── structure/          # Custom desk (singletons + admin-only locale)
-├── templates.ts        # Per-locale singleton templates
-└── sanity.config.ts    # Plugins, i18n, env-driven project ID
 ```
+
+## Deploy
+
+Cloudflare Workers via [OpenNext](https://opennext.js.org/cloudflare). The Worker is configured in `wrangler.jsonc`:
+
+- `main: .open-next/worker.js` (built by `opennextjs-cloudflare build`)
+- `assets.directory: .open-next/assets`
+- `compatibility_flags: ["nodejs_compat"]`
+
+Set the Cloudflare project's build settings to:
+
+- Build command: `npm run build`
+- Deploy command: `npx opennextjs-cloudflare deploy`
 
 ## Content Model
 
-- **Pages** (Home / About / Careers / Contact) — singletons composed of PageBuilder blocks.
-- **Resources** (Work / Expertise / Lead / Location) — referenced by pages.
-
-> Frontend is not yet wired to Sanity — `src/data/*` is still authoritative.
+Sanity Studio is set up but the frontend is **not yet wired** to it — `src/data/*` is still authoritative. Migration to live Sanity content is the next milestone.
