@@ -57,51 +57,8 @@ const GOO_BLUR_START = 50;
 const GOO_ALPHA_MUL = 31;
 const GOO_ALPHA_OFF = -6;
 
-// Stacking case cards (Osmo "Stacking Cards Parallax" mechanic).
-// First card = TUI (real). The rest are placeholders — drop visuals in /public
-// and update `img` here. `bg` is any CSS background value; `fg` is the text colour.
-const TUI_BG =
-  "url(" +
-  "/" +
-  "concept-tui-bg.png) center/cover no-repeat, radial-gradient(140% 120% at 75% 6%, #FFFBEC 0%, #FFE25A 22%, #FFC21E 46%, #FF8A2E 70%, #FF5C46 88%, #FF4E73 100%)";
-// `bg` is any CSS background; `bgVideo` (optional) renders a full-bleed looping
-// video behind the content instead — takes precedence over `bg`.
-// `trail` = the set of images that spawn in the cursor image-trail on hover
-// (Osmo "Rotating Image Trail"). Per case its own set — placeholders for now,
-// reusing existing /public images; drop real per-case visuals here later.
-const CASES = [
-  {
-    name: "TUI",
-    tags: "Brand, Marketing",
-    img: "tui-image.jpg",
-    bg: TUI_BG,
-    fg: BRIGADA_BLACK,
-    trail: ["yellow-1.png", "yellow-2.png", "yellow-3.png"],
-  },
-  {
-    name: "Meet Marcel",
-    tags: "Brand, Product",
-    img: "meetmarcel.jpg",
-    bgVideo: "meetmarcel-loop.mp4",
-    bg: "#1A232E",
-    fg: BRIGADA_BLACK,
-    trail: ["mm-1.jpg", "mm-2.jpg", "mm-3.jpg", "mm-4.jpg"],
-  },
-  // Tijdelijk verborgen — terugzetten door uit te commenten:
-  // { name: "Case Three", tags: "Marketing, Film", img: "placeholder.svg", bg: "#62594C", fg: "#FFFFFF", trail: ["placeholder.svg"] },
-  // { name: "Case Four", tags: "Brand, Strategy", img: "placeholder.svg", bg: "#1F1715", fg: "#FFFFFF", trail: ["placeholder.svg"] },
-] as { name: string; tags: string; img: string; bg: string; fg: string; bgVideo?: string; trail?: string[] }[];
-
 // Recognition list for the "Proud not loud" section (placeholder content from Figma).
 // `img` = the case visual shown in the cursor-follower preview on hover (placeholder).
-const AWARDS = [
-  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "tui-image.jpg" },
-  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "meetmarcel.jpg" },
-  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "tui-image.jpg" },
-  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "meetmarcel.jpg" },
-  { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "tui-image.jpg" },
-];
-
 export interface ConceptData {
   intro?: {
     eyebrow?: string | null;
@@ -111,6 +68,21 @@ export interface ConceptData {
   reel?: {
     hlsUrl?: string | null;
     loopVideoUrl?: string | null;
+  } | null;
+  cases?: {
+    title?: string | null;
+    items?: Array<{
+      _key?: string;
+      backgroundType?: string | null;
+      bgColor?: string | null;
+      fgColor?: string | null;
+      work?: {
+        _id?: string;
+        name?: string | null;
+        slug?: string | null;
+        expertises?: Array<{ name?: string | null }> | null;
+      } | null;
+    }> | null;
   } | null;
   awards?: {
     eyebrow?: string | null;
@@ -126,6 +98,18 @@ export interface ConceptData {
   } | null;
 }
 
+// Image + bgVideo lookup keyed by work slug — used until Sanity image assets
+// are uploaded for each case. Editors control bgColor / fgColor / work refs
+// from Studio; this map is the only piece still living in code.
+const CASE_ASSETS: Record<string, { img: string; bgVideo?: string; trail?: string[] }> = {
+  tui: { img: "tui-image.jpg", trail: ["yellow-1.png", "yellow-2.png", "yellow-3.png"] },
+  meetmarcel: {
+    img: "meetmarcel.jpg",
+    bgVideo: "meetmarcel-loop.mp4",
+    trail: ["mm-1.jpg", "mm-2.jpg", "mm-3.jpg", "mm-4.jpg"],
+  },
+};
+
 const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const transitionTo = usePageTransition();
   // Sanity-driven content blocks — read once at render to keep the rest of the
@@ -137,6 +121,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     : [];
   const reelHls = data?.reel?.hlsUrl ?? "";
   const awardsItems = data?.awards?.items ?? [];
+  const caseItems = data?.cases?.items ?? [];
   // ---- Intro: 0 = blurred + thick stroke · 1 = crisp full logo ----
   const t = useMotionValue(0);
   const [revealed, setRevealed] = useState(false);
@@ -1040,18 +1025,28 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         className="relative z-10 w-full"
         style={{ marginTop: `-${videoPull}vh` }}
       >
-        {CASES.map((c) => (
+        {caseItems.map((c) => {
+          const name = c.work?.name ?? "";
+          const tags = (c.work?.expertises ?? [])
+            .map((e) => e?.name)
+            .filter(Boolean)
+            .join(", ");
+          const slug = c.work?.slug ?? "";
+          const assets = CASE_ASSETS[slug] ?? { img: "placeholder.svg" };
+          const img = assets.img;
+          const bgVideo = assets.bgVideo;
+          return (
           <section
-            key={c.name}
+            key={c._key ?? slug}
             data-stacking-cards-item
             className="relative -mt-4 flex min-h-screen w-full items-center overflow-hidden"
-            style={{ background: c.bg, color: c.fg }}
+            style={{ background: c.bgColor ?? undefined, color: c.fgColor ?? undefined }}
           >
             {/* Optional full-bleed video background */}
-            {c.bgVideo && (
+            {bgVideo && (
               <video
                 className="absolute inset-0 h-full w-full object-cover"
-                src={`/${c.bgVideo}`}
+                src={`/${bgVideo}`}
                 autoPlay
                 muted
                 loop
@@ -1069,19 +1064,17 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                   className="text-[clamp(20px,1.9vw,27px)] uppercase leading-none"
                   style={{ fontFamily: SANS, fontStretch: "125%", fontWeight: 500 }}
                 >
-                  {c.name}
+                  {name}
                 </span>
                 <span
                   className="text-[clamp(13px,1.05vw,15px)] tracking-[-0.015em]"
                   style={{ fontFamily: SANS }}
                 >
-                  {c.tags}
+                  {tags}
                 </span>
               </div>
 
-              {/* Media — large landscape visual; "Watch case" pill on hover.
-                  (Osmo image-trail tijdelijk uit — zie de uitgecommentarieerde
-                  data-trail markup hieronder + het trail-useEffect/CSS.) */}
+              {/* Media — large landscape visual; "Watch case" pill on hover. */}
               <div
                 className="relative w-full overflow-hidden md:flex-1"
                 onPointerEnter={() => setHoverCase(true)}
@@ -1090,8 +1083,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 <img
                   data-stacking-cards-img
                   className="block aspect-[1342/813] w-full object-cover"
-                  src={`/${c.img}`}
-                  alt={`${c.name} — ${c.tags}`}
+                  src={`/${img}`}
+                  alt={`${name} — ${tags}`}
                 />
                 {/* Trail source set — hidden originals the script clones from.
                 <div data-trail-collection className="rotating-image-trail__collection" aria-hidden>
@@ -1112,7 +1105,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
               </div>
             </div>
           </section>
-        ))}
+        );
+        })}
       </div>
 
       {/* Recognition — "Proud not loud" intro + awards list (Figma node 299-1904) */}
