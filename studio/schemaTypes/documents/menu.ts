@@ -34,7 +34,7 @@ export const menu = defineType({
       title: 'Items',
       description: 'Pick an internal page or paste an external URL per item. Drag to reorder.',
       type: 'array',
-      of: [{type: 'menuItem'}],
+      of: [{type: 'link'}],
       validation: (Rule) => Rule.min(1).error('Add at least one item.'),
     }),
   ],

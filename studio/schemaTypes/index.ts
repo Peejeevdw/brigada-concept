@@ -1,9 +1,6 @@
 // Objects
 import {blockContent} from './objects/blockContent'
 import {blockContentTextOnly} from './objects/blockContentTextOnly'
-import {linkItem} from './objects/linkItem'
-import {menuItem} from './objects/menuItem'
-import {legalLink} from './objects/legalLink'
 import {socialLink} from './objects/socialLink'
 import {seo} from './objects/seo'
 import {link} from './objects/link'
@@ -42,9 +39,6 @@ export const schemaTypes = [
   // Objects
   blockContent,
   blockContentTextOnly,
-  linkItem,
-  menuItem,
-  legalLink,
   socialLink,
   seo,
   link,

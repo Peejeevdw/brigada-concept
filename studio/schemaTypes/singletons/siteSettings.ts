@@ -63,7 +63,7 @@ export const siteSettings = defineType({
       group: 'legal',
       description:
         'Small print at the bottom of the footer (e.g. Privacy Policy, Cookies). Drag to reorder.',
-      of: [defineArrayMember({type: 'legalLink'})],
+      of: [defineArrayMember({type: 'link'})],
     }),
     defineField({
       name: 'ogImage',

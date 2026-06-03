@@ -239,7 +239,7 @@ export const expertise = defineType({
       type: 'array',
       group: 'settings',
       description: 'Optional links shown alongside the body (case studies, downloads, etc.).',
-      of: [defineArrayMember({type: 'linkItem'})],
+      of: [defineArrayMember({type: 'link'})],
     }),
     defineField({
       name: 'seo',

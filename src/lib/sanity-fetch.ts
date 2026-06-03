@@ -61,7 +61,11 @@ const I18N_STRING = `coalesce(
   value[0].value
 )`;
 
-const LINK_RESOLVER = `select(
+/**
+ * Resolves the `internal` reference on a `link` object to a URL. Each new
+ * linkable document type needs a matching `select()` case here.
+ */
+const INTERNAL_URL = `select(
   internal->_type == "homePage" => "/",
   internal->_type == "workIndexPage" => "/work",
   internal->_type == "expertiseIndexPage" => "/expertise",
@@ -77,10 +81,22 @@ const LINK_RESOLVER = `select(
   internal->_type == "job" => "/careers/jobs/" + internal->slug.current
 )`;
 
-const MENU_ITEM_PROJECTION = `{
+/**
+ * Projects a unified `link` object into the shape the FE expects:
+ * `{ _key, label, url, openInNewTab }`. Handles all five `target` modes —
+ * internal page references, external URLs, mailto, tel, anchors.
+ */
+const LINK_PROJECTION = `{
   _key,
   "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),
-  "url": coalesce(${LINK_RESOLVER}, external),
+  "url": select(
+    target == "internal" => ${INTERNAL_URL},
+    target == "external" => url,
+    target == "email" => "mailto:" + email,
+    target == "phone" => "tel:" + phone,
+    target == "anchor" => "#" + anchor,
+    null
+  ),
   openInNewTab
 }`;
 
@@ -158,13 +174,10 @@ const settingsAndChromeQuery = groq`{
   "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{
     title, tagline, email, phone, ogImage,
     "socials": socials[]{platform, url, label},
-    "legalLinks": legalLinks[]{
-      label,
-      "href": coalesce(external, select(internal->_type == "legalPage" => "/" + internal->kind))
-    }
+    "legalLinks": legalLinks[]${LINK_PROJECTION}
   },
-  "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]${MENU_ITEM_PROJECTION}},
-  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]${MENU_ITEM_PROJECTION}},
+  "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]${LINK_PROJECTION}},
+  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]${LINK_PROJECTION}},
   "locations": *[_type == "location"] | order(_createdAt asc)${LOCATION_PROJECTION}
 }`;
 
@@ -333,7 +346,7 @@ export interface ChromeData {
     phone?: string;
     ogImage?: unknown;
     socials?: Array<{ platform: SocialPlatform; url: string; label?: string }>;
-    legalLinks?: Array<{ label: string; href: string }>;
+    legalLinks?: Array<{ _key: string; label: string; url: string; openInNewTab?: boolean }>;
   } | null;
   footerMenu: { items?: Array<{ _key: string; label: string; url: string; openInNewTab?: boolean }> } | null;
   mainMenu: { items?: Array<{ _key: string; label: string; url: string; openInNewTab?: boolean }> } | null;
