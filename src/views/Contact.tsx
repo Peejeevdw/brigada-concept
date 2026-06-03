@@ -19,8 +19,45 @@ const gallery6 = "/assets/contact/c6.avif";
 // Section rhythm follows the brief: hero (modelled on /careers-v2) → contact
 // form → locations → mood photo → parallax footer.
 
-// Office locations (same data as the legacy /contact page).
+export interface ContactData {
+  hero?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    brioPaletteId?: string | null;
+  } | null;
+  form?: {
+    intro?: string | null;
+    submitLabel?: string | null;
+    successMessage?: string | null;
+    fields?: Array<{
+      _key?: string;
+      name?: string | null;
+      label?: string | null;
+      type?: string | null;
+      required?: boolean | null;
+      span?: string | null;
+      placeholder?: string | null;
+    }> | null;
+  } | null;
+  expertiseContacts?: Array<{
+    _key?: string;
+    label?: string | null;
+    person?: { name?: string | null; email?: string | null; phone?: string | null } | null;
+  }> | null;
+  locations?: Array<{
+    _id?: string;
+    title?: string | null;
+    street?: string | null;
+    number?: string | null;
+    postalCode?: string | null;
+    city?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  }> | null;
+}
+
 // Masonry gallery images (varying aspect ratios → column-flow masonry).
+// Visual placeholders — not editorial copy, kept hardcoded for now.
 const GALLERY = [gallery1, gallery2, gallery3, gallery4, gallery5, gallery6];
 
 // Split images round-robin into n columns, so we can render a column-flex
@@ -31,36 +68,23 @@ const splitColumns = (items: string[], n: number) => {
   return cols;
 };
 
-const LOCATIONS = [
-  { city: "BRIGADA ANTWERP", address: "Molenstraat 54", zip: "2018 Antwerpen" },
-  { city: "BRIGADA GHENT", address: "Amelia Earhartlaan 2 Bus 401", zip: "9051 Ghent" },
-  { city: "BRIGADA BRUSSELS", address: "Waelhemstraat 77", zip: "1030 Schaarbeek" },
-];
-
-// Form fields — single-column underline inputs in the new-style aesthetic.
-const FIELDS = [
-  { name: "name", label: "Name", type: "text", full: false },
-  { name: "company", label: "Company", type: "text", full: false },
-  { name: "email", label: "Email", type: "email", full: false },
-  { name: "phone", label: "Phone", type: "tel", full: false },
-  { name: "project", label: "Project", type: "text", full: true },
-] as const;
-
-// General contact details.
-const GENERAL = { email: "hello@brigada.be", phone: "+32 9 123 45 67" };
-
-// Per-expertise leads (pulled from the /brand, /product, /people, /marketing
-// contact blocks). Shown under "Hi there" so visitors can reach a discipline
-// lead directly.
-const EXPERTISE_CONTACTS = [
-  { label: "Brand", name: "Mathias", email: "mathias@brigada.be", phone: "+32 477 11 22 33" },
-  { label: "Product", name: "Jeroen De Bock", email: "jeroen.debock@brigada.be", phone: "+32 477 62 76 01" },
-  { label: "People", name: "Marie", email: "marie@brigada.be", phone: "+32 477 44 55 66" },
-  { label: "Marketing", name: "Sofie", email: "sofie@brigada.be", phone: "+32 477 77 88 99" },
-  { label: "New bizz", name: "Evert Vermeire", email: "evert.vermeire@brigada.be", phone: "+32 479 59 14 30" },
-];
-
-const ContactV2 = () => {
+const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | null; generalEmail?: string; generalPhone?: string } = {}) => {
+  const hero = data?.hero;
+  const eyebrow = hero?.eyebrow ?? "";
+  const title = hero?.title ?? "";
+  const brioPalette = hero?.brioPaletteId ?? "brio-05";
+  const formIntro = data?.form?.intro ?? "";
+  const submitLabel = data?.form?.submitLabel ?? "Send";
+  const successMessage = data?.form?.successMessage ?? "";
+  const fields = data?.form?.fields ?? [];
+  const expertiseContacts = data?.expertiseContacts ?? [];
+  const offices = (data?.locations ?? []).map((l) => ({
+    city: `BRIGADA ${(l.city ?? l.title ?? "").toUpperCase()}`.trim(),
+    address: [l.street, l.number].filter(Boolean).join(" "),
+    zip: [l.postalCode, l.city].filter(Boolean).join(" "),
+  }));
+  const generalContactEmail = generalEmail ?? "";
+  const generalContactPhone = generalPhone ?? "";
   // Scroll-driven background — warms from white to a soft tint across the
   // content block (same polish as /people).
   const contentRef = useRef<HTMLDivElement>(null);
@@ -99,19 +123,16 @@ const ContactV2 = () => {
             <BrioEffect
               src={`/concept-hero.jpg`}
               mode="palette"
-              paletteId="brio-05"
+              paletteId={brioPalette}
               className="h-full w-full"
             />
           </div>
           <div className="relative z-10">
             <Reveal>
-              <p className="font-eyebrow text-white">Get in touch</p>
+              <p className="font-eyebrow text-white">{eyebrow}</p>
             </Reveal>
             <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-              <h1 className="font-display w-full text-white">
-                Fill out the form or email us, and we'll get back to you within
-                two working days.
-              </h1>
+              <h1 className="font-display w-full text-white">{title}</h1>
             </Reveal>
           </div>
         </section>
@@ -125,23 +146,24 @@ const ContactV2 = () => {
             <div className="flex flex-col gap-[clamp(40px,5vw,72px)]">
               {/* Intro + general contact — spans above the two columns. */}
               <div className="flex w-full flex-col gap-[clamp(20px,2vw,28px)] md:w-[42%]">
-                <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.4]">
-                  You can also call us, or swing by one of our offices. In any
-                  case, we're most useful when you involve us early on.
-                </p>
+                <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.4]">{formIntro}</p>
                 <div className="text-[clamp(14px,1.1vw,16px)] leading-[1.6]">
-                  <a
-                    href={`mailto:${GENERAL.email}`}
-                    className="block transition-opacity hover:opacity-60"
-                  >
-                    {GENERAL.email}
-                  </a>
-                  <a
-                    href={`tel:${GENERAL.phone.replace(/\s/g, "")}`}
-                    className="block transition-opacity hover:opacity-60"
-                  >
-                    {GENERAL.phone}
-                  </a>
+                  {generalContactEmail && (
+                    <a
+                      href={`mailto:${generalContactEmail}`}
+                      className="block transition-opacity hover:opacity-60"
+                    >
+                      {generalContactEmail}
+                    </a>
+                  )}
+                  {generalContactPhone && (
+                    <a
+                      href={`tel:${generalContactPhone.replace(/\s/g, "")}`}
+                      className="block transition-opacity hover:opacity-60"
+                    >
+                      {generalContactPhone}
+                    </a>
+                  )}
                 </div>
               </div>
               {/* People + addresses (left) · form (right), top-aligned. */}
@@ -149,31 +171,40 @@ const ContactV2 = () => {
                 {/* Left column — people + office addresses. */}
                 <div className="flex w-full flex-col gap-[clamp(28px,3vw,40px)] md:w-[42%]">
                   <div className="grid grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)]">
-                  {EXPERTISE_CONTACTS.map((c) => (
-                    <div key={c.label} className="text-[clamp(14px,1.1vw,16px)] leading-[1.5]">
-                      <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
-                        {c.label}
-                      </p>
-                      <p className="mt-2">{c.name}</p>
-                      <a
-                        href={`tel:${c.phone.replace(/\s/g, "")}`}
-                        className="block transition-opacity hover:opacity-60"
-                      >
-                        {c.phone}
-                      </a>
-                      <a
-                        href={`mailto:${c.email}`}
-                        className="block transition-opacity hover:opacity-60"
-                      >
-                        {c.email}
-                      </a>
-                    </div>
-                  ))}
+                  {expertiseContacts.map((c) => {
+                    const name = c.person?.name ?? "";
+                    const phone = c.person?.phone ?? "";
+                    const email = c.person?.email ?? "";
+                    return (
+                      <div key={c._key ?? c.label ?? name} className="text-[clamp(14px,1.1vw,16px)] leading-[1.5]">
+                        <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+                          {c.label}
+                        </p>
+                        <p className="mt-2">{name}</p>
+                        {phone && (
+                          <a
+                            href={`tel:${phone.replace(/\s/g, "")}`}
+                            className="block transition-opacity hover:opacity-60"
+                          >
+                            {phone}
+                          </a>
+                        )}
+                        {email && (
+                          <a
+                            href={`mailto:${email}`}
+                            className="block transition-opacity hover:opacity-60"
+                          >
+                            {email}
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
                 {/* Office addresses — spaced apart from the people above. */}
                 <div className="grid grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)] pt-[clamp(28px,3vw,40px)]">
-                  {LOCATIONS.map((l) => (
-                    <div key={l.city} className="text-[clamp(14px,1.1vw,16px)] leading-[1.5]">
+                  {offices.map((l, i) => (
+                    <div key={l.city || `o${i}`} className="text-[clamp(14px,1.1vw,16px)] leading-[1.5]">
                       <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
                         {l.city}
                       </p>
@@ -185,54 +216,54 @@ const ContactV2 = () => {
               </div>
               <div className="w-full md:w-[36%]">
                 {sent ? (
-                  <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.5]">
-                    Thanks — your message is on its way. We'll get back to you
-                    within two working days.
-                  </p>
+                  <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.5]">{successMessage}</p>
                 ) : (
                   <form
                     onSubmit={onSubmit}
                     className="grid grid-cols-1 gap-y-[clamp(28px,3vw,40px)]"
                   >
-                    {FIELDS.map((f) => (
-                      <div key={f.name}>
-                        <label
-                          htmlFor={f.name}
-                          className="mb-3 block text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60"
-                        >
-                          {f.label}
-                        </label>
-                        <input
-                          id={f.name}
-                          name={f.name}
-                          type={f.type}
-                          autoComplete="off"
-                          className={inputClass}
-                          style={{ borderColor: INK.dark }}
-                        />
-                      </div>
-                    ))}
-                    <div>
-                      <label
-                        htmlFor="message"
-                        className="mb-3 block text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60"
-                      >
-                        Message
-                      </label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        rows={4}
-                        className={`${inputClass} resize-none`}
-                        style={{ borderColor: INK.dark }}
-                      />
-                    </div>
+                    {fields.map((f, i) => {
+                      const fieldName = f.name ?? `f${i}`;
+                      const isTextarea = f.type === "textarea";
+                      return (
+                        <div key={f._key ?? fieldName}>
+                          <label
+                            htmlFor={fieldName}
+                            className="mb-3 block text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60"
+                          >
+                            {f.label}
+                          </label>
+                          {isTextarea ? (
+                            <textarea
+                              id={fieldName}
+                              name={fieldName}
+                              rows={4}
+                              required={f.required ?? false}
+                              placeholder={f.placeholder ?? ""}
+                              className={`${inputClass} resize-none`}
+                              style={{ borderColor: INK.dark }}
+                            />
+                          ) : (
+                            <input
+                              id={fieldName}
+                              name={fieldName}
+                              type={f.type ?? "text"}
+                              required={f.required ?? false}
+                              placeholder={f.placeholder ?? ""}
+                              autoComplete="off"
+                              className={inputClass}
+                              style={{ borderColor: INK.dark }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                     <div>
                       <button
                         type="submit"
                         className="group flex w-full items-center justify-center gap-2 bg-brigada-black py-[clamp(16px,1.4vw,20px)] text-[clamp(15px,1.25vw,18px)] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
                       >
-                        <span>Send</span>
+                        <span>{submitLabel}</span>
                         <span className="relative top-[-1px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
                           →
                         </span>
