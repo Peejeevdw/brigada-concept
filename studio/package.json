@@ -10,7 +10,8 @@
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
     "start": "sanity start",
-    "sync:jobs": "tsx scripts/sync-jobs.ts"
+    "sync:jobs": "tsx scripts/sync-jobs.ts",
+    "seed": "tsx scripts/seed.ts"
   },
   "keywords": [
     "sanity"
