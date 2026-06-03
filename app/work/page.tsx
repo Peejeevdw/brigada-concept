@@ -1,10 +1,12 @@
 import { Suspense } from "react";
-import Work from "@/views/Work";
+import Work, { type WorkIndexData } from "@/views/Work";
+import { getWorkIndex } from "@/lib/sanity-fetch";
 
-export default function WorkPage() {
+export default async function WorkPage() {
+  const data = (await getWorkIndex()) as WorkIndexData | null;
   return (
     <Suspense fallback={null}>
-      <Work />
+      <Work data={data} />
     </Suspense>
   );
 }

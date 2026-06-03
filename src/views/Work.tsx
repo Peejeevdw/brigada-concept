@@ -9,11 +9,17 @@ import WorkFilter from "@/components/WorkFilter";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER } from "@/lib/siteTokens";
 
+export interface WorkIndexData {
+  page?: { hero?: { eyebrow?: string | null; title?: string | null } | null } | null;
+  items?: unknown[] | null;
+}
+
 // Work page — "Meet the clients" overview, built on the shared site foundation
 // (SiteNav, Reveal, useLenis, the .font-* roles + tokens) in the /brand idiom.
-// Starting with the intro hero; sections to follow.
 
-const WorkV2 = () => {
+const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
+  const eyebrow = data?.page?.hero?.eyebrow ?? "";
+  const title = data?.page?.hero?.title ?? "";
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, the way the sibling pages warm toward the footer.
   const contentRef = useRef<HTMLDivElement>(null);
@@ -35,13 +41,10 @@ const WorkV2 = () => {
         {/* Intro */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p className="font-eyebrow text-brigada-black">Meet the clients</p>
+            <p className="font-eyebrow text-brigada-black">{eyebrow}</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">
-              The best thing about our line of work? It&rsquo;s working with the
-              best. Here&rsquo;s what got our clients moving.
-            </h1>
+            <h1 className="font-display w-full text-brigada-black">{title}</h1>
           </Reveal>
         </section>
 

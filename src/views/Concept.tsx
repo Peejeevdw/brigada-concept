@@ -102,8 +102,41 @@ const AWARDS = [
   { year: "2026", org: "Cannes Lions", title: "Gold, Film Craft, for Volvo", img: "tui-image.jpg" },
 ];
 
-const Concept = () => {
+export interface ConceptData {
+  intro?: {
+    eyebrow?: string | null;
+    taglines?: string[] | null;
+    paragraph?: string | null;
+  } | null;
+  reel?: {
+    hlsUrl?: string | null;
+    loopVideoUrl?: string | null;
+  } | null;
+  awards?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    description?: string | null;
+    items?: Array<{
+      _key?: string;
+      year?: string | null;
+      organization?: string | null;
+      title?: string | null;
+      image?: unknown;
+    }> | null;
+  } | null;
+}
+
+const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const transitionTo = usePageTransition();
+  // Sanity-driven content blocks — read once at render to keep the rest of the
+  // component (which manages a lot of scroll choreography) untouched.
+  const tagline = data?.intro?.taglines?.length ? data.intro.taglines : [];
+  const paragraphText = data?.intro?.paragraph ?? "";
+  const paragraphLines = paragraphText
+    ? paragraphText.split(/(?<=[.!?])\s+/).filter((line) => line.length > 0)
+    : [];
+  const reelHls = data?.reel?.hlsUrl ?? "";
+  const awardsItems = data?.awards?.items ?? [];
   // ---- Intro: 0 = blurred + thick stroke · 1 = crisp full logo ----
   const t = useMotionValue(0);
   const [revealed, setRevealed] = useState(false);
@@ -863,7 +896,7 @@ const Concept = () => {
                 className="absolute inset-0 overflow-hidden"
               >
                 <img
-                  src={`/${AWARDS[hoverAward].img}`}
+                  src={`/${(awardsItems[hoverAward] as { img?: string } | undefined)?.img ?? "tui-image.jpg"}`}
                   className="h-full w-full object-cover"
                   alt=""
                 />
@@ -884,7 +917,7 @@ const Concept = () => {
               currently off → plain cursor.) */}
           <motion.div
             data-bunny-lightbox-control={reelCut ? undefined : "open"}
-            data-bunny-lightbox-src={reelCut ? undefined : REEL_HLS_SRC}
+            data-bunny-lightbox-src={reelCut || !reelHls ? undefined : reelHls}
             onPointerEnter={() => setHoverReel(true)}
             onPointerLeave={() => setHoverReel(false)}
             className={`absolute inset-0 z-0 ${USE_REEL_CURSOR && !reelCut && openIdx === null ? "cursor-none" : ""}`}
@@ -962,9 +995,9 @@ const Concept = () => {
             className="absolute inset-x-0 top-[76vh] px-[clamp(24px,5vw,72px)]"
           >
             <motion.div ref={taglineRowRef} style={{ width: taglineWidth }} className="mx-auto flex justify-between">
-            {TAGLINE.map((word, i) => (
+            {tagline.map((word, i) => (
               <motion.span
-                key={word}
+                key={`${word}-${i}`}
                 className="uppercase tracking-[-0.015em]"
                 style={{ fontFamily: SANS, fontStretch: "125%", fontSize: baselineSize }}
                 initial={{ opacity: 0, y: 24 }}
@@ -983,8 +1016,8 @@ const Concept = () => {
             style={{ color: textColor, y: paraOffsetY }}
             className="absolute inset-x-0 top-[96vh] px-[clamp(24px,5vw,72px)]"
           >
-            {PARAGRAPH.map((line, i) => (
-              <div key={line} className="overflow-hidden">
+            {paragraphLines.map((line, i) => (
+              <div key={`${line}-${i}`} className="overflow-hidden">
                 <motion.span
                   data-line
                   style={{ y: lineYs[i], fontFamily: SANS, fontSize: `${paraSize * paraScale}px` }}
@@ -1104,9 +1137,9 @@ const Concept = () => {
 
           {/* Right — awards / recognition list */}
           <div className="flex flex-col" onPointerLeave={() => setHoverAward(null)}>
-            {AWARDS.map((a, i) => (
+            {awardsItems.map((a, i) => (
               <div
-                key={i}
+                key={a._key ?? i}
                 onPointerEnter={() => setHoverAward(i)}
                 className="flex cursor-pointer flex-col gap-[2px] border-b border-brigada-black/15 py-[22px] transition-opacity duration-200 first:pt-0"
                 style={{
@@ -1117,7 +1150,7 @@ const Concept = () => {
                 <span className="text-[16px] tracking-[-0.015em] text-brigada-black/60">
                   {a.year}
                 </span>
-                <span className="text-[16px] tracking-[-0.015em]">{a.org}</span>
+                <span className="text-[16px] tracking-[-0.015em]">{a.organization}</span>
                 <span className="text-[clamp(18px,1.7vw,24px)] tracking-[-0.015em]">
                   {a.title}
                 </span>

@@ -1,5 +1,7 @@
-import Concept from "@/views/Concept";
+import Concept, { type ConceptData } from "@/views/Concept";
+import { getHomePage } from "@/lib/sanity-fetch";
 
-export default function HomePage() {
-  return <Concept />;
+export default async function HomePage() {
+  const data = (await getHomePage()) as ConceptData | null;
+  return <Concept data={data} />;
 }
