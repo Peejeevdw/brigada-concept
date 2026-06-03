@@ -5,12 +5,24 @@ import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { PortableText, toPlainText, type PortableTextBlock } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
 import CareersCarousel from "@/components/CareersCarousel";
 import SharpBeatsLoud from "@/components/SharpBeatsLoud";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
+
+export interface AboutData {
+  hero?: { words?: string[] | null } | null;
+  narrative?: PortableTextBlock[] | null;
+  sections?: Array<{
+    _key?: string;
+    label?: string | null;
+    layout?: string | null;
+    body?: PortableTextBlock[] | null;
+  }> | null;
+}
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -112,7 +124,11 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const AboutV2 = () => {
+const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
+  const heroWords = data?.hero?.words ?? [];
+  const narrativeBlocks = data?.narrative ?? [];
+  const narrativeText = narrativeBlocks.length > 0 ? toPlainText(narrativeBlocks) : "";
+  const sections = data?.sections ?? [];
   // Hero toont de "Sharp beats loud" word-morph (looping). De sectie blijft in
   // de DOM (constante paginahoogte) zodat de parallax-footer / ScrollTrigger
   // niet ontregeld raken.
@@ -176,112 +192,46 @@ const AboutV2 = () => {
       {/* Content — full width (gutters only, no centred max-width), like /concept.
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
-        {/* Hero — "Sharp beats loud" gooey word-morph (replaces the old video),
-            looping on a black field, centred full-viewport. */}
+        {/* Hero — gooey word-morph (looping). Words come from Sanity hero.words. */}
         <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
-          <SharpBeatsLoud className="flex w-full items-center justify-center text-white" />
+          <SharpBeatsLoud className="flex w-full items-center justify-center text-white" words={heroWords} />
         </section>
 
-        {/* Intro (Figma 308:2631) — woorden vullen zich van #424242 naar #fff bij scroll */}
-        <section className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
-          <ScrollColorText
-            className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em]"
-            style={{ fontWeight: 400 }}
-            text="Brigada was born when Fantastic, meetmarcel, mortierbrigade, Onlyhumans, Today and Who Owns The Zebra joined forces to kick brands into gear. We move as one, without the hand-offs that slow most agencies down."
-          />
-        </section>
+        {/* Intro — words fill from #424242 to #fff on scroll */}
+        {narrativeText && (
+          <section className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
+            <ScrollColorText
+              className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em]"
+              style={{ fontWeight: 400 }}
+              text={narrativeText}
+            />
+          </section>
+        )}
 
-        {/* Disciplines (Figma 308:2633) */}
-        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>THE FIGHT WE PICKED</SectionLabel>
-              <p
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                We want to get brands and people moving again. Not by pushing
-                every button at once, but by pushing for a clear direction.
-                Because real progress comes from radical focus. From asking
-                difficult questions and stripping away the unnecessary. We
-                don&rsquo;t aim for &lsquo;louder&rsquo;; we aim for sharper.
-              </p>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* Heritage */}
-        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>STRONG HERITAGE</SectionLabel>
-              <p
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                We&rsquo;re building on the legacy and strong expertise of
-                Fantastic, meetmarcel, mortierbrigade, Onlyhumans, Today and Who
-                Owns The Zebra. That&rsquo;s a lot of knowhow right there, and a
-                lot of great work that&rsquo;s been rewarded with several Effies,
-                XXX and XXX.
-              </p>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* The sharpest tools in the shed */}
-        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>THE SHARPEST TOOLS IN THE SHED</SectionLabel>
-              <div
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                <p>
-                  Coincidentally, we also live by the SHARP model: Strategic,
-                  Human, Authentic, Relevant, Provocative.
-                </p>
-                <p className="mt-[clamp(20px,2vw,32px)]">
-                  It&rsquo;s the lens we use to challenge briefs, test ideas and
-                  make sure our work pulls its weight. Feel free to use it on us,
-                  too.
-                </p>
-              </div>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* An agency for the future */}
-        <section
-          className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`}
-          style={{ color: INK }}
-        >
-          <Reveal>
-            <div className="border-t" style={{ borderColor: INK }} />
-            <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <SectionLabel>AN AGENCY FOR THE FUTURE</SectionLabel>
-              <div
-                className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]"
-                style={{ lineHeight: "40px" }}
-              >
-                <p>
-                  We combine the service of an integrated agency with the
-                  expertise of all the different specialist agencies you&rsquo;d
-                  otherwise need, and need to keep aligned.
-                </p>
-                <p className="mt-[clamp(20px,2vw,32px)]">
-                  We see strategy as the foundation for every decision. And
-                  we&rsquo;re creative, without losing sight of your business
-                  reality. In short: we tick quite a few boxes.
-                </p>
-              </div>
-            </div>
-          </Reveal>
-        </section>
+        {/* Labelled sections — order and copy from Sanity aboutPage.sections */}
+        {sections.map((section, i) => {
+          const isLast = i === sections.length - 1;
+          return (
+            <section
+              key={section._key ?? `s${i}`}
+              className={`${GUTTER} pt-[clamp(48px,7vw,96px)]${isLast ? " pb-[clamp(80px,12vw,180px)]" : ""}`}
+              style={{ color: INK }}
+            >
+              <Reveal>
+                <div className="border-t" style={{ borderColor: INK }} />
+                <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
+                  <SectionLabel>{section.label ?? ""}</SectionLabel>
+                  <div
+                    className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%] [&_p+p]:mt-[clamp(20px,2vw,32px)]"
+                    style={{ lineHeight: "40px" }}
+                  >
+                    {section.body && <PortableText value={section.body} />}
+                  </div>
+                </div>
+              </Reveal>
+            </section>
+          );
+        })}
       </div>
 
       {/* Image carousel (Skiper54 Carousel_006 — expand-on-active), ported from
