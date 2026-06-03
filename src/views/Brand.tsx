@@ -9,8 +9,17 @@ import SiteNav from "@/components/site/SiteNav";
 import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
 import { usePageTransition } from "@/components/PageTransition";
+import type { PillarViewProps } from "./pillar-types";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const FALLBACK_LEAD = {
+  firstName: "Mathias",
+  fullName: "Mathias",
+  position: "Brand Lead",
+  phone: "",
+  email: "mathias@brigada.be",
+};
 
 // Brand page — implemented from Figma (node 308:2369), built in the concept-page
 // idiom (self-contained, framer-motion, Antarctica, public/ assets via BASE_URL).
@@ -86,7 +95,16 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const Brand = () => {
+const Brand = ({ expertise }: PillarViewProps = {}) => {
+  const lead = expertise?.lead;
+  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
+  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
+  const position = lead?.position ?? FALLBACK_LEAD.position;
+  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
+  const email = lead?.email ?? FALLBACK_LEAD.email;
+  const leadInTemplate = expertise?.leadIn ?? "{name} is the guy to talk to.";
+  const leadInText = leadInTemplate.replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? "brio-06";
   const transitionTo = usePageTransition();
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll
@@ -211,10 +229,11 @@ const Brand = () => {
               <SectionLabel>Brand contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
-                  <p>Mathias is the guy to talk to.</p>
-                  <p className="mt-[18px]">Mathias</p>
-                  <p>Brand Lead</p>
-                  <p>mathias@brigada.be</p>
+                  <p>{leadInText}</p>
+                  <p className="mt-[18px]">{fullName}</p>
+                  <p>{position}</p>
+                  {phone && <p>{phone}</p>}
+                  <p>{email}</p>
                 </div>
               </div>
             </div>
@@ -227,7 +246,7 @@ const Brand = () => {
 
       {/* Footer — parallax reveal, ported from /concept; brio "Red & Pink"
           (palette brio-06) backdrop instead of the HLS video */}
-      <BrandFooter brioPaletteId="brio-06" brioSrc={`/meetmarcel.jpg`} />
+      <BrandFooter brioPaletteId={brioPalette} brioSrc={`/meetmarcel.jpg`} />
     </motion.main>
   );
 };

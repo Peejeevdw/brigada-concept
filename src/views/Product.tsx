@@ -10,6 +10,7 @@ import CascadingSlider from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import { pillarContent } from "@/data/pillars";
+import type { PillarViewProps } from "./pillar-types";
 
 // Product page — the Product expertise detail, built on the shared site
 // foundation (SiteNav, Reveal, SectionLabel, useLenis, .font-* roles, tokens)
@@ -19,7 +20,25 @@ import { pillarContent } from "@/data/pillars";
 const content = pillarContent.Product;
 const SERVICES = content.services.map((s) => s.title);
 
-const Product = () => {
+const FALLBACK_LEAD = {
+  firstName: "Jeroen",
+  fullName: "Jeroen De Bock",
+  position: "Client Partner",
+  phone: "+32 477 62 76 01",
+  email: "jeroen.debock@brigada.be",
+};
+
+const Product = ({ expertise }: PillarViewProps = {}) => {
+  const lead = expertise?.lead;
+  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
+  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
+  const position = lead?.position ?? FALLBACK_LEAD.position;
+  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
+  const email = lead?.email ?? FALLBACK_LEAD.email;
+  const leadInTemplate = expertise?.leadIn ?? "Have you met {name} yet?";
+  const leadInText = leadInTemplate.replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? "brio-03";
+
   // Scroll-driven background — warms from white to a soft blue-green tint across
   // the content block, reaching full tint as the dark orbit slides over.
   const contentRef = useRef<HTMLDivElement>(null);
@@ -82,11 +101,11 @@ const Product = () => {
               <SectionLabel>Product contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
-                  <p>Have you met Jeroen yet?</p>
-                  <p className="mt-[18px]">Jeroen De Bock</p>
-                  <p>Client Partner</p>
-                  <p>+32 477 62 76 01</p>
-                  <p>jeroen.debock@brigada.be</p>
+                  <p>{leadInText}</p>
+                  <p className="mt-[18px]">{fullName}</p>
+                  <p>{position}</p>
+                  <p>{phone}</p>
+                  <p>{email}</p>
                 </div>
               </div>
             </div>
@@ -101,7 +120,7 @@ const Product = () => {
       </section>
 
       {/* Parallax footer — brio "Green & Blue" (brio-03) backdrop + wordmark. */}
-      <BrandFooter brioPaletteId="brio-03" />
+      <BrandFooter brioPaletteId={brioPalette} />
     </motion.main>
   );
 };

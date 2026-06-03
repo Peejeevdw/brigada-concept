@@ -12,6 +12,7 @@ import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import { pillarContent } from "@/data/pillars";
 import type { CascadingSlide } from "@/components/CascadingSlider";
+import type { PillarViewProps } from "./pillar-types";
 const peopleCase1 = "/assets/people-case-1.png";
 const peopleCase2 = "/assets/people-case-2.png";
 const peopleCase3 = "/assets/people-case-3.png";
@@ -49,7 +50,24 @@ const PEOPLE_CASES: CascadingSlide[] = [
   { img: peopleCase4, title: "Placeholder" },
 ];
 
-const People = () => {
+const FALLBACK_LEAD = {
+  firstName: "Marie",
+  fullName: "Marie",
+  position: "People Lead",
+  phone: "",
+  email: "marie@brigada.be",
+};
+
+const People = ({ expertise }: PillarViewProps = {}) => {
+  const lead = expertise?.lead;
+  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
+  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
+  const position = lead?.position ?? FALLBACK_LEAD.position;
+  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
+  const email = lead?.email ?? FALLBACK_LEAD.email;
+  const leadInTemplate = expertise?.leadIn ?? "{name} is the one to talk to.";
+  const leadInText = leadInTemplate.replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? "brio-02";
   const transitionTo = usePageTransition();
   // Scroll-driven background — warms from white to a soft lilac tint across the
   // content block, reaching full tint as the dark orbit slides over.
@@ -133,10 +151,11 @@ const People = () => {
               <SectionLabel>People contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
-                  <p>Marie is the one to talk to.</p>
-                  <p className="mt-[18px]">Marie</p>
-                  <p>People Lead</p>
-                  <p>marie@brigada.be</p>
+                  <p>{leadInText}</p>
+                  <p className="mt-[18px]">{fullName}</p>
+                  <p>{position}</p>
+                  {phone && <p>{phone}</p>}
+                  <p>{email}</p>
                 </div>
               </div>
             </div>
@@ -151,7 +170,7 @@ const People = () => {
       </section>
 
       {/* Parallax footer — brio "Orange & Purple" (brio-02) backdrop + wordmark. */}
-      <BrandFooter brioPaletteId="brio-02" />
+      <BrandFooter brioPaletteId={brioPalette} />
     </motion.main>
   );
 };

@@ -10,6 +10,7 @@ import CascadingSlider from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import { pillarContent } from "@/data/pillars";
+import type { PillarViewProps } from "./pillar-types";
 
 // Marketing page — the Marketing expertise detail, built on the shared site
 // foundation with the same section rhythm as /product and /people: intro →
@@ -18,7 +19,24 @@ import { pillarContent } from "@/data/pillars";
 const content = pillarContent.Marketing;
 const SERVICES = content.services.map((s) => s.title);
 
-const Marketing = () => {
+const FALLBACK_LEAD = {
+  firstName: "Sofie",
+  fullName: "Sofie",
+  position: "Marketing Lead",
+  phone: "",
+  email: "sofie@brigada.be",
+};
+
+const Marketing = ({ expertise }: PillarViewProps = {}) => {
+  const lead = expertise?.lead;
+  const firstName = lead?.name ? lead.name.split(" ")[0] : FALLBACK_LEAD.firstName;
+  const fullName = lead?.name ?? FALLBACK_LEAD.fullName;
+  const position = lead?.position ?? FALLBACK_LEAD.position;
+  const phone = lead?.phone ?? FALLBACK_LEAD.phone;
+  const email = lead?.email ?? FALLBACK_LEAD.email;
+  const leadInTemplate = expertise?.leadIn ?? "{name} is the one to talk to.";
+  const leadInText = leadInTemplate.replace("{name}", firstName);
+  const brioPalette = expertise?.brioPaletteId ?? "brio-04";
   // Scroll-driven background — warms from white to a soft yellow-green tint
   // across the content block, reaching full tint as the dark cases slide over.
   const contentRef = useRef<HTMLDivElement>(null);
@@ -79,10 +97,11 @@ const Marketing = () => {
               <SectionLabel>Marketing contact</SectionLabel>
               <div className="flex w-full flex-col gap-8 md:w-[49%]">
                 <div className="text-[clamp(15px,1.25vw,18px)] leading-[22px]">
-                  <p>Sofie is the one to talk to.</p>
-                  <p className="mt-[18px]">Sofie</p>
-                  <p>Marketing Lead</p>
-                  <p>sofie@brigada.be</p>
+                  <p>{leadInText}</p>
+                  <p className="mt-[18px]">{fullName}</p>
+                  <p>{position}</p>
+                  {phone && <p>{phone}</p>}
+                  <p>{email}</p>
                 </div>
               </div>
             </div>
@@ -97,7 +116,7 @@ const Marketing = () => {
       </section>
 
       {/* Parallax footer — brio "Yellow & Green" (brio-04) backdrop + wordmark. */}
-      <BrandFooter brioPaletteId="brio-04" />
+      <BrandFooter brioPaletteId={brioPalette} />
     </motion.main>
   );
 };
