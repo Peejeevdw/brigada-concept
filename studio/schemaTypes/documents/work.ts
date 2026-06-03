@@ -4,7 +4,6 @@ import {
   WORK_GROUPS,
   languageVersionSubtitle,
   localeField,
-  pageBuilderField,
   slugField,
 } from '../helpers'
 
@@ -15,7 +14,13 @@ export const work = defineType({
   icon: CaseIcon,
   description:
     'A case study. Each language has its own document version; use Document translations to switch or create versions.',
-  groups: WORK_GROUPS,
+  groups: [
+    {name: 'general', title: 'General', default: true},
+    {name: 'content', title: 'Case story'},
+    {name: 'gallery', title: 'Gallery'},
+    {name: 'related', title: 'Related'},
+    {name: 'seo', title: 'SEO'},
+  ],
   fields: [
     localeField(),
     defineField({
@@ -34,6 +39,13 @@ export const work = defineType({
       description: 'Used in the URL (/work/<slug>). Click Generate after filling in the title.',
     }),
     defineField({
+      name: 'client',
+      title: 'Client',
+      type: 'string',
+      group: 'general',
+      description: 'Client name as shown in listings (e.g. "BMW", "Agristo").',
+    }),
+    defineField({
       name: 'image',
       title: 'Thumbnail / hero image',
       type: 'image',
@@ -41,6 +53,19 @@ export const work = defineType({
       description:
         'Shown in the work grid and as the case-study hero. Landscape works best; use the hotspot to control cropping.',
       options: {hotspot: true},
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Alt text',
+          type: 'string',
+          validation: (Rule) =>
+            Rule.custom((value, ctx) => {
+              const parent = ctx.parent as {asset?: unknown} | undefined
+              if (!parent?.asset) return true
+              return value ? true : 'Add alt text whenever an image is set.'
+            }),
+        }),
+      ],
     }),
     defineField({
       name: 'intro',
@@ -86,30 +111,108 @@ export const work = defineType({
       group: 'general',
       description: 'Gradient token name used for the case hero accent. Ask design if unsure.',
     }),
-    pageBuilderField({
+    defineField({
+      name: 'featured',
+      title: 'Featured',
+      type: 'boolean',
+      group: 'general',
+      initialValue: false,
+      description: 'Featured cases are surfaced on the homepage and at the top of the work index.',
+    }),
+    defineField({
+      name: 'services',
+      title: 'Services delivered',
+      type: 'array',
+      group: 'general',
+      description: 'Grouped per pillar — keep the labels short.',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'service',
+          fields: [
+            defineField({
+              name: 'pillar',
+              title: 'Pillar',
+              type: 'reference',
+              to: [{type: 'expertise'}],
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'title',
+              title: 'Service title',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+          preview: {
+            select: {title: 'title', pillar: 'pillar.name'},
+            prepare({title, pillar}) {
+              return {title: title || 'Service', subtitle: pillar || ''}
+            },
+          },
+        }),
+      ],
+    }),
+    // ---- Case story (portable text, one section per "chapter") ----
+    defineField({
       name: 'brief',
       title: 'Brief — what the client asked for',
+      type: 'blockContent',
       group: 'content',
       description:
-        'The challenge in the client’s words. Drop in blocks the same way you would on a page.',
+        'The challenge in the client’s words. Headings + paragraphs; embed images, quotes and videos inline.',
     }),
-    pageBuilderField({
+    defineField({
       name: 'approach',
       title: 'Approach — how we tackled it',
+      type: 'blockContent',
       group: 'content',
       description: 'Our strategy, methodology and the work itself.',
     }),
-    pageBuilderField({
+    defineField({
       name: 'context',
       title: 'Context — the wider picture',
+      type: 'blockContent',
       group: 'content',
       description: 'Market, audience or moment-in-time context that shaped the work.',
     }),
-    pageBuilderField({
+    defineField({
       name: 'outcome',
       title: 'Outcome — what changed',
+      type: 'blockContent',
       group: 'content',
       description: 'Results, impact and proof points. Numbers and quotes welcome.',
+    }),
+    // ---- Standalone gallery (the row of images at the bottom of the case) ----
+    defineField({
+      name: 'gallery',
+      title: 'Gallery',
+      type: 'array',
+      group: 'gallery',
+      description:
+        'Photo strip shown below the case story. Five images works best for the current layout.',
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: {hotspot: true},
+          fields: [
+            defineField({
+              name: 'alt',
+              title: 'Alt text',
+              type: 'string',
+              validation: (Rule) =>
+                Rule.custom((value, ctx) => {
+                  const parent = ctx.parent as {asset?: unknown} | undefined
+                  if (!parent?.asset) return true
+                  return value ? true : 'Add alt text whenever an image is set.'
+                }),
+            }),
+            defineField({name: 'caption', title: 'Caption', type: 'string'}),
+          ],
+        }),
+      ],
+      validation: (Rule) =>
+        Rule.max(12).warning('The current layout shows ~5 images; more is fine but heavy.'),
     }),
     defineField({
       name: 'related',
@@ -120,6 +223,12 @@ export const work = defineType({
         'Curate up to ~3 cases to show at the bottom of this page. Leave empty to let the site pick automatically.',
       of: [defineArrayMember({type: 'reference', to: [{type: 'work'}]})],
       validation: (Rule) => Rule.max(6).warning('More than six can feel cluttered.'),
+    }),
+    defineField({
+      name: 'seo',
+      title: 'SEO',
+      type: 'seo',
+      group: 'seo',
     }),
   ],
   preview: {
