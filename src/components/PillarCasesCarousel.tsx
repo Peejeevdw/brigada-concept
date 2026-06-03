@@ -5,15 +5,40 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import WorkThumb, { type Pillar } from "@/components/wireframe/WorkThumb";
-import { projects as allProjects, type Project } from "@/data/projects";
 import { caseImages } from "@/data/caseImages";
+
+export interface ProjectService {
+  pillar: Pillar;
+  title: string;
+}
+
+/**
+ * Shape consumed by the related-cases carousel and the legacy work index.
+ * Originally lived in `src/data/projects.ts`; moved here so the data file
+ * could be retired in favour of Sanity-driven work docs.
+ */
+export interface Project {
+  slug: string;
+  title: string;
+  client: string;
+  year: number;
+  pillars: Pillar[];
+  /** When false, listings render the card as non-interactive. */
+  clickable: boolean;
+  /** Highlighted on the homepage and at the top of the work index. */
+  featured?: boolean;
+  /** Optional short tagline for hero / cards. */
+  tagline?: string;
+  /** Services delivered, grouped per pillar. */
+  services?: ProjectService[];
+}
 import { useWorkTransition, workTransition } from "@/lib/workTransition";
 import { GROW_MS } from "@/components/WorkTransitionOverlay";
 
 
 interface PillarCasesCarouselProps {
   pillar?: Pillar;
-  projects?: Project[];
+  projects: Project[];
   maxCases?: number;
   perPage?: number;
   autoplayMs?: number;
@@ -24,15 +49,16 @@ interface PillarCasesCarouselProps {
 
 const PillarCasesCarousel = ({
   pillar,
-  projects: projectsProp,
+  projects,
   maxCases = 9,
   perPage = 3,
   title,
   ctaTo,
   ctaLabel,
 }: PillarCasesCarouselProps) => {
-  const filtered = (projectsProp
-    ?? (pillar ? allProjects.filter((proj) => proj.pillars.includes(pillar)) : allProjects)
+  const filtered = (pillar
+    ? projects.filter((proj) => proj.pillars.includes(pillar))
+    : projects
   ).slice(0, maxCases);
 
   const router = useRouter();

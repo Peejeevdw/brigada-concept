@@ -1,39 +1,51 @@
-"use client";
-
 import Link from "next/link";
-import { jobs } from "@/data/jobs";
+import type { JobListItem } from "@/lib/sanity-fetch";
 
-const Jobs = () => (
-  <div className="px-6 md:px-10 py-24">
-    <p className="text-xs uppercase tracking-widest text-neutral-500 mb-6">
+const Jobs = ({ jobs }: { jobs: JobListItem[] }) => (
+  <main className="px-[clamp(24px,5vw,72px)] pt-[clamp(120px,18vw,200px)] pb-[clamp(80px,12vw,160px)]">
+    <p className="mb-6 text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
       Careers
     </p>
-    <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-12">
+    <h1 className="font-display text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em]">
       Open jobs
     </h1>
-    <ul className="border-t border-neutral-200">
-      {jobs.map((j) => (
-        <li key={j.slug} className="border-b border-neutral-200">
-          <Link
-            href={`/careers/jobs/${j.slug}`}
-            className="group flex items-center justify-between py-6 gap-6"
-          >
-            <div className="flex-1">
-              <p className="text-xl md:text-2xl font-semibold group-hover:underline underline-offset-4">
-                {j.title}
-              </p>
-              <p className="text-xs uppercase tracking-widest text-neutral-500 mt-2">
-                {j.team} · {j.location} · {j.type}
-              </p>
-            </div>
-            <span className="text-xs uppercase tracking-widest border-b border-neutral-900 pb-1 link-cta shrink-0">
-              View →
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  </div>
+
+    {jobs.length === 0 ? (
+      <p className="mt-[clamp(40px,5vw,72px)] text-[clamp(16px,1.2vw,18px)] text-brigada-black/70">
+        No open roles at the moment — check back soon.
+      </p>
+    ) : (
+      <ul className="mt-[clamp(40px,5vw,72px)] border-t border-brigada-black/10">
+        {jobs.map((j) => {
+          const meta = [j.expertise, j.location?.city || j.location?.title, j.type]
+            .filter(Boolean)
+            .join(" · ");
+          return (
+            <li key={j._id} className="border-b border-brigada-black/10">
+              <Link
+                href={`/careers/jobs/${j.slug}`}
+                className="group flex flex-col gap-3 py-[clamp(20px,2vw,28px)] md:flex-row md:items-center md:justify-between md:gap-6"
+              >
+                <div className="flex-1">
+                  <p className="text-[clamp(20px,2vw,28px)] font-medium leading-[1.1] tracking-[-0.01em] group-hover:underline underline-offset-4">
+                    {j.name}
+                  </p>
+                  {meta && (
+                    <p className="mt-2 text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
+                      {meta}
+                    </p>
+                  )}
+                </div>
+                <span className="shrink-0 text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60 transition-opacity group-hover:opacity-100">
+                  View →
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </main>
 );
 
 export default Jobs;

@@ -261,6 +261,13 @@ export function getAboutPage(locale: string = DEFAULT_SANITY_LOCALE) {
   );
 }
 
+const JOB_LIST_PROJECTION = `{
+  _id, "slug": slug.current, name, introIndex,
+  "expertise": expertise->name,
+  "location": location->${LOCATION_PROJECTION},
+  type
+}`;
+
 export function getCareersPage(locale: string = DEFAULT_SANITY_LOCALE) {
   return fetch(
     groq`{
@@ -268,24 +275,32 @@ export function getCareersPage(locale: string = DEFAULT_SANITY_LOCALE) {
         ...,
         "vacancies": vacancies{
           ...,
-          "curated": curated[]->{
-            _id, "slug": slug.current, name, introIndex,
-            "expertise": expertise->name,
-            "location": location->${LOCATION_PROJECTION},
-            type
-          }
+          "curated": curated[]->${JOB_LIST_PROJECTION}
         }
       },
-      "jobs": *[_type == "job" && (locale == $locale || locale == null)] | order(order asc, _createdAt desc){
-        _id, "slug": slug.current, name, introIndex,
-        "expertise": expertise->name,
-        "location": location->${LOCATION_PROJECTION},
-        type
-      }
+      "jobs": *[_type == "job" && (locale == $locale || locale == null)] | order(order asc, _createdAt desc)${JOB_LIST_PROJECTION}
     }`,
     { locale },
     ["careersPage", "job"],
   );
+}
+
+export function getJobs(locale: string = DEFAULT_SANITY_LOCALE) {
+  return fetch<JobListItem[]>(
+    groq`*[_type == "job" && (locale == $locale || locale == null)] | order(order asc, _createdAt desc)${JOB_LIST_PROJECTION}`,
+    { locale },
+    ["job"],
+  );
+}
+
+export interface JobListItem {
+  _id: string;
+  slug: string;
+  name?: string | null;
+  introIndex?: string | null;
+  expertise?: string | null;
+  location?: { _id?: string; title?: string | null; city?: string | null } | null;
+  type?: string | null;
 }
 
 export function getJob(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {

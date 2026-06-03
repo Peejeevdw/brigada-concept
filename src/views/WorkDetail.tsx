@@ -5,15 +5,14 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
-import { projects } from "@/data/projects";
 import { caseImages } from "@/data/caseImages";
 import { BlockRenderer } from "@/components/case-blocks/BlockRenderer";
 import type { CaseBlock } from "@/components/case-blocks/types";
-import WorkThumb, { type WorkThumbHandle } from "@/components/wireframe/WorkThumb";
+import WorkThumb, { type Pillar, type WorkThumbHandle } from "@/components/wireframe/WorkThumb";
 import Appear from "@/components/Appear";
 import { cn } from "@/lib/utils";
 import BrioImageComposite from "@/components/BrioImageComposite";
-import PillarCasesCarousel from "@/components/PillarCasesCarousel";
+import PillarCasesCarousel, { type Project } from "@/components/PillarCasesCarousel";
 import ScrollPhysicsGroup from "@/components/ScrollPhysicsGroup";
 import { DEFAULT_BRIO_SETTINGS, quadtones } from "@/data/duotones";
 import { useWorkTransition, workTransition } from "@/lib/workTransition";
@@ -93,7 +92,18 @@ export interface WorkDocData {
   expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
   body?: CaseBlock[] | null;
   gallery?: unknown[] | null;
-  related?: unknown[] | null;
+  related?: Array<RelatedWork> | null;
+}
+
+interface RelatedWork {
+  _id?: string;
+  slug?: string | null;
+  name?: string | null;
+  client?: string | null;
+  intro?: string | null;
+  year?: number | null;
+  featured?: boolean | null;
+  expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
 }
 
 const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
@@ -329,15 +339,20 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
         title="RELATED CASES"
         ctaTo="/work"
         ctaLabel="(All work)"
-        projects={[...projects]
-          .filter((p) => p.slug !== project.slug)
-          .sort((a, b) => {
-            const priority = (slug: string) => (slug === "bmw" ? 0 : slug === "agristo" ? 1 : 2);
-            const pa = priority(a.slug);
-            const pb = priority(b.slug);
-            if (pa !== pb) return pa - pb;
-            return Number(b.clickable) - Number(a.clickable);
-          })}
+        projects={(work?.related ?? [])
+          .filter((r) => r?.slug && r.slug !== slug)
+          .map<Project>((r) => ({
+            slug: r.slug as string,
+            title: r.name ?? "",
+            client: r.client ?? r.name ?? "",
+            year: r.year ?? new Date().getFullYear(),
+            pillars: ((r.expertises ?? [])
+              .map((e) => e?.name)
+              .filter(Boolean) as string[]) as Pillar[],
+            clickable: true,
+            featured: r.featured ?? undefined,
+            tagline: r.intro ?? undefined,
+          }))}
       />
       <div className="ws-2" />
       </ScrollPhysicsGroup>
@@ -404,7 +419,7 @@ const HeroScroll = ({ children }: { children: React.ReactNode }) => {
 };
 
 interface MoreWorkCardProps {
-  project: typeof projects[number];
+  project: Project;
   index: number;
   transitionActive: boolean;
 }

@@ -3,7 +3,6 @@ import {
   EXPERTISE_SLIDE_MS,
   useExpertiseTransition,
 } from "@/lib/expertiseTransition";
-import { pillarContent } from "@/data/pillars";
 
 const ExpertiseTransitionOverlay = () => {
   const t = useExpertiseTransition();
@@ -48,7 +47,7 @@ const ExpertiseTransitionOverlay = () => {
   if (t.phase === "idle" || !t.pillar) return null;
 
   const pillar = t.pillar;
-  const intro = t.intro ?? pillarContent[pillar].servicesIntro;
+  const intro = t.intro ?? "";
 
   const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
 
