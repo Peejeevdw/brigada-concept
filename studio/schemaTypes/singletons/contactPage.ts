@@ -1,6 +1,6 @@
 import {EnvelopeIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
-import {localeField, pageBuilderField} from '../helpers'
+import {localeField} from '../helpers'
 
 /**
  * Contact page (/contact). Hero + form + expertise contacts + locations +
@@ -20,7 +20,6 @@ export const contactPage = defineType({
     {name: 'contacts', title: 'Contacts'},
     {name: 'locations', title: 'Locations'},
     {name: 'gallery', title: 'Gallery'},
-    {name: 'content', title: 'Extra content'},
     {name: 'seo', title: 'SEO'},
   ],
   fields: [
@@ -276,10 +275,6 @@ export const contactPage = defineType({
         }),
       ],
       validation: (Rule) => Rule.max(20),
-    }),
-    pageBuilderField({
-      group: 'content',
-      description: 'Optional extra blocks.',
     }),
     defineField({name: 'seo', title: 'SEO', type: 'seo', group: 'seo'}),
   ],

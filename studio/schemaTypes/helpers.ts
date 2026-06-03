@@ -128,9 +128,12 @@ export function pageBuilderField(options?: {
       options?.description ??
       'Stack blocks to build the page. Drag to reorder. Each block has its own settings.',
     of: [
-      defineArrayMember({type: 'hero'}),
-      defineArrayMember({type: 'textblock'}),
-      defineArrayMember({type: 'selectedWork'}),
+      defineArrayMember({type: 'richText'}),
+      defineArrayMember({type: 'sectionImage'}),
+      defineArrayMember({type: 'imageGrid'}),
+      defineArrayMember({type: 'videoEmbed'}),
+      defineArrayMember({type: 'quote'}),
+      defineArrayMember({type: 'statBlock'}),
     ],
   })
 }

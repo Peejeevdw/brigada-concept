@@ -1,6 +1,6 @@
 import {LockIcon} from '@sanity/icons'
 import {defineField, defineType} from 'sanity'
-import {PAGE_GROUPS, localeField, pageBuilderField} from '../helpers'
+import {PAGE_GROUPS, localeField} from '../helpers'
 
 export const privacyPage = defineType({
   name: 'privacyPage',
@@ -19,7 +19,6 @@ export const privacyPage = defineType({
       description: 'Only shown in the Studio. Helps you tell drafts apart.',
       initialValue: 'Privacy Page',
     }),
-    pageBuilderField({group: 'content'}),
   ],
   preview: {
     select: {title: 'title', locale: 'locale'},

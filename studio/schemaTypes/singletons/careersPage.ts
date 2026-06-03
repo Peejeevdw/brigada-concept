@@ -1,6 +1,6 @@
 import {UsersIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
-import {localeField, pageBuilderField} from '../helpers'
+import {localeField} from '../helpers'
 
 /**
  * Careers page (/careers). Hero + curated/auto vacancies + culture carousel
@@ -18,7 +18,6 @@ export const careersPage = defineType({
     {name: 'hero', title: 'Hero'},
     {name: 'vacancies', title: 'Vacancies'},
     {name: 'culture', title: 'Culture'},
-    {name: 'content', title: 'Extra content'},
     {name: 'seo', title: 'SEO'},
   ],
   fields: [
@@ -207,10 +206,6 @@ export const careersPage = defineType({
           preview: {select: {title: 'title', subtitle: 'description'}},
         }),
       ],
-    }),
-    pageBuilderField({
-      group: 'content',
-      description: 'Optional extra blocks.',
     }),
     defineField({name: 'seo', title: 'SEO', type: 'seo', group: 'seo'}),
   ],

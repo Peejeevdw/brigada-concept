@@ -4,6 +4,7 @@ import {
   WORK_GROUPS,
   languageVersionSubtitle,
   localeField,
+  pageBuilderField,
   slugField,
 } from '../helpers'
 
@@ -153,35 +154,17 @@ export const work = defineType({
         }),
       ],
     }),
-    // ---- Case story (portable text, one section per "chapter") ----
-    defineField({
-      name: 'brief',
-      title: 'Brief — what the client asked for',
-      type: 'blockContent',
+    // ---- Case story (page-builder body) ----
+    // Free composition: stack rich-text, image, image-grid, video, quote and
+    // stat blocks in any order. The four-chapter pattern (brief / approach /
+    // context / outcome) lives as conventional headings inside richText
+    // blocks, not as required fields.
+    pageBuilderField({
+      name: 'body',
+      title: 'Case story',
       group: 'content',
       description:
-        'The challenge in the client’s words. Headings + paragraphs; embed images, quotes and videos inline.',
-    }),
-    defineField({
-      name: 'approach',
-      title: 'Approach — how we tackled it',
-      type: 'blockContent',
-      group: 'content',
-      description: 'Our strategy, methodology and the work itself.',
-    }),
-    defineField({
-      name: 'context',
-      title: 'Context — the wider picture',
-      type: 'blockContent',
-      group: 'content',
-      description: 'Market, audience or moment-in-time context that shaped the work.',
-    }),
-    defineField({
-      name: 'outcome',
-      title: 'Outcome — what changed',
-      type: 'blockContent',
-      group: 'content',
-      description: 'Results, impact and proof points. Numbers and quotes welcome.',
+        'Build the case story out of blocks. Drag to reorder; mix rich text, images, video, quotes and stats freely.',
     }),
     // ---- Standalone gallery (the row of images at the bottom of the case) ----
     defineField({

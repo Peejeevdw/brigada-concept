@@ -9,10 +9,13 @@ import {seo} from './objects/seo'
 import {link} from './objects/link'
 import {submenuItem} from './objects/submenuItem'
 
-// Page builder blocks
-import {hero} from './objects/blocks/hero'
-import {textblock} from './objects/blocks/textblock'
-import {selectedWork} from './objects/blocks/selectedWork'
+// Page builder blocks (case-story focused)
+import {richText} from './objects/blocks/richText'
+import {sectionImage} from './objects/blocks/sectionImage'
+import {imageGrid} from './objects/blocks/imageGrid'
+import {videoEmbed} from './objects/blocks/videoEmbed'
+import {quote} from './objects/blocks/quote'
+import {statBlock} from './objects/blocks/statBlock'
 
 // Documents
 import {locale} from './documents/locale'
@@ -48,9 +51,12 @@ export const schemaTypes = [
   submenuItem,
 
   // Page builder blocks
-  hero,
-  textblock,
-  selectedWork,
+  richText,
+  sectionImage,
+  imageGrid,
+  videoEmbed,
+  quote,
+  statBlock,
 
   // Documents
   locale,

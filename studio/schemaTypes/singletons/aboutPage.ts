@@ -1,6 +1,6 @@
 import {InfoOutlineIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
-import {localeField, pageBuilderField} from '../helpers'
+import {localeField} from '../helpers'
 
 /**
  * About page (/about). Structured: gooey hero word-morph + narrative +
@@ -18,7 +18,6 @@ export const aboutPage = defineType({
     {name: 'narrative', title: 'Narrative'},
     {name: 'sections', title: 'Sections'},
     {name: 'carousel', title: 'Carousel'},
-    {name: 'content', title: 'Extra content'},
     {name: 'seo', title: 'SEO'},
   ],
   fields: [
@@ -166,10 +165,6 @@ export const aboutPage = defineType({
           validation: (Rule) => Rule.max(20),
         }),
       ],
-    }),
-    pageBuilderField({
-      group: 'content',
-      description: 'Optional extra blocks below the standard sections.',
     }),
     defineField({name: 'seo', title: 'SEO', type: 'seo', group: 'seo'}),
   ],

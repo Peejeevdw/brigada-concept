@@ -1,6 +1,6 @@
 import {HomeIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
-import {localeField, pageBuilderField} from '../helpers'
+import {localeField} from '../helpers'
 
 /**
  * Root page (/). Mirrors the "Concept" design: animated hero + reel + cases +
@@ -19,7 +19,6 @@ export const homePage = defineType({
     {name: 'reel', title: 'Reel'},
     {name: 'cases', title: 'Cases'},
     {name: 'awards', title: 'Awards'},
-    {name: 'content', title: 'Extra content'},
     {name: 'seo', title: 'SEO'},
   ],
   fields: [
@@ -274,10 +273,6 @@ export const homePage = defineType({
           ],
         }),
       ],
-    }),
-    pageBuilderField({
-      group: 'content',
-      description: 'Optional extra blocks — leave empty for the standard homepage layout.',
     }),
     defineField({
       name: 'seo',

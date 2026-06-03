@@ -1,6 +1,6 @@
 import {StarIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
-import {localeField, pageBuilderField} from '../helpers'
+import {localeField} from '../helpers'
 
 /**
  * The /expertise landing page. Hero + curated list of pillar references shown
@@ -16,7 +16,6 @@ export const expertiseIndexPage = defineType({
     {name: 'general', title: 'General', default: true},
     {name: 'hero', title: 'Hero'},
     {name: 'pillars', title: 'Pillars'},
-    {name: 'content', title: 'Extra content'},
     {name: 'seo', title: 'SEO'},
   ],
   fields: [
@@ -48,10 +47,6 @@ export const expertiseIndexPage = defineType({
       of: [defineArrayMember({type: 'reference', to: [{type: 'expertise'}]})],
       validation: (Rule) =>
         Rule.min(1).error('Add at least one pillar.').max(8).warning('More than eight starts to feel cluttered.'),
-    }),
-    pageBuilderField({
-      group: 'content',
-      description: 'Optional extra blocks below the pillar grid.',
     }),
     defineField({
       name: 'seo',
