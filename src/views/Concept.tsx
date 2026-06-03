@@ -21,6 +21,7 @@ import BrandFooter from "@/components/BrandFooter";
 import BunnyReelLightbox from "@/components/BunnyReelLightbox";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
+import { urlFor } from "@/lib/sanity";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -79,6 +80,7 @@ export interface ConceptData {
         _id?: string;
         name?: string | null;
         slug?: string | null;
+        image?: unknown;
         expertises?: Array<{ name?: string | null }> | null;
       } | null;
     }> | null;
@@ -1041,8 +1043,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             .filter(Boolean)
             .join(", ");
           const slug = c.work?.slug ?? "";
-          const assets = CASE_ASSETS[slug] ?? { img: "placeholder.svg" };
-          const img = assets.img;
+          const assets = CASE_ASSETS[slug] ?? {};
+          // Prefer the Sanity-stored work.image; fall back to the local map
+          // while editors haven't uploaded one yet. urlFor returns null when
+          // the source is empty, so we keep the legacy path as a safety net.
+          const sanityImg = c.work?.image
+            ? urlFor(c.work.image)?.width(1342).height(813).fit("crop").auto("format").url()
+            : null;
+          const img = sanityImg ?? (assets.img ? `/${assets.img}` : "/placeholder.svg");
           const bgVideo = assets.bgVideo;
           return (
           <section
@@ -1092,7 +1100,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 <img
                   data-stacking-cards-img
                   className="block aspect-[1342/813] w-full object-cover"
-                  src={`/${img}`}
+                  src={img}
                   alt={`${name} — ${tags}`}
                 />
                 {/* Trail source set — hidden originals the script clones from.
