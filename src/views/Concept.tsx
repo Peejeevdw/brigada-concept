@@ -124,11 +124,6 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   // ---- Intro: 0 = blurred + thick stroke · 1 = crisp full logo ----
   const t = useMotionValue(0);
   const [revealed, setRevealed] = useState(false);
-  // Hero morph: tagline ("Sharp Beats Loud") fades in first, then crossfades
-  // into the paragraph ("We cut through the noise…") after a beat. Once the
-  // morph flips, it stays — the rest of the scroll choreography keeps both
-  // elements in place and only shifts their group up.
-  const [morphedToPara, setMorphedToPara] = useState(false);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   // Hover-intent voor het nav-submenu: een korte sluit-vertraging zodat de muis
   // tussen het label en zijn submenu (of net links/rechts van het label) bewegen
@@ -202,7 +197,6 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   // original cubic-bezier(0.16, 1, 0.3, 1).
   useEffect(() => {
     setRevealed(false);
-    setMorphedToPara(false);
     t.set(0);
     let raf = 0;
     const start = performance.now();
@@ -223,14 +217,6 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     });
     return unsub;
   }, [t]);
-
-  // Tagline → paragraph morph. Holds the tagline visible for a beat so it
-  // reads as a complete phrase, then crossfades into the paragraph.
-  useEffect(() => {
-    if (!revealed) return;
-    const id = window.setTimeout(() => setMorphedToPara(true), 1500);
-    return () => window.clearTimeout(id);
-  }, [revealed]);
 
   // Hero logo entrance = codrops "WAVE" goo reveal instead of a plain blur: drive
   // the goo feGaussianBlur from the pre-roll t (GOO_BLUR_START → 0 as t 0 → 1).
@@ -1009,18 +995,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 className="uppercase tracking-[-0.015em]"
                 style={{ fontFamily: SANS, fontStretch: "125%", fontSize: baselineSize }}
                 initial={{ opacity: 0, y: 24 }}
-                animate={
-                  morphedToPara
-                    ? { opacity: 0, y: -14 }
-                    : revealed
-                      ? { opacity: 1, y: 0 }
-                      : { opacity: 0, y: 24 }
-                }
-                transition={{
-                  duration: morphedToPara ? 0.5 : 0.55,
-                  ease: EASE_OUT,
-                  delay: morphedToPara ? i * 0.04 : revealed ? 0.05 + i * 0.12 : 0,
-                }}
+                animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                transition={{ duration: 0.55, ease: EASE_OUT, delay: revealed ? 0.05 + i * 0.12 : 0 }}
               >
                 {word}
               </motion.span>
@@ -1033,9 +1009,6 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             ref={paraRef}
             style={{ color: textColor, y: paraOffsetY }}
             className="absolute inset-x-0 top-[96vh] px-[clamp(24px,5vw,72px)]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: morphedToPara ? 1 : 0 }}
-            transition={{ duration: 0.7, ease: EASE_OUT, delay: morphedToPara ? 0.18 : 0 }}
           >
             {paragraphLines.map((line, i) => (
               <div key={`${line}-${i}`} className="overflow-hidden">
