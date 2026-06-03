@@ -2,20 +2,20 @@
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { PortableText, type PortableTextBlock } from "@portabletext/react";
 import { useLenis } from "@/hooks/useLenis";
 import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER } from "@/lib/siteTokens";
 
-// Placeholder legal pages (Privacy Policy / Cookie Policy) in the new-site idiom
-// — SiteNav, a simple intro block on the shared foundation, and the shared
-// BrandFooter. Linked from the footer's subtle legal row. Real copy is a
-// placeholder until the policies are finalised.
-
 type LegalKind = "privacy" | "cookies";
 
-const CONTENT: Record<LegalKind, { title: string; body: string[] }> = {
+/**
+ * Used when Sanity is unconfigured or has no `legalPage` doc yet. Final copy
+ * always comes from Sanity once the page is wired.
+ */
+const FALLBACK: Record<LegalKind, { title: string; body: string[] }> = {
   privacy: {
     title: "Privacy Policy",
     body: [
@@ -32,8 +32,15 @@ const CONTENT: Record<LegalKind, { title: string; body: string[] }> = {
   },
 };
 
-const Legal = ({ kind }: { kind: LegalKind }) => {
-  const { title, body } = CONTENT[kind];
+export type LegalData = {
+  title?: string | null;
+  body?: PortableTextBlock[] | null;
+} | null;
+
+const Legal = ({ kind, data }: { kind: LegalKind; data?: LegalData }) => {
+  const title = data?.title || FALLBACK[kind].title;
+  const sanityBody = data?.body && data.body.length > 0 ? data.body : null;
+  const fallbackBody = FALLBACK[kind].body;
 
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, matching /expertise-v2.
@@ -49,7 +56,7 @@ const Legal = ({ kind }: { kind: LegalKind }) => {
 
   return (
     <motion.main className="min-h-screen w-full" style={{ backgroundColor: bgColor }}>
-      <SiteNav homePath="/concept" />
+      <SiteNav homePath="/" />
 
       <div ref={contentRef} className="w-full">
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)] pb-[clamp(80px,12vw,160px)]`}>
@@ -60,11 +67,19 @@ const Legal = ({ kind }: { kind: LegalKind }) => {
             <h1 className="font-display w-full text-brigada-black">{title}</h1>
           </Reveal>
           <div className="mt-[clamp(40px,5vw,72px)] flex flex-col gap-6 md:w-[60%]">
-            {body.map((paragraph, i) => (
-              <Reveal key={i} delay={i === 0 ? 0 : 0.04}>
-                <p className="font-body text-brigada-black">{paragraph}</p>
+            {sanityBody ? (
+              <Reveal>
+                <div className="font-body text-brigada-black [&_p]:mb-6 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:mb-3 [&_h2]:mt-8 [&_h3]:font-body [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-6 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline">
+                  <PortableText value={sanityBody} />
+                </div>
               </Reveal>
-            ))}
+            ) : (
+              fallbackBody.map((paragraph, i) => (
+                <Reveal key={i} delay={i === 0 ? 0 : 0.04}>
+                  <p className="font-body text-brigada-black">{paragraph}</p>
+                </Reveal>
+              ))
+            )}
           </div>
         </section>
       </div>
