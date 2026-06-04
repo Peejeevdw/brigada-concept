@@ -4,9 +4,9 @@
  * Idempotent — every doc uses a deterministic `_id`, so re-running upserts
  * cleanly. Run with: `pnpm tsx scripts/seed.ts` from inside `studio/`.
  *
- * Requires SANITY_PROJECT_ID + SANITY_API_TOKEN in studio/.env (the token
- * needs write access to the dataset). Set SANITY_DATASET to override the
- * default `production` target.
+ * Requires SANITY_STUDIO_PROJECT_ID + SANITY_API_WRITE_TOKEN in studio/.env
+ * (the token needs write access to the dataset). Set SANITY_STUDIO_DATASET
+ * to override the default `production` target.
  *
  * Phased: foundation → documents → singletons. Each phase can be run on its
  * own via CLI flags (--only=foundation|docs|singletons). Default runs all.
@@ -27,10 +27,10 @@ function required(name: string): string {
 }
 
 const client: SanityClient = createClient({
-  projectId: required('SANITY_PROJECT_ID'),
-  dataset: process.env.SANITY_DATASET ?? 'production',
+  projectId: required('SANITY_STUDIO_PROJECT_ID'),
+  dataset: process.env.SANITY_STUDIO_DATASET ?? 'production',
   apiVersion: API_VERSION,
-  token: required('SANITY_API_TOKEN'),
+  token: required('SANITY_API_WRITE_TOKEN'),
   useCdn: false,
 })
 

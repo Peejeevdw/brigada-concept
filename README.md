@@ -44,10 +44,17 @@ Copy `.env.example` to `.env` and fill in the Sanity variables, or use [`direnv`
 
 ### Studio `.env` (in `studio/`)
 
-| Variable | Description |
-|---|---|
-| `SANITY_STUDIO_PROJECT_ID` | Project ID used by the Studio at build/deploy time. |
-| `SANITY_API_TOKEN` | Write-scoped token. Used by `studio/scripts/*` (seed, Recruitee sync) and the `mcp__Sanity__*` tooling — never imported by the Next.js app. |
+Used by the Studio (`pnpm dev`, `pnpm build`, `pnpm deploy`) and by the one-shot scripts in `studio/scripts/`.
+
+| Variable | Required for | Description |
+|---|---|---|
+| `SANITY_STUDIO_PROJECT_ID` | Studio + scripts | Project ID. |
+| `SANITY_STUDIO_DATASET` | Studio + scripts | Dataset name, defaults to `production`. |
+| `SANITY_STUDIO_PREVIEW_URL` | Studio Presentation | URL of the running Next.js app, defaults to `http://localhost:3000`. |
+| `SANITY_API_WRITE_TOKEN` | `seed.ts`, `sync-jobs.ts` | Write-scoped token for the one-shot scripts. Not used by `pnpm dev`. |
+| `RECRUITEE_API_URL` | `sync-jobs.ts` | Recruitee API base URL. |
+| `RECRUITEE_COMPANY_ID` | `sync-jobs.ts` | Recruitee company ID. |
+| `RECRUITEE_API_TOKEN` | `sync-jobs.ts` | Recruitee API token. |
 
 GROQ queries run server-side in Server Components. The image URL builder needs project ID + dataset on the client too so the hydrated DOM matches what the server painted — hence the `NEXT_PUBLIC_*` prefix on those two values.
 
