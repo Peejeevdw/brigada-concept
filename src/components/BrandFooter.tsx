@@ -53,8 +53,9 @@ const BrandFooter = ({
   brioPaletteId,
   brioSrc = `/concept-hero.jpg`,
   dark = false,
+  light = false,
   lightText = false,
-}: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean; lightText?: boolean } = {}) => {
+}: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean; light?: boolean; lightText?: boolean } = {}) => {
   const transitionTo = usePageTransition();
   const chrome = useSiteChrome();
   /** Office cards — Sanity-driven when available, otherwise the hardcoded set. */
@@ -220,10 +221,12 @@ const BrandFooter = ({
       >
         {/* Full-bleed backdrop — the footer's background. Content above it uses
             mix-blend-difference so it inverts against the moving footage.
-            dark renders a solid black fill; brioPaletteId swaps the HLS video
-            for the locked BrioEffect. */}
+            dark renders a solid black fill; light a solid white fill;
+            brioPaletteId swaps the HLS video for the locked BrioEffect. */}
         {dark ? (
           <div className="pointer-events-none absolute inset-0 z-0 bg-brigada-black" aria-hidden />
+        ) : light ? (
+          <div className="pointer-events-none absolute inset-0 z-0 bg-white" aria-hidden />
         ) : brioPaletteId ? (
           <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
             <BrioEffect
@@ -379,13 +382,13 @@ const BrandFooter = ({
           </svg>
         )}
         {/* Logo row — full-width wordmark, bottom clipped off the footer edge */}
-        <div ref={wordmarkRef} className="relative z-10 aspect-[1260/230] w-full overflow-hidden text-white">
+        <div ref={wordmarkRef} className={`relative z-10 aspect-[1260/230] w-full overflow-hidden ${light ? "text-brigada-black" : "text-white"}`}>
           <BrigadaWordmark className="block h-auto w-full" />
         </div>
       </footer>
       <div
         data-footer-parallax-dark
-        className="pointer-events-none absolute inset-0 bg-[#201D1D] opacity-0"
+        className={`pointer-events-none absolute inset-0 opacity-0 ${light ? "bg-white" : "bg-[#201D1D]"}`}
         aria-hidden
       />
     </div>

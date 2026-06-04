@@ -14,7 +14,7 @@ const productCase5 = "/assets/product-case-5.png";
 // Slide markup is React; styling lives in index.css (Osmo block, heading font
 // swapped to Antarctica).
 
-export type CascadingSlide = { img: string; title: string };
+export type CascadingSlide = { img: string; title: string; href?: string };
 
 // Placeholder product cases — swap images/titles for real ones later (same
 // stand-in approach the orbit used).
@@ -313,6 +313,16 @@ const CascadingSlider = ({
                 <div className="cascading-slider__item-content">
                   <h3 className="cascading-slider__h">{s.title}</h3>
                 </div>
+                {s.href && (
+                  // Stretched link over the whole slide. Sits above the content
+                  // gradient (z-2); hover still bubbles to the slide so the
+                  // carousel keeps centring on hover before the click navigates.
+                  <a
+                    href={s.href}
+                    aria-label={s.title}
+                    className="absolute inset-0 z-[3]"
+                  />
+                )}
               </div>
             </div>
           ))}

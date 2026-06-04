@@ -143,6 +143,9 @@ const WORK_FULL_PROJECTION = `{
   "slug": slug.current,
   "expertises": expertises[]->{_id, name, "slug": slug.current},
   "related": related[]->${WORK_LIST_PROJECTION},
+  // Every other case that has a thumbnail — feeds the "Related cases" slider on
+  // the case detail. Excludes the current case (all locale variants by slug).
+  "relatedCases": *[_type == "work" && defined(image) && slug.current != ^.slug.current && (locale == $locale || locale == null)] | order(_updatedAt desc)${WORK_LIST_PROJECTION},
   // Expand any file-asset refs nested inside the body so the FE has direct
   // URLs (Sanity images resolve their URL via urlFor() from just the _ref).
   "body": body[]{

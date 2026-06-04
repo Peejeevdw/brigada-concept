@@ -1,9 +1,11 @@
 "use client";
 
-import { Fragment, useState, type CSSProperties } from "react";
+import { Fragment, useMemo, useState, type CSSProperties } from "react";
 import { Drawer } from "vaul";
 import SiteNav from "@/components/site/SiteNav";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
+import CascadingSlider, { type CascadingSlide } from "@/components/CascadingSlider";
+import BrandFooter from "@/components/BrandFooter";
 import { SANS } from "@/lib/siteTokens";
 import { urlFor } from "@/lib/sanity";
 import {
@@ -51,6 +53,8 @@ export type WorkLayoutData = {
     services?: (string | null)[] | null;
   } | null;
   mediaRows?: ({ items?: (SanityMedia | null)[] | null; fullBleed?: boolean | null } | null)[] | null;
+  // Other cases with a thumbnail, for the "Related cases" slider (WORK_LIST_PROJECTION).
+  relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown } | null)[] | null;
 };
 
 function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
@@ -433,6 +437,20 @@ export default function CaseLayout({
   mock?: CaseData;
 }) {
   const [infoOpen, setInfoOpen] = useState(false);
+  // Related cases → slider slides. Memoised so toggling the drawer doesn't
+  // hand CascadingSlider a new array and force it to re-init.
+  const relatedSlides = useMemo<CascadingSlide[]>(
+    () =>
+      (data?.relatedCases ?? [])
+        .map((rc): CascadingSlide | null => {
+          if (!rc?.image) return null;
+          const img = urlFor(rc.image)?.width(900).fit("max").quality(72).auto("format").url();
+          if (!img) return null;
+          return { img, title: rc.name ?? "", href: rc.slug ? `/work/${rc.slug}` : undefined };
+        })
+        .filter((s): s is CascadingSlide => s !== null),
+    [data?.relatedCases],
+  );
   const c = fromSanity(data) ?? (mockFallback ? mock ?? null : null);
   if (!c) return null;
 
@@ -453,7 +471,7 @@ export default function CaseLayout({
         onOpenChange={setInfoOpen}
         shouldScaleBackground={false}
       >
-        <SiteNav />
+        <SiteNav textClassName={data?.darkMode ? "text-white" : "text-brigada-black"} />
         {c.hero && <CaseHero media={c.hero} />}
         <CaseTitleBar
           title={c.title}
@@ -461,6 +479,26 @@ export default function CaseLayout({
           onOpenInfo={() => setInfoOpen(true)}
         />
         {c.gallery.length > 0 && <CaseGallery rows={c.gallery} />}
+
+        {relatedSlides.length > 0 && (
+          <section className={`pb-24 ${GUTTER}`}>
+            <div className="border-t pt-[clamp(28px,4vw,56px)]" style={{ borderColor: theme.line }}>
+              <h2
+                className="text-[clamp(18px,1.5vw,22px)] uppercase leading-none"
+                style={{ fontFamily: SANS, fontWeight: 500 }}
+              >
+                Related cases
+              </h2>
+            </div>
+            <div className="mt-[clamp(28px,4vw,56px)]">
+              <CascadingSlider slides={relatedSlides} ariaLabel="Related cases" />
+            </div>
+          </section>
+        )}
+
+        {/* Footer — contrasts the page: black under a light case, white under a
+            dark one. */}
+        {data?.darkMode ? <BrandFooter light /> : <BrandFooter dark />}
 
         <ProjectInfoDrawer info={c.projectInfo} title={c.title} />
       </Drawer.Root>
