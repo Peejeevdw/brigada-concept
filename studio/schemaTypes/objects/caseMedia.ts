@@ -49,10 +49,18 @@ export const caseMedia = defineType({
 
     // ---- Video ----
     defineField({
+      name: 'vimeoId',
+      title: 'Video — Vimeo ID',
+      type: 'string',
+      description:
+        'Just the number from the Vimeo URL — e.g. 123456789 for vimeo.com/123456789. For unlisted videos add the hash: 123456789/abcdef12. Plays as a muted autoplay loop, like the Bunny clips. Wins over everything else when set.',
+      hidden: ({parent}) => parent?.kind !== 'video',
+    }),
+    defineField({
       name: 'hlsUrl',
       title: 'Video — HLS URL',
       type: 'url',
-      description: 'Bunny / Mux .m3u8 playlist. Wins over the upload when set.',
+      description: 'Bunny / Mux .m3u8 playlist. Used when no Vimeo URL is set.',
       hidden: ({parent}) => parent?.kind !== 'video',
     }),
     defineField({

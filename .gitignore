@@ -19,6 +19,10 @@ dist-ssr
 .env.*.local
 .envrc
 
+# Build / tooling artifacts
+tsconfig.tsbuildinfo
+.claude/scheduled_tasks.lock
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

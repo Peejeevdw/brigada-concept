@@ -162,6 +162,14 @@ export const work = defineType({
     // blocks, not as required fields.
     // ---- New case layout: hero → project-info drawer → gallery rows ----
     defineField({
+      name: 'darkMode',
+      title: 'Dark mode',
+      type: 'boolean',
+      group: 'layout',
+      initialValue: false,
+      description: 'Black background with white text and buttons for the whole case page.',
+    }),
+    defineField({
       name: 'hero',
       title: 'Hero',
       type: 'caseMedia',

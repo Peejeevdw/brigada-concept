@@ -43,16 +43,22 @@ const MOCK_CASE: CaseData = {
     services: ["Launch", "Employer branding", "Live experience"],
   },
   gallery: [
-    [{ type: "image", src: "/concept-hero.jpg" }],
-    [
-      { type: "image", src: "/mm-1.jpg" },
-      { type: "image", src: "/mm-2.jpg" },
-      { type: "image", src: "/mm-3.jpg" },
-    ],
-    [
-      { type: "image", src: "/meetmarcel.jpg" },
-      { type: "image", src: "/mm-4.jpg" },
-    ],
+    { items: [{ type: "image", src: "/concept-hero.jpg" }], fullBleed: false },
+    {
+      items: [
+        { type: "image", src: "/mm-1.jpg" },
+        { type: "image", src: "/mm-2.jpg" },
+        { type: "image", src: "/mm-3.jpg" },
+      ],
+      fullBleed: false,
+    },
+    {
+      items: [
+        { type: "image", src: "/meetmarcel.jpg" },
+        { type: "image", src: "/mm-4.jpg" },
+      ],
+      fullBleed: false,
+    },
   ],
 };
 

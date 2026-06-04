@@ -23,13 +23,23 @@ export const galleryRow = defineType({
           .max(3)
           .error('A row holds at most three items.'),
     }),
+    defineField({
+      name: 'fullBleed',
+      title: 'Full-bleed (edge to edge)',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Drop the side margins so this row runs all the way to the screen edges.',
+    }),
   ],
   preview: {
-    select: {items: 'items'},
-    prepare({items}) {
+    select: {items: 'items', fullBleed: 'fullBleed'},
+    prepare({items, fullBleed}) {
       const n = Array.isArray(items) ? items.length : 0
       const layout = n === 1 ? 'Full width' : n === 2 ? '2 per row' : n === 3 ? '3 per row' : 'Empty'
-      return {title: `Row — ${n} item${n === 1 ? '' : 's'}`, subtitle: layout}
+      return {
+        title: `Row — ${n} item${n === 1 ? '' : 's'}`,
+        subtitle: fullBleed ? `${layout} · edge to edge` : layout,
+      }
     },
   },
 })

@@ -153,8 +153,8 @@ const WORK_FULL_PROJECTION = `{
     }
   },
   // New case-layout fields with video URLs resolved (HLS wins over the upload).
-  "hero": hero{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
-  "mediaRows": mediaRows[]{items[]{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
+  "hero": hero{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
+  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
 }`;
 
 const EXPERTISE_PROJECTION = `{
@@ -217,19 +217,57 @@ export function getWorkIndex(locale: string = DEFAULT_SANITY_LOCALE) {
   return fetch(
     groq`{
       "page": *[_type == "workIndexPage" && (locale == $locale || locale == null)] | order(locale desc)[0],
-      "items": *[_type == "work" && (locale == $locale || locale == null)] | order(featured desc, year desc, _createdAt desc)${WORK_LIST_PROJECTION}
+      "items": *[_type == "work" && (locale == $locale || locale == null)] | order(_updatedAt desc)${WORK_LIST_PROJECTION}
     }`,
     { locale },
     ["workIndexPage", "work"],
   );
 }
 
-export function getWork(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
-  return fetch(
+// Ask Vimeo's public oEmbed endpoint for a video's real dimensions and return
+// them as a CSS aspect-ratio string ("1 / 1", "16 / 9"). Lets gallery videos
+// render at their native shape instead of being cropped into a fixed box. Note:
+// `fetch` is shadowed by the Sanity wrapper above, so call globalThis.fetch.
+async function vimeoAspect(id: string): Promise<string | null> {
+  const [num, hash] = id.trim().split("/");
+  const url = `https://vimeo.com/${num}${hash ? `/${hash}` : ""}`;
+  try {
+    const res = await globalThis.fetch(
+      `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`,
+      { next: { revalidate: 86400 } },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { width?: number; height?: number };
+    if (!data.width || !data.height) return null;
+    return `${data.width} / ${data.height}`;
+  } catch {
+    return null;
+  }
+}
+
+// Mutates every gallery video item in-place, attaching `vimeoAspect` so the
+// case layout can size each video to its own ratio. Runs the lookups in
+// parallel; a failed lookup just leaves the item without an aspect (16:9 fallback).
+async function attachVimeoAspects(work: { mediaRows?: unknown } | null): Promise<void> {
+  const rows = (work?.mediaRows ?? []) as { items?: { kind?: string; vimeoId?: string; vimeoAspect?: string | null }[] }[];
+  const videos = rows
+    .flatMap((row) => row?.items ?? [])
+    .filter((item) => item?.kind === "video" && item?.vimeoId);
+  await Promise.all(
+    videos.map(async (item) => {
+      item.vimeoAspect = await vimeoAspect(item.vimeoId as string);
+    }),
+  );
+}
+
+export async function getWork(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
+  const work = await fetch<{ mediaRows?: unknown } | null>(
     groq`*[_type == "work" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]${WORK_FULL_PROJECTION}`,
     { slug, locale },
     [`work:${slug}`, "work"],
   );
+  if (work) await attachVimeoAspects(work);
+  return work;
 }
 
 // New case-layout fields (hero / projectInfo / mediaRows), used by the /work-lab
@@ -243,9 +281,10 @@ export function getWorkLayout(locale: string = DEFAULT_SANITY_LOCALE) {
     ] | order(_updatedAt desc)[0]{
       name,
       client,
-      hero{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
+      darkMode,
+      hero{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
       projectInfo{sections[]{heading, body}, services},
-      mediaRows[]{items[]{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
+      mediaRows[]{fullBleed, items[]{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
     }`,
     { locale },
     ["work"],
