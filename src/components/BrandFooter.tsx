@@ -60,13 +60,17 @@ const BrandFooter = ({
   /** Office cards — Sanity-driven when available, otherwise the hardcoded set. */
   const LOCATIONS = useMemo<{ city: string; address: string; zip: string; phone: string }[]>(() => {
     const sanityLocations = chrome?.locations ?? [];
-    if (sanityLocations.length === 0) return FALLBACK_LOCATIONS;
-    return sanityLocations.map((loc) => ({
-      city: loc.city ?? loc.title ?? "",
-      address: [loc.street, loc.number].filter(Boolean).join(" "),
-      zip: [loc.postalCode, loc.city].filter(Boolean).join(" "),
-      phone: loc.phone ?? "",
-    }));
+    const offices =
+      sanityLocations.length === 0
+        ? FALLBACK_LOCATIONS
+        : sanityLocations.map((loc) => ({
+            city: loc.city ?? loc.title ?? "",
+            address: [loc.street, loc.number].filter(Boolean).join(" "),
+            zip: [loc.postalCode, loc.city].filter(Boolean).join(" "),
+            phone: loc.phone ?? "",
+          }));
+    // Always show offices alphabetically by city, regardless of data source.
+    return [...offices].sort((a, b) => a.city.localeCompare(b.city));
   }, [chrome?.locations]);
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
