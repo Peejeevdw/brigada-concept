@@ -98,6 +98,7 @@ const CAROUSEL_SLIDES: CarouselSlide[] = [
 
 const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
   const transitionTo = usePageTransition();
+
   const hero = data?.page?.hero;
   const eyebrow = hero?.eyebrow ?? "";
   const title = hero?.title ?? "";
@@ -197,29 +198,44 @@ const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
           style={{ color: INK }}
         >
           {entries.length > 0 ? (
-            entries.map((v, i) => (
-              <Reveal key={v._key} delay={i * 0.05}>
-                <div className="border-t" style={{ borderColor: INK }} />
-                <div className="mt-[clamp(20px,2vw,26px)] mb-[clamp(28px,3.5vw,52px)] flex flex-col gap-8 md:flex-row md:justify-between">
-                  <SectionLabel>
-                    {v.href ? (
-                      <button
-                        type="button"
-                        onClick={() => transitionTo(v.href!)}
-                        className="text-left transition-opacity hover:opacity-60"
-                      >
+            entries.map((v, i) => {
+              const clickable = Boolean(v.href);
+              const go = () => {
+                if (v.href) transitionTo(v.href);
+              };
+              return (
+                <Reveal key={v._key} delay={i * 0.05}>
+                  <div className="border-t" style={{ borderColor: INK }} />
+                  <div
+                    {...(clickable
+                      ? {
+                          role: "link",
+                          tabIndex: 0,
+                          onClick: go,
+                          onKeyDown: (e: React.KeyboardEvent) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              go();
+                            }
+                          },
+                        }
+                      : {})}
+                    className={`group mt-[clamp(20px,2vw,26px)] mb-[clamp(28px,3.5vw,52px)] flex flex-col gap-8 outline-none md:flex-row md:justify-between ${
+                      clickable ? "cursor-pointer" : ""
+                    }`}
+                  >
+                    <SectionLabel>
+                      <span className="transition-opacity group-hover:opacity-60">
                         {v.title}
-                      </button>
-                    ) : (
-                      v.title
-                    )}
-                  </SectionLabel>
-                  <p className="w-full text-[clamp(15px,1.25vw,18px)] leading-[1.6] md:w-[49%]">
-                    {v.description}
-                  </p>
-                </div>
-              </Reveal>
-            ))
+                      </span>
+                    </SectionLabel>
+                    <p className="w-full text-[clamp(15px,1.25vw,18px)] leading-[1.6] transition-opacity group-hover:opacity-60 md:w-[49%]">
+                      {v.description}
+                    </p>
+                  </div>
+                </Reveal>
+              );
+            })
           ) : emptyMessage ? (
             <Reveal>
               <p className="text-[clamp(15px,1.25vw,18px)] leading-[1.6]">{emptyMessage}</p>
