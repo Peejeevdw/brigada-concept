@@ -151,7 +151,10 @@ const WORK_FULL_PROJECTION = `{
       ...,
       "file": file{..., asset->{url}}
     }
-  }
+  },
+  // New case-layout fields with video URLs resolved (HLS wins over the upload).
+  "hero": hero{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
+  "mediaRows": mediaRows[]{items[]{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
 }`;
 
 const EXPERTISE_PROJECTION = `{
@@ -226,6 +229,26 @@ export function getWork(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
     groq`*[_type == "work" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]${WORK_FULL_PROJECTION}`,
     { slug, locale },
     [`work:${slug}`, "work"],
+  );
+}
+
+// New case-layout fields (hero / projectInfo / mediaRows), used by the /work-lab
+// prototype. Picks the most recently edited work that has any of them filled, so
+// whichever case an editor sets up shows up there without juggling slugs.
+export function getWorkLayout(locale: string = DEFAULT_SANITY_LOCALE) {
+  return fetch(
+    groq`*[_type == "work"
+      && (locale == $locale || locale == null)
+      && (defined(hero) || defined(mediaRows) || defined(projectInfo))
+    ] | order(_updatedAt desc)[0]{
+      name,
+      client,
+      hero{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
+      projectInfo{sections[]{heading, body}, services},
+      mediaRows[]{items[]{kind, image, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
+    }`,
+    { locale },
+    ["work"],
   );
 }
 

@@ -5,6 +5,8 @@ import {socialLink} from './objects/socialLink'
 import {seo} from './objects/seo'
 import {link} from './objects/link'
 import {submenuItem} from './objects/submenuItem'
+import {caseMedia} from './objects/caseMedia'
+import {galleryRow} from './objects/galleryRow'
 
 // Page builder blocks (case-story focused)
 import {richText} from './objects/blocks/richText'
@@ -43,6 +45,8 @@ export const schemaTypes = [
   seo,
   link,
   submenuItem,
+  caseMedia,
+  galleryRow,
 
   // Page builder blocks
   richText,

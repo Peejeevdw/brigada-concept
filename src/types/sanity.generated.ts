@@ -26,7 +26,7 @@ export type Menu = {
   items?: Array<
     {
       _key: string;
-    } & MenuItem
+    } & Link
   >;
 };
 
@@ -71,48 +71,22 @@ export type Locale = {
   localeId: string;
 };
 
-export type WorkReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "work";
-};
-
-export type SelectedWork = {
-  _type: "selectedWork";
-  items?: Array<
-    {
-      _key: string;
-    } & WorkReference
-  >;
-};
-
-export type Textblock = {
-  _type: "textblock";
-  titleBlocks?: Array<string>;
-  intro?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal" | "h2" | "h3" | "blockquote";
-    listItem?: "bullet" | "number";
-    markDefs?: Array<{
-      href?: string;
-      _type: "link";
-      _key: string;
-    }>;
-    level?: number;
-    _type: "block";
+export type StatBlock = {
+  _type: "statBlock";
+  items?: Array<{
+    value: string;
+    label: string;
+    description?: string;
+    _type: "stat";
     _key: string;
   }>;
-  links?: Array<
-    {
-      _key: string;
-    } & LinkItem
-  >;
+};
+
+export type Quote = {
+  _type: "quote";
+  text: string;
+  author?: string;
+  role?: string;
 };
 
 export type SanityFileAssetReference = {
@@ -129,9 +103,83 @@ export type SanityImageAssetReference = {
   [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
-export type Hero = {
-  _type: "hero";
-  video?: {
+export type VideoEmbed = {
+  _type: "videoEmbed";
+  hlsUrl?: string;
+  file?: {
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
+  poster?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  aspect?: "16/9" | "21/9" | "4/5" | "1/1";
+  autoplay?: boolean;
+};
+
+export type ImageGrid = {
+  _type: "imageGrid";
+  columns: 2 | 3;
+  images?: Array<{
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    caption?: string;
+    _type: "image";
+    _key: string;
+  }>;
+};
+
+export type SectionImage = {
+  _type: "sectionImage";
+  image: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  caption?: string;
+  variant?: "inline" | "full-bleed";
+};
+
+export type RichText = {
+  _type: "richText";
+  body: BlockContent;
+  width?: "narrow" | "medium" | "wide";
+};
+
+export type GalleryRow = {
+  _type: "galleryRow";
+  items?: Array<
+    {
+      _key: string;
+    } & CaseMedia
+  >;
+};
+
+export type CaseMedia = {
+  _type: "caseMedia";
+  kind: "image" | "video";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  hlsUrl?: string;
+  file?: {
     asset?: SanityFileAssetReference;
     media?: unknown;
     _type: "file";
@@ -143,7 +191,6 @@ export type Hero = {
     crop?: SanityImageCrop;
     _type: "image";
   };
-  title?: string;
 };
 
 export type HomePageReference = {
@@ -193,6 +240,13 @@ export type LegalPageReference = {
   _type: "reference";
   _weak?: boolean;
   [internalGroqTypeReferenceTo]?: "legalPage";
+};
+
+export type WorkReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "work";
 };
 
 export type ExpertiseReference = {
@@ -329,17 +383,6 @@ export type ExpertiseIndexPage = {
       _key: string;
     } & ExpertiseReference
   >;
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & Hero)
-    | ({
-        _key: string;
-      } & Textblock)
-    | ({
-        _key: string;
-      } & SelectedWork)
-  >;
   seo?: Seo;
 };
 
@@ -355,17 +398,6 @@ export type WorkIndexPage = {
     eyebrow?: string;
     title?: string;
   };
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & Hero)
-    | ({
-        _key: string;
-      } & Textblock)
-    | ({
-        _key: string;
-      } & SelectedWork)
-  >;
   seo?: Seo;
 };
 
@@ -382,42 +414,6 @@ export type SocialLink = {
     | "other";
   url: string;
   label?: string;
-};
-
-export type PrivacyPageReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "privacyPage";
-};
-
-export type LegalLink = {
-  _type: "legalLink";
-  label: string;
-  internal?: PrivacyPageReference;
-  external?: string;
-};
-
-export type MenuItem = {
-  _type: "menuItem";
-  label: InternationalizedArrayString;
-  internal?:
-    | HomePageReference
-    | AboutPageReference
-    | CareersPageReference
-    | ContactPageReference
-    | PrivacyPageReference
-    | WorkReference
-    | ExpertiseReference
-    | JobReference;
-  external?: string;
-  openInNewTab?: boolean;
-};
-
-export type LinkItem = {
-  _type: "linkItem";
-  label: string;
-  url: string;
 };
 
 export type BlockContentTextOnly = Array<{
@@ -508,6 +504,13 @@ export type InternationalizedArrayReference = Array<
     _key: string;
   } & InternationalizedArrayReferenceValue
 >;
+
+export type PrivacyPageReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "privacyPage";
+};
 
 export type SiteSettingsReference = {
   _ref: string;
@@ -625,6 +628,22 @@ export type Job = {
   }>;
   spotify?: string;
   contact?: PersonReference;
+  form?: {
+    intro?: string;
+    submitLabel?: string;
+    successMessage?: string;
+    fields?: Array<{
+      name: string;
+      label: string;
+      type: "text" | "email" | "tel" | "textarea" | "select" | "file";
+      required?: boolean;
+      placeholder?: string;
+      options?: Array<string>;
+      span?: "half" | "full";
+      _type: "formField";
+      _key: string;
+    }>;
+  };
   showOnHome?: boolean;
   order?: number;
 };
@@ -680,7 +699,7 @@ export type SiteSettings = {
   legalLinks?: Array<
     {
       _key: string;
-    } & LegalLink
+    } & Link
   >;
   ogImage?: {
     asset?: SanityImageAssetReference;
@@ -700,17 +719,6 @@ export type PrivacyPage = {
   _rev: string;
   locale?: string;
   title?: string;
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & Hero)
-    | ({
-        _key: string;
-      } & Textblock)
-    | ({
-        _key: string;
-      } & SelectedWork)
-  >;
 };
 
 export type ContactPage = {
@@ -773,17 +781,6 @@ export type ContactPage = {
     _type: "image";
     _key: string;
   }>;
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & Hero)
-    | ({
-        _key: string;
-      } & Textblock)
-    | ({
-        _key: string;
-      } & SelectedWork)
-  >;
   seo?: Seo;
 };
 
@@ -845,17 +842,6 @@ export type CareersPage = {
     _type: "benefit";
     _key: string;
   }>;
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & Hero)
-    | ({
-        _key: string;
-      } & Textblock)
-    | ({
-        _key: string;
-      } & SelectedWork)
-  >;
   seo?: Seo;
 };
 
@@ -899,17 +885,6 @@ export type AboutPage = {
       _key: string;
     }>;
   };
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & Hero)
-    | ({
-        _key: string;
-      } & Textblock)
-    | ({
-        _key: string;
-      } & SelectedWork)
-  >;
   seo?: Seo;
 };
 
@@ -924,7 +899,7 @@ export type HomePage = {
   intro?: {
     eyebrow?: string;
     taglines?: Array<string>;
-    paragraph?: string;
+    paragraphLines?: Array<string>;
   };
   reel?: {
     poster?: {
@@ -942,21 +917,8 @@ export type HomePage = {
     title?: string;
     items?: Array<{
       work: WorkReference;
-      backgroundType?: "color" | "video" | "image";
-      bgColor?: string;
-      bgVideo?: {
-        asset?: SanityFileAssetReference;
-        media?: unknown;
-        _type: "file";
-      };
-      bgImage?: {
-        asset?: SanityImageAssetReference;
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        _type: "image";
-      };
-      fgColor?: string;
+      brioColors?: Array<string>;
+      fgColor?: "#181614" | "#FFFFFF";
       trail?: Array<{
         asset?: SanityImageAssetReference;
         media?: unknown;
@@ -989,17 +951,6 @@ export type HomePage = {
       _key: string;
     }>;
   };
-  pageBuilder?: Array<
-    | ({
-        _key: string;
-      } & Hero)
-    | ({
-        _key: string;
-      } & Textblock)
-    | ({
-        _key: string;
-      } & SelectedWork)
-  >;
   seo?: Seo;
 };
 
@@ -1037,10 +988,41 @@ export type Work = {
     _type: "service";
     _key: string;
   }>;
-  brief?: BlockContent;
-  approach?: BlockContent;
-  context?: BlockContent;
-  outcome?: BlockContent;
+  hero?: CaseMedia;
+  projectInfo?: {
+    sections?: Array<{
+      heading: string;
+      body?: string;
+      _type: "section";
+      _key: string;
+    }>;
+    services?: Array<string>;
+  };
+  mediaRows?: Array<
+    {
+      _key: string;
+    } & GalleryRow
+  >;
+  body?: Array<
+    | ({
+        _key: string;
+      } & RichText)
+    | ({
+        _key: string;
+      } & SectionImage)
+    | ({
+        _key: string;
+      } & ImageGrid)
+    | ({
+        _key: string;
+      } & VideoEmbed)
+    | ({
+        _key: string;
+      } & Quote)
+    | ({
+        _key: string;
+      } & StatBlock)
+  >;
   gallery?: Array<{
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -1105,7 +1087,7 @@ export type Expertise = {
   links?: Array<
     {
       _key: string;
-    } & LinkItem
+    } & Link
   >;
   seo?: Seo;
 };
@@ -1234,12 +1216,16 @@ export type AllSanitySchemaTypes =
   | InternationalizedArrayString
   | Slug
   | Locale
-  | WorkReference
-  | SelectedWork
-  | Textblock
+  | StatBlock
+  | Quote
   | SanityFileAssetReference
   | SanityImageAssetReference
-  | Hero
+  | VideoEmbed
+  | ImageGrid
+  | SectionImage
+  | RichText
+  | GalleryRow
+  | CaseMedia
   | HomePageReference
   | WorkIndexPageReference
   | ExpertiseIndexPageReference
@@ -1247,6 +1233,7 @@ export type AllSanitySchemaTypes =
   | CareersPageReference
   | ContactPageReference
   | LegalPageReference
+  | WorkReference
   | ExpertiseReference
   | JobReference
   | SubmenuItem
@@ -1257,10 +1244,6 @@ export type AllSanitySchemaTypes =
   | ExpertiseIndexPage
   | WorkIndexPage
   | SocialLink
-  | PrivacyPageReference
-  | LegalLink
-  | MenuItem
-  | LinkItem
   | BlockContentTextOnly
   | InternationalizedArraySlugValue
   | InternationalizedArrayBlockContentTextOnlyValue
@@ -1273,6 +1256,7 @@ export type AllSanitySchemaTypes =
   | InternationalizedArrayText
   | TranslationMetadata
   | InternationalizedArrayReference
+  | PrivacyPageReference
   | SiteSettingsReference
   | PersonReference
   | InternationalizedArrayReferenceValue
@@ -1300,24 +1284,22 @@ export type AllSanitySchemaTypes =
   | Geopoint;
 
 // Source: ../src/lib/sanity-fetch.ts
-// Variable: SETTINGS_PROJECTION
-// Query: {  title,  email,  phone,  socials[]{    platform,    url,    "label": coalesce(label, platform)  },  legalLinks[]{    label,    "href": coalesce(external, select(internal->_type == "privacyPage" => "/privacy"))  }}
-export type SETTINGS_PROJECTION_RESULT = {
-  title: never;
-  email: never;
-  phone: never;
-  socials: never;
-  legalLinks: never;
-};
-
-// Source: ../src/lib/sanity-fetch.ts
-// Variable: footerContentQuery
-// Query: {  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{  title,  email,  phone,  socials[]{    platform,    url,    "label": coalesce(label, platform)  },  legalLinks[]{    label,    "href": coalesce(external, select(internal->_type == "privacyPage" => "/privacy"))  }},  "fallbackSettings": *[_type == "siteSettings"][0]{  title,  email,  phone,  socials[]{    platform,    url,    "label": coalesce(label, platform)  },  legalLinks[]{    label,    "href": coalesce(external, select(internal->_type == "privacyPage" => "/privacy"))  }},  "locations": *[_type == "location"] | order(_createdAt asc){    "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value, title[0].value),    "street": coalesce(street[_key == $locale][0].value, street[_key == "en"][0].value, street[0].value),    number,    postalCode,    "city": coalesce(city[_key == $locale][0].value, city[_key == "en"][0].value, city[0].value),    "country": coalesce(country[_key == $locale][0].value, country[_key == "en"][0].value, country[0].value)  }}
-export type FooterContentQueryResult = {
+// Variable: settingsAndChromeQuery
+// Query: {  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{    title, tagline, email, phone, ogImage,    "socials": socials[]{platform, url, label},    "legalLinks": legalLinks[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "expertiseIndexPage" => "/expertise",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "expertise" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}  },  "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "expertiseIndexPage" => "/expertise",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "expertise" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "expertiseIndexPage" => "/expertise",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "expertise" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "locations": *[_type == "location"] | order(_createdAt asc){  _id,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value, title[0].value),  "street": coalesce(street[_key == $locale][0].value, street[_key == "en"][0].value, street[0].value),  number,  postalCode,  "city": coalesce(city[_key == $locale][0].value, city[_key == "en"][0].value, city[0].value),  "country": coalesce(country[_key == $locale][0].value, country[_key == "en"][0].value, country[0].value),  email,  phone}}
+export type SettingsAndChromeQueryResult = {
   settings: {
     title: string;
+    tagline: string | null;
     email: string | null;
     phone: string | null;
+    ogImage: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      alt?: string;
+      _type: "image";
+    } | null;
     socials: Array<{
       platform:
         | "facebook"
@@ -1329,71 +1311,76 @@ export type FooterContentQueryResult = {
         | "x"
         | "youtube";
       url: string;
-      label:
-        | string
-        | "facebook"
-        | "github"
-        | "instagram"
-        | "linkedin"
-        | "other"
-        | "tiktok"
-        | "x"
-        | "youtube";
+      label: string | null;
     }> | null;
     legalLinks: Array<{
-      label: string;
-      href: string | "/privacy";
+      _key: string;
+      label: string | null;
+      url:
+        | string
+        | null
+        | "/"
+        | "/about"
+        | "/careers"
+        | "/contact"
+        | "/cookies"
+        | "/expertise"
+        | "/imprint"
+        | "/privacy"
+        | "/terms"
+        | "/work";
+      openInNewTab: boolean | null;
     }> | null;
   } | null;
-  fallbackSettings: {
-    title: string;
-    email: string | null;
-    phone: string | null;
-    socials: Array<{
-      platform:
-        | "facebook"
-        | "github"
-        | "instagram"
-        | "linkedin"
-        | "other"
-        | "tiktok"
-        | "x"
-        | "youtube";
-      url: string;
-      label:
+  footerMenu: {
+    items: Array<{
+      _key: string;
+      label: string | null;
+      url:
         | string
-        | "facebook"
-        | "github"
-        | "instagram"
-        | "linkedin"
-        | "other"
-        | "tiktok"
-        | "x"
-        | "youtube";
+        | null
+        | "/"
+        | "/about"
+        | "/careers"
+        | "/contact"
+        | "/cookies"
+        | "/expertise"
+        | "/imprint"
+        | "/privacy"
+        | "/terms"
+        | "/work";
+      openInNewTab: boolean | null;
     }> | null;
-    legalLinks: Array<{
-      label: string;
-      href: string | "/privacy";
+  } | null;
+  mainMenu: {
+    items: Array<{
+      _key: string;
+      label: string | null;
+      url:
+        | string
+        | null
+        | "/"
+        | "/about"
+        | "/careers"
+        | "/contact"
+        | "/cookies"
+        | "/expertise"
+        | "/imprint"
+        | "/privacy"
+        | "/terms"
+        | "/work";
+      openInNewTab: boolean | null;
     }> | null;
   } | null;
   locations: Array<{
+    _id: string;
     title: string | null;
     street: string | null;
     number: string | null;
     postalCode: string | null;
     city: string | null;
     country: string | null;
+    email: string | null;
+    phone: string | null;
   }>;
 };
-
-// Source: ../src/lib/sanity-fetch.ts
-// Variable: menuByIdentifierQuery
-// Query: *[_type == "menu" && identifier == $identifier][0]{  identifier,  items[]{    "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),    "url": coalesce(      select(        internal->_type == "homePage" => "/",        internal->_type == "aboutPage" => "/about",        internal->_type == "careersPage" => "/careers",        internal->_type == "contactPage" => "/contact",        internal->_type == "privacyPage" => "/privacy",        internal->_type == "work" => "/work/" + internal->slug.current,        internal->_type == "expertise" => "/expertise/" + internal->slug.current,        internal->_type == "job" => "/careers/" + internal->slug.current      ),      external    ),    openInNewTab  }}
-export type MenuByIdentifierQueryResult = {
-  identifier: string;
-  items: Array<{
-    label: string | null;
-    url: string | "/" | "/about" | "/careers" | "/contact" | "/privacy" | null;
-    openInNewTab: boolean | null;
-  }> | null;
-} | null;

@@ -17,6 +17,7 @@ export const work = defineType({
     'A case study. Each language has its own document version; use Document translations to switch or create versions.',
   groups: [
     {name: 'general', title: 'General', default: true},
+    {name: 'layout', title: 'Case layout'},
     {name: 'content', title: 'Case story'},
     {name: 'gallery', title: 'Gallery'},
     {name: 'related', title: 'Related'},
@@ -159,6 +160,71 @@ export const work = defineType({
     // stat blocks in any order. The four-chapter pattern (brief / approach /
     // context / outcome) lives as conventional headings inside richText
     // blocks, not as required fields.
+    // ---- New case layout: hero → project-info drawer → gallery rows ----
+    defineField({
+      name: 'hero',
+      title: 'Hero',
+      type: 'caseMedia',
+      group: 'layout',
+      description: 'Full-bleed image or video at the very top of the case.',
+    }),
+    defineField({
+      name: 'projectInfo',
+      title: 'Project info',
+      type: 'object',
+      group: 'layout',
+      description: 'Shown in the slide-in "Project info" drawer.',
+      fields: [
+        defineField({
+          name: 'sections',
+          title: 'Sections',
+          type: 'array',
+          description:
+            'Collapsible sections, e.g. Summary, The challenge, The approach, The impact. The first one opens by default — put Summary on top.',
+          of: [
+            defineArrayMember({
+              type: 'object',
+              name: 'section',
+              fields: [
+                defineField({
+                  name: 'heading',
+                  title: 'Heading',
+                  type: 'string',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'body',
+                  title: 'Body',
+                  type: 'text',
+                  rows: 6,
+                  description: 'Separate paragraphs with a blank line.',
+                }),
+              ],
+              preview: {
+                select: {title: 'heading', subtitle: 'body'},
+              },
+            }),
+          ],
+        }),
+        defineField({
+          name: 'services',
+          title: 'Services involved',
+          type: 'array',
+          of: [defineArrayMember({type: 'string'})],
+          options: {layout: 'tags'},
+          description: 'Shown as a row, e.g. Launch · Employer branding · Live experience.',
+        }),
+      ],
+    }),
+    defineField({
+      name: 'mediaRows',
+      title: 'Gallery rows',
+      type: 'array',
+      group: 'layout',
+      description:
+        'Stacked rows of visuals below the title bar. Each row holds 1, 2 or 3 items (image or video) and lays out accordingly.',
+      of: [defineArrayMember({type: 'galleryRow'})],
+    }),
     pageBuilderField({
       name: 'body',
       title: 'Case story',
