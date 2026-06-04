@@ -8,7 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PortableText, toPlainText, type PortableTextBlock } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
-import CareersCarousel from "@/components/CareersCarousel";
+import CareersCarousel, { type CarouselSlide } from "@/components/CareersCarousel";
 import SharpBeatsLoud from "@/components/SharpBeatsLoud";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
@@ -124,6 +124,16 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
+// Carousel images live in public/about/.
+const CAROUSEL_SLIDES: CarouselSlide[] = [
+  { src: "/about/1.jpg", alt: "Brigada" },
+  { src: "/about/2.jpg", alt: "Brigada" },
+  { src: "/about/3.jpg", alt: "Brigada" },
+  { src: "/about/4.jpg", alt: "Brigada" },
+  { src: "/about/5.jpg", alt: "Brigada" },
+  { src: "/about/6.jpg", alt: "Brigada" },
+];
+
 const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
   const heroWords = data?.hero?.words ?? [];
   const narrativeBlocks = data?.narrative ?? [];
@@ -236,7 +246,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
 
       {/* Image carousel (Skiper54 Carousel_006 — expand-on-active), ported from
           /careers-v2 in place of the reel video. */}
-      <CareersCarousel />
+      <CareersCarousel slides={CAROUSEL_SLIDES} />
 
       {/* Footer — same as /product: brio "..." (brio-03) backdrop + wordmark. */}
       <BrandFooter brioPaletteId="brio-03" />

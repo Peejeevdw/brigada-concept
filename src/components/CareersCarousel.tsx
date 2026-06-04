@@ -17,12 +17,15 @@ import {
  * /careers-v2. The active slide expands (clip-path inset 15%→0) while its
  * neighbours peek; optional autoplay, arrow nav and pagination dots.
  *
- * Slides are the public/careers-{1..6}.png images (served via BASE_URL, like
- * the rest of the page). Titles are left empty for now — add a `title` per
- * slide to show the subtle caption beneath the active one.
+ * Slides default to the public/careers-{1..6}.png images (served via BASE_URL,
+ * like the rest of the page) but each consumer can pass its own `slides` set.
+ * Titles are left empty for now — add a `title` per slide to show the subtle
+ * caption beneath the active one.
  */
+export type CarouselSlide = { src: string; alt: string; title?: string };
+
 const BASE = "/";
-const SLIDES: { src: string; alt: string; title: string }[] = [
+const DEFAULT_SLIDES: CarouselSlide[] = [
   { src: `${BASE}careers-1.png`, alt: "Working at Brigada", title: "" },
   { src: `${BASE}careers-2.png`, alt: "Working at Brigada", title: "" },
   { src: `${BASE}careers-3.png`, alt: "Working at Brigada", title: "" },
@@ -33,17 +36,27 @@ const SLIDES: { src: string; alt: string; title: string }[] = [
 
 const CareersCarousel = ({
   className,
+  slides = DEFAULT_SLIDES,
   autoplay = true,
   loop = true,
   showNavigation = false,
   showPagination = false,
 }: {
   className?: string;
+  slides?: CarouselSlide[];
   autoplay?: boolean;
   loop?: boolean;
   showNavigation?: boolean;
   showPagination?: boolean;
 }) => {
+  // Embla needs enough slides to form a smooth loop. At the widest breakpoint a
+  // slide is ~21% wide (≈5 visible), so a small set (e.g. the 5 careers images)
+  // barely overflows and the loop stalls. When looping, repeat the source set
+  // until there are comfortably enough (≥10) to scroll through.
+  const SLIDES =
+    loop && slides.length > 0 && slides.length < 10
+      ? Array.from({ length: Math.ceil(10 / slides.length) }, () => slides).flat()
+      : slides;
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
 
@@ -85,7 +98,7 @@ const CareersCarousel = ({
       getAutoplay()?.stop();
       const step = () => (dir === -1 ? api.scrollPrev() : api.scrollNext());
       step(); // immediate feedback on enter / direction flip
-      stepTimer.current = window.setInterval(step, 1000);
+      stepTimer.current = window.setInterval(step, 1700);
     },
     [api, getAutoplay, stopSteering],
   );
@@ -124,12 +137,12 @@ const CareersCarousel = ({
         "relative w-full pt-[clamp(8px,1.5vw,28px)] pb-[clamp(64px,9vw,140px)]",
         className,
       )}
-      opts={{ loop, slidesToScroll: 1 }}
+      opts={{ loop, slidesToScroll: 1, duration: 45 }}
       plugins={
         autoplay
           ? [
               Autoplay({
-                delay: 2500,
+                delay: 4000,
                 // Always keep scrolling (no pause on hover). A click/drag only
                 // interrupts it briefly — autoplay resumes afterwards.
                 stopOnInteraction: false,
@@ -139,11 +152,11 @@ const CareersCarousel = ({
           : []
       }
     >
-      <CarouselContent className="flex h-[clamp(360px,56vh,560px)] w-full">
+      <CarouselContent className="flex h-[clamp(440px,72vh,760px)] w-full">
         {SLIDES.map((img, index) => (
           <CarouselItem
             key={index}
-            className="relative flex h-[81.5%] w-full basis-[73%] items-center justify-center sm:basis-[50%] md:basis-[30%] lg:basis-[25%] xl:basis-[21%]"
+            className="relative flex h-[81.5%] w-full basis-[82%] items-center justify-center sm:basis-[58%] md:basis-[40%] lg:basis-[34%] xl:basis-[29%]"
           >
             <motion.div
               initial={false}

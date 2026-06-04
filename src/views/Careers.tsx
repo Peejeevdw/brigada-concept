@@ -6,7 +6,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SiteNav from "@/components/site/SiteNav";
-import CareersCarousel from "@/components/CareersCarousel";
+import CareersCarousel, { type CarouselSlide } from "@/components/CareersCarousel";
 import CareersFooter from "@/components/CareersFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import { BrioEffect } from "@/brio-effect";
@@ -86,6 +86,15 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
     {children}
   </h2>
 );
+
+// Carousel images live in public/Careers/ (case-sensitive on Cloudflare).
+const CAROUSEL_SLIDES: CarouselSlide[] = [
+  { src: "/Careers/hannes-2.jpg", alt: "Working at Brigada" },
+  { src: "/Careers/matti.jpg", alt: "Working at Brigada" },
+  { src: "/Careers/mortier-1.jpg", alt: "Working at Brigada" },
+  { src: "/Careers/mortier-2.jpg", alt: "Working at Brigada" },
+  { src: "/Careers/mortier-3.jpg", alt: "Working at Brigada" },
+];
 
 const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
   const transitionTo = usePageTransition();
@@ -220,7 +229,7 @@ const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
       </div>
 
       {/* Careers image carousel (Skiper54 Carousel_006 — expand-on-active). */}
-      <CareersCarousel />
+      <CareersCarousel slides={CAROUSEL_SLIDES} />
 
       {/* Footer — parallax reveal, white background + black wordmark */}
       <CareersFooter />
