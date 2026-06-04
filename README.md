@@ -31,6 +31,10 @@ Copy `.env.example` to `.env` and fill in the Sanity variables, or use [`direnv`
 
 ## Environment
 
+Two independent `.env` files: one at the repo root for the Next.js frontend, one inside `studio/` for the Sanity Studio + its one-shot scripts. Keeping them split means the Studio can be deployed separately (e.g. `manage.sanity.io` or a different Cloudflare project) and stays self-contained.
+
+> If you use direnv, the root `.envrc` does `dotenv .env`, so root env vars get exported into your shell and `pnpm dev` inside `studio/` will inherit them — but don't rely on that for deploys or for teammates without direnv. Keep `studio/.env` populated.
+
 ### Frontend `.env`
 
 | Variable | Description |
