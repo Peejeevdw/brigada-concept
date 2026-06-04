@@ -24,7 +24,7 @@ const FOOTER_HLS_SRC =
 
 const COLUMNS = [
   { label: "Pages", links: ["Work", "Expertise", "About", "Careers", "Contact"] },
-  { label: "Socials", links: ["LinkedIn", "Instagram", "X/Twitter"] },
+  { label: "Socials", links: ["LinkedIn", "Instagram"] },
   { label: "Contact", links: ["hello@brigada.be"] },
 ];
 
@@ -252,7 +252,7 @@ const BrandFooter = ({
             const column = (
               <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
                 <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
-                  ( {col.label} )
+                  {col.label}
                 </p>
                 <div className="flex flex-col items-start gap-3">
                   {col.links.map((l) => {
@@ -300,7 +300,7 @@ const BrandFooter = ({
                 <Fragment key={col.label}>
                   <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
                     <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
-                      ( Locations )
+                      Locations
                     </p>
                     <div className="flex flex-col items-start gap-3">
                       {LOCATIONS.map((loc) => {
