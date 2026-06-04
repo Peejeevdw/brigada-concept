@@ -9,6 +9,7 @@ import BrandFooter from "@/components/BrandFooter";
 import BlurImage from "@/components/BlurImage";
 import { SANS } from "@/lib/siteTokens";
 import { urlFor } from "@/lib/sanity";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Accordion,
   AccordionItem,
@@ -27,6 +28,9 @@ type Media = {
   controls?: boolean;
   lqip?: string; // base64 blur-up placeholder (image's own, or a video's poster)
   poster?: string; // resolved poster image URL, videos only
+  // Optional mobile overrides (videos only). Each field falls back to the
+  // desktop value when blank; resolveMedia() merges them under the breakpoint.
+  mobile?: { src?: string; poster?: string; lqip?: string; aspect?: string };
 };
 type GalleryRow = { items: Media[]; fullBleed: boolean }; // 1–3 visuals, optionally edge to edge
 type Section = { id: string; title: string; body: string[] };
@@ -53,6 +57,13 @@ type SanityMedia = {
   poster?: unknown;
   posterLqip?: string | null; // poster image's LQIP blur-up
   showControls?: boolean | null;
+  // Optional mobile overrides (resolved server-side like their desktop twins).
+  mobileVimeoId?: string | null;
+  mobileVimeoAspect?: string | null;
+  mobileVimeoThumb?: string | null;
+  mobileVideoUrl?: string | null;
+  mobilePoster?: unknown;
+  mobilePosterLqip?: string | null;
 };
 export type WorkLayoutData = {
   name?: string | null;
@@ -87,6 +98,25 @@ function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
         : undefined) ??
       sm.vimeoThumb ??
       undefined;
+    // Optional mobile overrides — a mobile-specific source and/or poster.
+    // Anything left blank stays undefined and falls back to desktop at render.
+    const mobileSrc =
+      (sm.mobileVimeoId && vimeoEmbedSrc(sm.mobileVimeoId, controls)) || sm.mobileVideoUrl || undefined;
+    const mobilePoster =
+      (sm.mobilePoster
+        ? urlFor(sm.mobilePoster)?.width(width).fit("max").quality(72).auto("format").url()
+        : undefined) ??
+      sm.mobileVimeoThumb ??
+      undefined;
+    const mobile =
+      mobileSrc || mobilePoster || sm.mobilePosterLqip || sm.mobileVimeoAspect
+        ? {
+            src: mobileSrc,
+            poster: mobilePoster,
+            lqip: sm.mobilePosterLqip ?? undefined,
+            aspect: sm.mobileVimeoAspect ?? undefined,
+          }
+        : undefined;
     return {
       type: "video",
       src,
@@ -94,6 +124,7 @@ function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
       controls,
       poster,
       lqip: sm.posterLqip ?? undefined,
+      mobile,
     };
   }
   if (sm.image) {
@@ -104,6 +135,21 @@ function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
     if (url) return { type: "image", src: url, lqip: sm.lqip ?? undefined };
   }
   return null;
+}
+
+// Merge a media's mobile overrides over its desktop values when on a small
+// screen. Each mobile field falls back to desktop when blank, so an editor can
+// override just the poster, just the source, or both.
+function resolveMedia(media: Media, isMobile: boolean): Media {
+  const m = media.mobile;
+  if (!isMobile || !m) return media;
+  return {
+    ...media,
+    src: m.src ?? media.src,
+    poster: m.poster ?? media.poster,
+    lqip: m.lqip ?? media.lqip,
+    aspect: m.aspect ?? media.aspect,
+  };
 }
 
 export function fromSanity(data: WorkLayoutData | null): CaseData | null {
@@ -310,12 +356,13 @@ function MediaFill({ media, eager = false }: { media: Media; eager?: boolean }) 
 // Hero — full-bleed image or video.
 // ---------------------------------------------------------------------------
 function CaseHero({ media }: { media: Media }) {
+  const isMobile = useIsMobile();
   return (
     <section
       className="relative aspect-[16/9] w-full overflow-hidden"
       style={{ background: "var(--media-placeholder)" }}
     >
-      <MediaFill media={media} eager />
+      <MediaFill media={resolveMedia(media, isMobile)} eager />
     </section>
   );
 }
@@ -390,10 +437,14 @@ function GalleryMedia({
 }
 
 function CaseGallery({ rows }: { rows: GalleryRow[] }) {
+  const isMobile = useIsMobile();
   return (
     <div className={`flex flex-col gap-3 pb-24 md:gap-5 ${GUTTER}`}>
       {rows.map((row, i) => {
-        const { items, fullBleed } = row;
+        const { fullBleed } = row;
+        // Resolve each item to its mobile variant (if any) before deciding the
+        // layout, so the box aspect and the painted source stay in sync.
+        const items = row.items.map((m) => resolveMedia(m, isMobile));
         const bleed = fullBleed ? BLEED : "";
         if (items.length === 1) {
           const m = items[0];

@@ -28,6 +28,11 @@ export type CaseBlock =
       poster?: SanityImage;
       aspect?: "16/9" | "21/9" | "4/5" | "1/1";
       autoplay?: boolean;
+      // Optional mobile overrides; each falls back to its desktop twin when blank.
+      mobileEnabled?: boolean;
+      mobileHlsUrl?: string;
+      mobileFile?: { asset?: { url?: string } };
+      mobilePoster?: SanityImage;
     }
   | {
       _key: string;

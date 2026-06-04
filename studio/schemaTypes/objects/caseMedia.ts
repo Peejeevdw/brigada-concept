@@ -1,5 +1,6 @@
 import {ImageIcon} from '@sanity/icons'
 import {defineField, defineType} from 'sanity'
+import {mobileVideoFields} from './mobileVideoFields'
 
 // A single visual that is either an image or a video. Reused by the case hero
 // and by every item inside a gallery row. Video follows the same pattern as the
@@ -88,6 +89,9 @@ export const caseMedia = defineType({
         'Off (default): plays as a silent, looping background clip with no chrome, like the other case videos. On: keeps autoplay + muted but shows the Vimeo controls, so visitors can pause, scrub and unmute. Only applies to Vimeo videos.',
       hidden: ({parent}) => parent?.kind !== 'video',
     }),
+
+    // ---- Mobile overrides (optional) ----
+    ...mobileVideoFields({vimeo: true, hls: true, file: true, poster: true, gateOnVideoKind: true}),
   ],
   preview: {
     select: {kind: 'kind', image: 'image', poster: 'poster'},

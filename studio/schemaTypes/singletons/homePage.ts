@@ -1,6 +1,7 @@
 import {HomeIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {localeField} from '../helpers'
+import {mobileVideoFields} from '../objects/mobileVideoFields'
 
 /**
  * Root page (/). Mirrors the "Concept" design: animated hero + reel + cases +
@@ -104,6 +105,9 @@ export const homePage = defineType({
           description:
             'Optional muted-loop video shown in the section background (e.g. /sharp-beats-loud.mp4).',
         }),
+
+        // ---- Mobile overrides (optional) ----
+        ...mobileVideoFields({hls: true, loop: true, poster: true}),
       ],
     }),
     // ---- Cases ----

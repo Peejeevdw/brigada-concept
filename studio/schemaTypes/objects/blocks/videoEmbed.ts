@@ -1,5 +1,6 @@
 import {PlayIcon} from '@sanity/icons'
 import {defineField, defineType} from 'sanity'
+import {mobileVideoFields} from '../mobileVideoFields'
 
 export const videoEmbed = defineType({
   name: 'videoEmbed',
@@ -62,6 +63,9 @@ export const videoEmbed = defineType({
       type: 'boolean',
       initialValue: true,
     }),
+
+    // ---- Mobile overrides (optional) ----
+    ...mobileVideoFields({hls: true, file: true, poster: true}),
   ],
   preview: {
     select: {hls: 'hlsUrl', media: 'poster', aspect: 'aspect'},
