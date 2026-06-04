@@ -65,23 +65,16 @@ const Product = ({ expertise }: PillarViewProps) => {
           <Reveal>
             <div className="border-t" style={{ borderColor: INK.dark }} />
             <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
-              <div className="md:w-[40%] md:max-w-md">
-                <SectionLabel>{pillarName}</SectionLabel>
-                {expertise?.servicesIntro && (
-                  <p className="mt-[clamp(14px,1.4vw,22px)] text-[clamp(14px,1.1vw,17px)] leading-[1.45] text-brigada-black/70">
-                    {expertise.servicesIntro}
-                  </p>
-                )}
-              </div>
-              <ul className="w-full md:w-[49%]">
+              <SectionLabel>{pillarName}</SectionLabel>
+              <ul className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%]">
                 {services.map((s, i) => {
                   const title = s.title ?? "";
                   const blurb = s.description ?? undefined;
                   return (
-                    <li key={title || `s${i}`} className={i === 0 ? "" : "mt-[clamp(20px,2vw,28px)] border-t border-brigada-black/10 pt-[clamp(20px,2vw,28px)]"}>
-                      <span className="text-[clamp(20px,2vw,28px)] font-medium leading-[1.1] tracking-[-0.01em]">{title}</span>
+                    <li key={title || `s${i}`} className={i === 0 ? "" : "mt-[clamp(22px,2.4vw,34px)]"}>
+                      <span className="leading-[1.25]">{title}</span>
                       {blurb && (
-                        <p className="mt-[clamp(6px,0.6vw,10px)] max-w-[52ch] text-[clamp(14px,1.1vw,16px)] leading-[1.45] text-brigada-black/70">
+                        <p className="mt-[clamp(6px,0.6vw,10px)] max-w-[42ch] text-[clamp(13px,1.05vw,15px)] leading-snug opacity-50">
                           {blurb}
                         </p>
                       )}
