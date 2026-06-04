@@ -18,6 +18,23 @@ const nextConfig = {
       { source: "/concept", destination: "/", permanent: true },
     ];
   },
+  async headers() {
+    return [
+      {
+        // Allow Sanity Studio's Presentation tool to embed the site in an
+        // iframe so editors can click through stega-encoded text directly to
+        // its Studio field. Anywhere else, framing stays disabled.
+        source: "/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "frame-ancestors 'self' https://brigada.sanity.studio https://*.sanity.studio https://brigada.be",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
