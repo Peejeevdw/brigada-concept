@@ -514,16 +514,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         range.selectNodeContents(s);
         maxNatural = Math.max(maxNatural, range.getBoundingClientRect().width);
       });
-      // Bail out when either measurement is implausibly small — that almost
-      // always means layout hasn't settled yet (e.g. back-navigation while
-      // the page-transition wrapper is still collapsing/expanding). Without
-      // this guard the multiplier explodes and the paragraph ends up at
-      // 800px+, painting itself across the whole viewport.
-      if (maxNatural < 50 || avail < 100) return;
-      const next = (current * avail) / maxNatural;
-      // Final safety net: clamp the next size to within 3× of the current.
-      if (next > current * 3 || next < current / 3) return;
-      setParaSize(next);
+      if (maxNatural > 0 && avail > 0) setParaSize((current * avail) / maxNatural);
     };
     fit();
     if (document.fonts?.ready) document.fonts.ready.then(fit);

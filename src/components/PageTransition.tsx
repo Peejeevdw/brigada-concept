@@ -54,12 +54,18 @@ const PageTransitionProvider = ({ children }: { children: ReactNode }) => {
 
   const handleAnimationComplete = () => {
     if (phase === "leaving") {
-      // Current page is gone — swap the route, then fade the new page in.
+      // Current page is gone (opacity 0). Swap the route now, then wait two
+      // animation frames so Next.js has time to commit + paint the new page
+      // children before we start fading them in. Without that delay the
+      // entering animation starts on the previous-route children, which is
+      // the small flicker users were seeing on nav between pages.
       if (pending.current) {
         router.push(pending.current);
         pending.current = null;
       }
-      setPhase("entering");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPhase("entering"));
+      });
     } else if (phase === "entering") {
       setPhase("idle");
       busy.current = false;
