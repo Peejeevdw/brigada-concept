@@ -135,6 +135,7 @@ const WORK_LIST_PROJECTION = `{
   featured,
   "slug": slug.current,
   image,
+  "lqip": image.asset->metadata.lqip,
   "expertises": expertises[]->{_id, name, "slug": slug.current}
 }`;
 
@@ -156,8 +157,8 @@ const WORK_FULL_PROJECTION = `{
     }
   },
   // New case-layout fields with video URLs resolved (HLS wins over the upload).
-  "hero": hero{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
-  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
+  "hero": hero{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip},
+  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip}}
 }`;
 
 const EXPERTISE_PROJECTION = `{
@@ -227,49 +228,58 @@ export function getWorkIndex(locale: string = DEFAULT_SANITY_LOCALE) {
   );
 }
 
-// Ask Vimeo's public oEmbed endpoint for a video's real dimensions and return
-// them as a CSS aspect-ratio string ("1 / 1", "16 / 9"). Lets gallery videos
-// render at their native shape instead of being cropped into a fixed box. Note:
-// `fetch` is shadowed by the Sanity wrapper above, so call globalThis.fetch.
-async function vimeoAspect(id: string): Promise<string | null> {
+// Ask Vimeo's public oEmbed endpoint for a video's real dimensions and a
+// thumbnail. The aspect (a CSS "w / h" string) lets gallery videos render at
+// their native shape; the thumbnail is reused as a poster so a video box is
+// never empty (on load, or when the player is repainted after scrolling back).
+// Note: `fetch` is shadowed by the Sanity wrapper above, so call globalThis.fetch.
+type VimeoMeta = { aspect: string | null; thumb: string | null };
+async function vimeoMeta(id: string): Promise<VimeoMeta> {
   const [num, hash] = id.trim().split("/");
   const url = `https://vimeo.com/${num}${hash ? `/${hash}` : ""}`;
   try {
     const res = await globalThis.fetch(
-      `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`,
+      // width=1280 → a poster-sized thumbnail (ratio is preserved).
+      `https://vimeo.com/api/oembed.json?width=1280&url=${encodeURIComponent(url)}`,
       { next: { revalidate: 86400 } },
     );
-    if (!res.ok) return null;
-    const data = (await res.json()) as { width?: number; height?: number };
-    if (!data.width || !data.height) return null;
-    return `${data.width} / ${data.height}`;
+    if (!res.ok) return { aspect: null, thumb: null };
+    const data = (await res.json()) as { width?: number; height?: number; thumbnail_url?: string };
+    return {
+      aspect: data.width && data.height ? `${data.width} / ${data.height}` : null,
+      thumb: data.thumbnail_url ?? null,
+    };
   } catch {
-    return null;
+    return { aspect: null, thumb: null };
   }
 }
 
-// Mutates every gallery video item in-place, attaching `vimeoAspect` so the
-// case layout can size each video to its own ratio. Runs the lookups in
-// parallel; a failed lookup just leaves the item without an aspect (16:9 fallback).
-async function attachVimeoAspects(work: { mediaRows?: unknown } | null): Promise<void> {
-  const rows = (work?.mediaRows ?? []) as { items?: { kind?: string; vimeoId?: string; vimeoAspect?: string | null }[] }[];
-  const videos = rows
-    .flatMap((row) => row?.items ?? [])
-    .filter((item) => item?.kind === "video" && item?.vimeoId);
+// Mutates every Vimeo video item in-place (hero + gallery), attaching
+// `vimeoAspect` (native ratio) and `vimeoThumb` (poster). Runs the lookups in
+// parallel; a failed lookup just leaves the item without them.
+type VimeoItem = { kind?: string; vimeoId?: string; vimeoAspect?: string | null; vimeoThumb?: string | null };
+async function attachVimeoMeta(work: { hero?: unknown; mediaRows?: unknown } | null): Promise<void> {
+  const rows = (work?.mediaRows ?? []) as { items?: VimeoItem[] }[];
+  const items: VimeoItem[] = [
+    work?.hero as VimeoItem,
+    ...rows.flatMap((row) => row?.items ?? []),
+  ].filter((item): item is VimeoItem => !!item && item.kind === "video" && !!item.vimeoId);
   await Promise.all(
-    videos.map(async (item) => {
-      item.vimeoAspect = await vimeoAspect(item.vimeoId as string);
+    items.map(async (item) => {
+      const meta = await vimeoMeta(item.vimeoId as string);
+      item.vimeoAspect = meta.aspect;
+      item.vimeoThumb = meta.thumb;
     }),
   );
 }
 
 export async function getWork(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
-  const work = await fetch<{ mediaRows?: unknown } | null>(
+  const work = await fetch<{ hero?: unknown; mediaRows?: unknown } | null>(
     groq`*[_type == "work" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]${WORK_FULL_PROJECTION}`,
     { slug, locale },
     [`work:${slug}`, "work"],
   );
-  if (work) await attachVimeoAspects(work);
+  if (work) await attachVimeoMeta(work);
   return work;
 }
 
@@ -285,9 +295,9 @@ export function getWorkLayout(locale: string = DEFAULT_SANITY_LOCALE) {
       name,
       client,
       darkMode,
-      hero{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
+      hero{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip},
       projectInfo{sections[]{heading, body}, services},
-      mediaRows[]{fullBleed, items[]{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
+      mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip}}
     }`,
     { locale },
     ["work"],

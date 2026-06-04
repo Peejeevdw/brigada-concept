@@ -14,7 +14,7 @@ const productCase5 = "/assets/product-case-5.png";
 // Slide markup is React; styling lives in index.css (Osmo block, heading font
 // swapped to Antarctica).
 
-export type CascadingSlide = { img: string; title: string; href?: string };
+export type CascadingSlide = { img: string; title: string; href?: string; lqip?: string };
 
 // Placeholder product cases — swap images/titles for real ones later (same
 // stand-in approach the orbit used).
@@ -302,6 +302,17 @@ const CascadingSlider = ({
             >
               <div className="cascading-slider__item-inner">
                 <div className="cascading-slider__item-bg">
+                  {s.lqip && (
+                    // LQIP blur-up — paints instantly so the slide is never empty.
+                    <img
+                      src={s.lqip}
+                      aria-hidden
+                      draggable={false}
+                      alt=""
+                      className="cascading-slider__img"
+                      style={{ filter: "blur(24px)", transform: "scale(1.1)" }}
+                    />
+                  )}
                   <img
                     src={s.img}
                     loading={i === 0 ? "eager" : "lazy"}

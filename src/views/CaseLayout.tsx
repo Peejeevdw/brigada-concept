@@ -1,11 +1,12 @@
 "use client";
 
-import { Fragment, useMemo, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Drawer } from "vaul";
 import SiteNav from "@/components/site/SiteNav";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import CascadingSlider, { type CascadingSlide } from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
+import BlurImage from "@/components/BlurImage";
 import { SANS } from "@/lib/siteTokens";
 import { urlFor } from "@/lib/sanity";
 import {
@@ -19,7 +20,14 @@ import {
 // Normalised shape the layout renders. Both Sanity data and the mock map onto
 // this, so the components below stay source-agnostic.
 // ---------------------------------------------------------------------------
-type Media = { type: "image" | "video"; src: string; aspect?: string; controls?: boolean };
+type Media = {
+  type: "image" | "video";
+  src: string;
+  aspect?: string;
+  controls?: boolean;
+  lqip?: string; // base64 blur-up placeholder (image's own, or a video's poster)
+  poster?: string; // resolved poster image URL, videos only
+};
 type GalleryRow = { items: Media[]; fullBleed: boolean }; // 1–3 visuals, optionally edge to edge
 type Section = { id: string; title: string; body: string[] };
 type ProjectInfo = { sections: Section[]; services: string[] };
@@ -37,10 +45,13 @@ export type CaseData = {
 type SanityMedia = {
   kind?: string | null;
   image?: unknown;
-  vimeoId?: string | null;
+  lqip?: string | null; // image's LQIP blur-up
   vimeoAspect?: string | null; // "w / h" resolved server-side from Vimeo oEmbed
+  vimeoId?: string | null;
+  vimeoThumb?: string | null; // Vimeo oEmbed thumbnail, reused as a video poster
   videoUrl?: string | null;
   poster?: unknown;
+  posterLqip?: string | null; // poster image's LQIP blur-up
   showControls?: boolean | null;
 };
 export type WorkLayoutData = {
@@ -54,7 +65,7 @@ export type WorkLayoutData = {
   } | null;
   mediaRows?: ({ items?: (SanityMedia | null)[] | null; fullBleed?: boolean | null } | null)[] | null;
   // Other cases with a thumbnail, for the "Related cases" slider (WORK_LIST_PROJECTION).
-  relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown } | null)[] | null;
+  relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown; lqip?: string | null } | null)[] | null;
 };
 
 function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
@@ -66,14 +77,31 @@ function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
     // the gallery size the video to its own shape instead of cropping it.
     const controls = !!sm.showControls;
     const src = (sm.vimeoId && vimeoEmbedSrc(sm.vimeoId, controls)) || sm.videoUrl;
-    return src ? { type: "video", src, aspect: sm.vimeoAspect ?? undefined, controls } : null;
+    if (!src) return null;
+    // A poster fills the box while the player loads / repaints. Prefer the
+    // editor's poster (it carries a blur-up); otherwise fall back to Vimeo's
+    // own thumbnail so every Vimeo video is covered without extra setup.
+    const poster =
+      (sm.poster
+        ? urlFor(sm.poster)?.width(width).fit("max").quality(72).auto("format").url()
+        : undefined) ??
+      sm.vimeoThumb ??
+      undefined;
+    return {
+      type: "video",
+      src,
+      aspect: sm.vimeoAspect ?? undefined,
+      controls,
+      poster,
+      lqip: sm.posterLqip ?? undefined,
+    };
   }
   if (sm.image) {
     // Size per slot (fit:max never upscales past the source) and let Sanity
     // pick webp/avif via auto:format, so we don't ship 2000px images into a
     // small gallery cell.
     const url = urlFor(sm.image)?.width(width).fit("max").quality(72).auto("format").url();
-    if (url) return { type: "image", src: url };
+    if (url) return { type: "image", src: url, lqip: sm.lqip ?? undefined };
   }
   return null;
 }
@@ -135,10 +163,12 @@ const BLEED = "-mx-[clamp(24px,5vw,72px)]";
 
 // Page palette. `line` is the hairline used for drawer borders/dividers; text
 // faintness elsewhere is plain currentColor opacity, so it works in both modes.
-type Theme = { bg: string; fg: string; line: string };
+type Theme = { bg: string; fg: string; line: string; placeholder: string };
 const THEME: Record<"light" | "dark", Theme> = {
-  light: { bg: PAGE_BG, fg: INK, line: "rgba(0,0,0,0.1)" },
-  dark: { bg: "#000000", fg: "#ffffff", line: "rgba(255,255,255,0.18)" },
+  // `placeholder` fills a media box before its image/video paints, so empty
+  // slots read as "loading" rather than as a gap in the page.
+  light: { bg: PAGE_BG, fg: INK, line: "rgba(0,0,0,0.1)", placeholder: "#e7e6e1" },
+  dark: { bg: "#000000", fg: "#ffffff", line: "rgba(255,255,255,0.18)", placeholder: "#191919" },
 };
 
 // Turn a Vimeo ID into a player embed URL. Accepts a bare ID ("123456789"), an
@@ -205,20 +235,87 @@ function CaseVideo({
 }
 
 // ---------------------------------------------------------------------------
+// PosteredVideo — a video with a poster overlay covering the player on first
+// load, fading once the box is in view and the player has had a beat to paint.
+// (Reveals once and never re-covers — the scroll-back blank-frame issue is still
+// open; see the project memory note.)
+// ---------------------------------------------------------------------------
+function PosteredVideo({ media, eager = false }: { media: Media; eager?: boolean }) {
+  const hasPoster = !!(media.poster || media.lqip);
+  const ref = useRef<HTMLDivElement>(null);
+  const [covered, setCovered] = useState(true);
+
+  useEffect(() => {
+    if (!hasPoster) return;
+    const el = ref.current;
+    if (!el) return;
+    let revealTimer: number | undefined;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          revealTimer = window.setTimeout(() => setCovered(false), 450);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.05 },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(revealTimer);
+    };
+  }, [hasPoster]);
+
+  return (
+    <div ref={ref} className="absolute inset-0">
+      <CaseVideo
+        src={media.src}
+        controls={media.controls}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      {hasPoster && (
+        <div
+          aria-hidden
+          className={`absolute inset-0 transition-opacity duration-500 ease-out ${
+            covered ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        >
+          {media.poster ? (
+            <BlurImage src={media.poster} lqip={media.lqip} eager={eager} />
+          ) : (
+            <img
+              src={media.lqip}
+              alt=""
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl"
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MediaFill — fills a positioned media box. Images blur-up; videos get a
+// postered player (see PosteredVideo).
+// ---------------------------------------------------------------------------
+function MediaFill({ media, eager = false }: { media: Media; eager?: boolean }) {
+  if (media.type === "image") {
+    return <BlurImage src={media.src} lqip={media.lqip} eager={eager} />;
+  }
+  return <PosteredVideo media={media} eager={eager} />;
+}
+
+// ---------------------------------------------------------------------------
 // Hero — full-bleed image or video.
 // ---------------------------------------------------------------------------
 function CaseHero({ media }: { media: Media }) {
   return (
-    <section className="relative aspect-[16/9] w-full overflow-hidden">
-      {media.type === "video" ? (
-        <CaseVideo src={media.src} controls={media.controls} className="absolute inset-0 h-full w-full object-cover" />
-      ) : (
-        <img
-          src={media.src}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      )}
+    <section
+      className="relative aspect-[16/9] w-full overflow-hidden"
+      style={{ background: "var(--media-placeholder)" }}
+    >
+      <MediaFill media={media} eager />
     </section>
   );
 }
@@ -285,18 +382,9 @@ function GalleryMedia({
   return (
     <div
       className={`relative w-full overflow-hidden ${aspectClass ?? ""}`}
-      style={aspectRatio ? { aspectRatio } : undefined}
+      style={{ aspectRatio: aspectRatio || undefined, background: "var(--media-placeholder)" }}
     >
-      {media.type === "video" ? (
-        <CaseVideo src={media.src} controls={media.controls} className="absolute inset-0 h-full w-full object-cover" />
-      ) : (
-        <img
-          src={media.src}
-          alt=""
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      )}
+      <MediaFill media={media} />
     </div>
   );
 }
@@ -446,7 +534,12 @@ export default function CaseLayout({
           if (!rc?.image) return null;
           const img = urlFor(rc.image)?.width(900).fit("max").quality(72).auto("format").url();
           if (!img) return null;
-          return { img, title: rc.name ?? "", href: rc.slug ? `/work/${rc.slug}` : undefined };
+          return {
+            img,
+            title: rc.name ?? "",
+            href: rc.slug ? `/work/${rc.slug}` : undefined,
+            lqip: rc.lqip ?? undefined,
+          };
         })
         .filter((s): s is CascadingSlide => s !== null),
     [data?.relatedCases],
@@ -461,6 +554,7 @@ export default function CaseLayout({
     color: theme.fg,
     "--fg": theme.fg,
     "--bg": theme.bg,
+    "--media-placeholder": theme.placeholder,
   } as CSSProperties;
 
   return (
