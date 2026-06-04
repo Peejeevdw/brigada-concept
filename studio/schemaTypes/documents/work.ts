@@ -1,12 +1,6 @@
 import {CaseIcon} from '@sanity/icons'
 import {defineArrayMember, defineField, defineType} from 'sanity'
-import {
-  WORK_GROUPS,
-  languageVersionSubtitle,
-  localeField,
-  pageBuilderField,
-  slugField,
-} from '../helpers'
+import {languageVersionSubtitle, localeField, slugField} from '../helpers'
 
 export const work = defineType({
   name: 'work',
@@ -18,8 +12,6 @@ export const work = defineType({
   groups: [
     {name: 'general', title: 'General', default: true},
     {name: 'layout', title: 'Case layout'},
-    {name: 'content', title: 'Case story'},
-    {name: 'gallery', title: 'Gallery'},
     {name: 'related', title: 'Related'},
     {name: 'seo', title: 'SEO'},
   ],
@@ -107,13 +99,6 @@ export const work = defineType({
         ),
     }),
     defineField({
-      name: 'gradient',
-      title: 'Gradient',
-      type: 'string',
-      group: 'general',
-      description: 'Gradient token name used for the case hero accent. Ask design if unsure.',
-    }),
-    defineField({
       name: 'featured',
       title: 'Featured',
       type: 'boolean',
@@ -121,45 +106,6 @@ export const work = defineType({
       initialValue: false,
       description: 'Featured cases are surfaced on the homepage and at the top of the work index.',
     }),
-    defineField({
-      name: 'services',
-      title: 'Services delivered',
-      type: 'array',
-      group: 'general',
-      description: 'Grouped per pillar — keep the labels short.',
-      of: [
-        defineArrayMember({
-          type: 'object',
-          name: 'service',
-          fields: [
-            defineField({
-              name: 'pillar',
-              title: 'Pillar',
-              type: 'reference',
-              to: [{type: 'expertise'}],
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: 'title',
-              title: 'Service title',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            }),
-          ],
-          preview: {
-            select: {title: 'title', pillar: 'pillar.name'},
-            prepare({title, pillar}) {
-              return {title: title || 'Service', subtitle: pillar || ''}
-            },
-          },
-        }),
-      ],
-    }),
-    // ---- Case story (page-builder body) ----
-    // Free composition: stack rich-text, image, image-grid, video, quote and
-    // stat blocks in any order. The four-chapter pattern (brief / approach /
-    // context / outcome) lives as conventional headings inside richText
-    // blocks, not as required fields.
     // ---- New case layout: hero → project-info drawer → gallery rows ----
     defineField({
       name: 'darkMode',
@@ -232,44 +178,6 @@ export const work = defineType({
       description:
         'Stacked rows of visuals below the title bar. Each row holds 1, 2 or 3 items (image or video) and lays out accordingly.',
       of: [defineArrayMember({type: 'galleryRow'})],
-    }),
-    pageBuilderField({
-      name: 'body',
-      title: 'Case story',
-      group: 'content',
-      description:
-        'Build the case story out of blocks. Drag to reorder; mix rich text, images, video, quotes and stats freely.',
-    }),
-    // ---- Standalone gallery (the row of images at the bottom of the case) ----
-    defineField({
-      name: 'gallery',
-      title: 'Gallery',
-      type: 'array',
-      group: 'gallery',
-      description:
-        'Photo strip shown below the case story. Five images works best for the current layout.',
-      of: [
-        defineArrayMember({
-          type: 'image',
-          options: {hotspot: true},
-          fields: [
-            defineField({
-              name: 'alt',
-              title: 'Alt text',
-              type: 'string',
-              validation: (Rule) =>
-                Rule.custom((value, ctx) => {
-                  const parent = ctx.parent as {asset?: unknown} | undefined
-                  if (!parent?.asset) return true
-                  return value ? true : 'Add alt text whenever an image is set.'
-                }),
-            }),
-            defineField({name: 'caption', title: 'Caption', type: 'string'}),
-          ],
-        }),
-      ],
-      validation: (Rule) =>
-        Rule.max(12).warning('The current layout shows ~5 images; more is fine but heavy.'),
     }),
     defineField({
       name: 'related',
