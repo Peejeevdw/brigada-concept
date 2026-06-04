@@ -33,15 +33,17 @@ Copy `.env.example` to `.env` and fill in the Sanity variables, or use [`direnv`
 
 | Variable | Where it's read | Description |
 |---|---|---|
-| `SANITY_PROJECT_ID` | FE + Studio | Sanity project ID. |
-| `SANITY_DATASET` | FE + Studio | Dataset, defaults to `production`. |
-| `SANITY_API_VERSION` | FE | Content Lake API version, defaults to `2026-04-08`. |
-| `SANITY_LOCALE` | FE | Default locale code, `en` for now. |
-| `SANITY_VIEWER_TOKEN` | FE | Viewer-scoped read token. Required: some doc types (e.g. `job`, imported from Recruitee) aren't readable anonymously. Also enables Draft Mode preview drafts. |
-| `SANITY_STUDIO_URL` | FE | Studio base URL for stega click-through, defaults to `http://localhost:3333`. |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | FE (client + server) | Sanity project ID. Public — appears in every CDN URL we serve. Required so the image URL builder produces the same URLs during SSR and after hydration. |
+| `NEXT_PUBLIC_SANITY_DATASET` | FE (client + server) | Dataset name, defaults to `production`. Same public reason as above. |
+| `SANITY_PROJECT_ID` | FE (server) + Studio | Server-only fallback for the project ID. Set when not exposing the public variant. |
+| `SANITY_DATASET` | FE (server) + Studio | Server-only fallback for the dataset. |
+| `SANITY_API_VERSION` | FE (server) | Content Lake API version, defaults to `2026-04-08`. |
+| `SANITY_LOCALE` | FE (server) | Default locale code, `en` for now. |
+| `SANITY_VIEWER_TOKEN` | FE (server) | Viewer-scoped read token. Required: some doc types (e.g. `job`, imported from Recruitee) aren't readable anonymously. Also enables Draft Mode preview drafts. |
+| `SANITY_STUDIO_URL` | FE (server) | Studio base URL for stega click-through, defaults to `http://localhost:3333`. |
 | `SANITY_API_TOKEN` | MCP server only | Write-scoped token used by `mcp__Sanity__*`. Never imported by the Next.js app. |
 
-All Sanity queries run server-side in Server Components — no `NEXT_PUBLIC_*` variables.
+GROQ queries run server-side in Server Components. The image URL builder needs project ID + dataset on the client too so the hydrated DOM matches what the server painted — hence the `NEXT_PUBLIC_*` mirror for those two values.
 
 ## Scripts
 

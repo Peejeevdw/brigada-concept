@@ -2,8 +2,20 @@ import { createClient, type SanityClient } from "@sanity/client";
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 
-export const SANITY_PROJECT_ID = process.env.SANITY_PROJECT_ID ?? "";
-export const SANITY_DATASET = process.env.SANITY_DATASET ?? "production";
+// Project ID and dataset are not secret — they appear in every CDN URL we
+// serve, so we read them from NEXT_PUBLIC_* with a fall-back to the legacy
+// server-only names. This is what lets `urlFor()` resolve the same CDN URL
+// on the server AND in the hydrated client bundle (otherwise non-NEXT_PUBLIC_
+// env vars are stripped at build time, the client falls back, and we get a
+// hydration mismatch on every image).
+export const SANITY_PROJECT_ID =
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ??
+  process.env.SANITY_PROJECT_ID ??
+  "";
+export const SANITY_DATASET =
+  process.env.NEXT_PUBLIC_SANITY_DATASET ??
+  process.env.SANITY_DATASET ??
+  "production";
 export const SANITY_API_VERSION = process.env.SANITY_API_VERSION ?? "2026-04-08";
 export const SANITY_STUDIO_URL =
   process.env.SANITY_STUDIO_URL ?? "http://localhost:3333";
@@ -39,7 +51,12 @@ export const sanityClient: SanityClient | null = SANITY_PROJECT_ID
     })
   : null;
 
-const imageBuilder = sanityClient ? imageUrlBuilder(sanityClient) : null;
+// Build the image builder from projectId + dataset directly so it works in
+// both the server bundle and the client bundle. Avoids depending on
+// `sanityClient`, which carries a token and is server-only by design.
+const imageBuilder = SANITY_PROJECT_ID
+  ? imageUrlBuilder({ projectId: SANITY_PROJECT_ID, dataset: SANITY_DATASET })
+  : null;
 
 export function urlFor(source: SanityImageSource | undefined | null) {
   if (!imageBuilder || !source) return null;
