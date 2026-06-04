@@ -1,6 +1,5 @@
 import { createClient, type SanityClient } from "@sanity/client";
-import imageUrlBuilder from "@sanity/image-url";
-import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
+import { createImageUrlBuilder, type SanityImageSource } from "@sanity/image-url";
 
 // Project ID and dataset are not secret — they appear in every CDN URL we
 // serve. They live in NEXT_PUBLIC_* so the value is identical in the server
@@ -48,7 +47,7 @@ export const sanityClient: SanityClient | null = SANITY_PROJECT_ID
 // both the server bundle and the client bundle. Avoids depending on
 // `sanityClient`, which carries a token and is server-only by design.
 const imageBuilder = SANITY_PROJECT_ID
-  ? imageUrlBuilder({ projectId: SANITY_PROJECT_ID, dataset: SANITY_DATASET })
+  ? createImageUrlBuilder({ projectId: SANITY_PROJECT_ID, dataset: SANITY_DATASET })
   : null;
 
 export function urlFor(source: SanityImageSource | undefined | null) {
