@@ -1051,8 +1051,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           <section
             key={c._key ?? slug}
             data-stacking-cards-item
-            className="relative flex min-h-screen w-full items-center overflow-hidden"
-            style={{ background: c.bgColor ?? undefined, color: c.fgColor ?? undefined }}
+            className="relative flex min-h-screen w-full items-center overflow-hidden bg-white text-brigada-black"
           >
             {/* Optional full-bleed video background */}
             {bgVideo && (
