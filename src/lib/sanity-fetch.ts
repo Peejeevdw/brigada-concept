@@ -153,8 +153,8 @@ const WORK_FULL_PROJECTION = `{
     }
   },
   // New case-layout fields with video URLs resolved (HLS wins over the upload).
-  "hero": hero{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
-  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
+  "hero": hero{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
+  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
 }`;
 
 const EXPERTISE_PROJECTION = `{
@@ -282,9 +282,9 @@ export function getWorkLayout(locale: string = DEFAULT_SANITY_LOCALE) {
       name,
       client,
       darkMode,
-      hero{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
+      hero{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster},
       projectInfo{sections[]{heading, body}, services},
-      mediaRows[]{fullBleed, items[]{kind, image, vimeoId, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
+      mediaRows[]{fullBleed, items[]{kind, image, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster}}
     }`,
     { locale },
     ["work"],

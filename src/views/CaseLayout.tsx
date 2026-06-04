@@ -17,7 +17,7 @@ import {
 // Normalised shape the layout renders. Both Sanity data and the mock map onto
 // this, so the components below stay source-agnostic.
 // ---------------------------------------------------------------------------
-type Media = { type: "image" | "video"; src: string; aspect?: string };
+type Media = { type: "image" | "video"; src: string; aspect?: string; controls?: boolean };
 type GalleryRow = { items: Media[]; fullBleed: boolean }; // 1–3 visuals, optionally edge to edge
 type Section = { id: string; title: string; body: string[] };
 type ProjectInfo = { sections: Section[]; services: string[] };
@@ -39,6 +39,7 @@ type SanityMedia = {
   vimeoAspect?: string | null; // "w / h" resolved server-side from Vimeo oEmbed
   videoUrl?: string | null;
   poster?: unknown;
+  showControls?: boolean | null;
 };
 export type WorkLayoutData = {
   name?: string | null;
@@ -59,8 +60,9 @@ function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
     // loop. We resolve the ID to a player URL here so CaseVideo just sees a
     // vimeo.com src and renders the iframe. `aspect` (Vimeo's real ratio) lets
     // the gallery size the video to its own shape instead of cropping it.
-    const src = (sm.vimeoId && vimeoEmbedSrc(sm.vimeoId)) || sm.videoUrl;
-    return src ? { type: "video", src, aspect: sm.vimeoAspect ?? undefined } : null;
+    const controls = !!sm.showControls;
+    const src = (sm.vimeoId && vimeoEmbedSrc(sm.vimeoId, controls)) || sm.videoUrl;
+    return src ? { type: "video", src, aspect: sm.vimeoAspect ?? undefined, controls } : null;
   }
   if (sm.image) {
     // Size per slot (fit:max never upscales past the source) and let Sanity
@@ -135,21 +137,25 @@ const THEME: Record<"light" | "dark", Theme> = {
   dark: { bg: "#000000", fg: "#ffffff", line: "rgba(255,255,255,0.18)" },
 };
 
-// Turn a Vimeo ID into a background-player embed URL (autoplay, muted, looped,
-// no chrome — Vimeo's `background=1` also cover-fills its own iframe, so the
-// embed behaves exactly like the muted <video> elements next to it). Accepts a
-// bare ID ("123456789"), an unlisted "ID/HASH", or a full Vimeo URL pasted in.
-function vimeoEmbedSrc(input: string): string | null {
+// Turn a Vimeo ID into a player embed URL. Accepts a bare ID ("123456789"), an
+// unlisted "ID/HASH", or a full Vimeo URL pasted in.
+//
+// Default (controls=false): `background=1` — autoplay, muted, looped, no chrome,
+// and Vimeo cover-fills its own iframe, so the embed behaves exactly like the
+// muted <video> elements next to it.
+//
+// controls=true: drop background mode and show Vimeo's controls. We keep
+// autoplay + muted + loop so it still plays on load, but the visitor can pause,
+// scrub and unmute. (`background=1` and `controls` are mutually exclusive.)
+function vimeoEmbedSrc(input: string, controls = false): string | null {
   const m = input.trim().match(/(\d{6,})(?:\/([0-9a-z]+))?/i);
   if (!m) return null;
   const [, id, hash] = m;
-  const params = new URLSearchParams({
-    background: "1",
-    autoplay: "1",
-    muted: "1",
-    loop: "1",
-    autopause: "0",
-  });
+  const params = new URLSearchParams(
+    controls
+      ? {autoplay: "1", muted: "1", loop: "1", autopause: "0", controls: "1"}
+      : {background: "1", autoplay: "1", muted: "1", loop: "1", autopause: "0"},
+  );
   if (hash) params.set("h", hash);
   return `https://player.vimeo.com/video/${id}?${params.toString()}`;
 }
@@ -158,7 +164,15 @@ function vimeoEmbedSrc(input: string): string | null {
 // Video — a Vimeo background embed, an HLS (.m3u8) playlist via hls.js /
 // native, or a direct file. All three run as a muted autoplay loop.
 // ---------------------------------------------------------------------------
-function CaseVideo({ src, className }: { src: string; className: string }) {
+function CaseVideo({
+  src,
+  className,
+  controls = false,
+}: {
+  src: string;
+  className: string;
+  controls?: boolean;
+}) {
   if (src.includes("player.vimeo.com")) {
     return (
       <iframe
@@ -166,8 +180,9 @@ function CaseVideo({ src, className }: { src: string; className: string }) {
         className={className}
         title=""
         allow="autoplay; fullscreen; picture-in-picture"
-        // No controls in background mode; ignore clicks so overlays/links win.
-        style={{ border: 0, pointerEvents: "none" }}
+        // Background mode: ignore clicks so overlays/links win. With controls
+        // on, let pointer events through so the visitor can use the player.
+        style={{ border: 0, pointerEvents: controls ? "auto" : "none" }}
       />
     );
   }
@@ -192,7 +207,7 @@ function CaseHero({ media }: { media: Media }) {
   return (
     <section className="relative aspect-[16/9] w-full overflow-hidden">
       {media.type === "video" ? (
-        <CaseVideo src={media.src} className="absolute inset-0 h-full w-full object-cover" />
+        <CaseVideo src={media.src} controls={media.controls} className="absolute inset-0 h-full w-full object-cover" />
       ) : (
         <img
           src={media.src}
@@ -269,7 +284,7 @@ function GalleryMedia({
       style={aspectRatio ? { aspectRatio } : undefined}
     >
       {media.type === "video" ? (
-        <CaseVideo src={media.src} className="absolute inset-0 h-full w-full object-cover" />
+        <CaseVideo src={media.src} controls={media.controls} className="absolute inset-0 h-full w-full object-cover" />
       ) : (
         <img
           src={media.src}

@@ -79,6 +79,15 @@ export const caseMedia = defineType({
       description: 'Shown before the video loads.',
       hidden: ({parent}) => parent?.kind !== 'video',
     }),
+    defineField({
+      name: 'showControls',
+      title: 'Video — show player controls',
+      type: 'boolean',
+      initialValue: false,
+      description:
+        'Off (default): plays as a silent, looping background clip with no chrome, like the other case videos. On: keeps autoplay + muted but shows the Vimeo controls, so visitors can pause, scrub and unmute. Only applies to Vimeo videos.',
+      hidden: ({parent}) => parent?.kind !== 'video',
+    }),
   ],
   preview: {
     select: {kind: 'kind', image: 'image', poster: 'poster'},
