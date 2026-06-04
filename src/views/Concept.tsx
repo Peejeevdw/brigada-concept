@@ -22,6 +22,7 @@ import BunnyReelLightbox from "@/components/BunnyReelLightbox";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
 import { urlFor } from "@/lib/sanity";
+import { BrioEffect } from "@/brio-effect";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -63,7 +64,7 @@ export interface ConceptData {
   intro?: {
     eyebrow?: string | null;
     taglines?: string[] | null;
-    paragraph?: string | null;
+    paragraphLines?: string[] | null;
   } | null;
   reel?: {
     hlsUrl?: string | null;
@@ -73,9 +74,9 @@ export interface ConceptData {
     title?: string | null;
     items?: Array<{
       _key?: string;
-      backgroundType?: string | null;
-      bgColor?: string | null;
       fgColor?: string | null;
+      brioColors?: string[] | null;
+      trail?: unknown[] | null;
       work?: {
         _id?: string;
         name?: string | null;
@@ -116,16 +117,12 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   // Sanity-driven content blocks — read once at render to keep the rest of the
   // component (which manages a lot of scroll choreography) untouched.
   const tagline = data?.intro?.taglines?.length ? data.intro.taglines : [];
-  const paragraphText = data?.intro?.paragraph ?? "";
-  // Each newline is a visual line. The auto-fit logic scales the widest
-  // line to viewport width, so the editor controls how big the paragraph
-  // reads by deciding where to break.
-  const paragraphLines = paragraphText
-    ? paragraphText
-        .split(/\n+/)
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-    : [];
+  // Each entry in paragraphLines becomes its own whitespace-nowrap span,
+  // so editors decide the line breaks explicitly. The auto-fit logic
+  // (further down) scales the widest line to fill the viewport.
+  const paragraphLines = (data?.intro?.paragraphLines ?? [])
+    .map((line) => line?.trim() ?? "")
+    .filter((line) => line.length > 0);
   const reelHls = data?.reel?.hlsUrl ?? "";
   const awardsItems = data?.awards?.items ?? [];
   const caseItems = data?.cases?.items ?? [];
@@ -527,7 +524,11 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     const ro = new ResizeObserver(fit);
     if (paraRef.current) ro.observe(paraRef.current);
     return () => ro.disconnect();
-  }, []);
+    // Re-fit whenever the line content changes — ResizeObserver only fires on
+    // box-size changes, so if Sanity data arrives without resizing the wrapper
+    // (same number of lines, different text) the previous fit can be stale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paragraphLines.join("|")]);
   // Hard cut: only once the group has fully scrolled up (text fully in view),
   // image → white background and text → black, simultaneously.
   const whiteOpacity = useTransform(p, [cutAt, cutAt + 0.025], [0, 1]);
@@ -1053,11 +1054,15 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             : null;
           const img = sanityImg ?? (assets.img ? `/${assets.img}` : "/placeholder.svg");
           const bgVideo = assets.bgVideo;
+          const brioStops = (c.brioColors ?? []).filter(
+            (s): s is string => typeof s === "string" && /^#?[0-9a-f]{6}$/i.test(s),
+          );
+          const fgColor = c.fgColor ?? "#181614";
           return (
           <section
             key={c._key ?? slug}
             data-stacking-cards-item
-            className="relative flex min-h-screen w-full items-center overflow-hidden bg-white text-brigada-black"
+            className="relative flex min-h-screen w-full items-center overflow-hidden bg-white"
             role={slug ? "link" : undefined}
             tabIndex={slug ? 0 : undefined}
             onClick={slug ? () => transitionTo(`/work/${slug}`) : undefined}
@@ -1071,20 +1076,19 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                   }
                 : undefined
             }
-            style={{ cursor: slug ? "pointer" : undefined }}
+            style={{ cursor: slug ? "pointer" : undefined, color: fgColor }}
           >
-            {/* Optional full-bleed video background */}
-            {bgVideo && (
-              <video
-                className="absolute inset-0 h-full w-full object-cover"
-                src={`/${bgVideo}`}
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                aria-hidden
-              />
+            {/* Brio WebGL backdrop — colours from Sanity, source = the case
+                image so colour extraction has something coherent to chew on. */}
+            {brioStops.length >= 2 && sanityImg && (
+              <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
+                <BrioEffect
+                  src={sanityImg}
+                  mode="custom"
+                  colors={brioStops}
+                  className="h-full w-full"
+                />
+              </div>
             )}
 
             {/* Full-width content row (same gutters as the paragraph above) */}

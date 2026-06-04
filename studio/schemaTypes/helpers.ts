@@ -175,8 +175,20 @@ export function i18nLabelPreview() {
   }
 }
 
+import {STATIC_LOCALES} from '../structure/constants'
+
+// Single-locale mode hides the locale chip from document subtitles entirely.
+// Multi-locale flips this back on automatically as soon as STATIC_LOCALES has
+// more than one entry — the schemas stay multi-locale ready either way.
+const IS_MULTI_LOCALE = STATIC_LOCALES.length > 1
+
+function localeChip(locale?: string): string | null {
+  if (!IS_MULTI_LOCALE) return null
+  return locale?.toUpperCase() || 'No language'
+}
+
 export function languageVersionSubtitle(locale?: string, detail?: string) {
-  return [locale?.toUpperCase() || 'No language', detail].filter(Boolean).join(' · ')
+  return [localeChip(locale), detail].filter(Boolean).join(' · ')
 }
 
 /** Preview for a per-locale singleton whose title is fixed (e.g. "Home page"). */
@@ -184,7 +196,7 @@ export function localePreview(title: string) {
   return {
     select: {locale: 'locale'},
     prepare({locale}: {locale?: string}) {
-      return {title, subtitle: locale?.toUpperCase() || 'No locale'}
+      return {title, subtitle: localeChip(locale) ?? undefined}
     },
   }
 }
@@ -194,7 +206,7 @@ export function documentLocalePreview() {
   return {
     select: {title: 'title', locale: 'locale'},
     prepare({title, locale}: {title?: string; locale?: string}) {
-      return {title: title || 'Untitled', subtitle: locale?.toUpperCase() || 'No locale'}
+      return {title: title || 'Untitled', subtitle: localeChip(locale) ?? undefined}
     },
   }
 }

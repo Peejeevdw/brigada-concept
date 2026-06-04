@@ -53,11 +53,14 @@ export const homePage = defineType({
             Rule.min(1).error('Add at least one tagline line.').max(4).warning('More than four feels heavy.'),
         }),
         defineField({
-          name: 'paragraph',
-          title: 'Paragraph',
-          type: 'text',
-          rows: 3,
-          description: 'Short paragraph under the tagline.',
+          name: 'paragraphLines',
+          title: 'Paragraph lines',
+          type: 'array',
+          description:
+            'One entry per visual line under the tagline. The line is rendered without wrapping; the auto-fit logic scales the widest line to fill the viewport, so keep entries roughly balanced.',
+          of: [defineArrayMember({type: 'string'})],
+          validation: (Rule) =>
+            Rule.min(1).error('Add at least one line.').max(4).warning('More than four feels heavy.'),
         }),
       ],
     }),
@@ -134,45 +137,39 @@ export const homePage = defineType({
                   validation: (Rule) => Rule.required(),
                 }),
                 defineField({
-                  name: 'backgroundType',
-                  title: 'Background',
-                  type: 'string',
-                  options: {
-                    list: [
-                      {title: 'Solid colour', value: 'color'},
-                      {title: 'Looping video', value: 'video'},
-                      {title: 'Image', value: 'image'},
-                    ],
-                    layout: 'radio',
-                  },
-                  initialValue: 'color',
-                }),
-                defineField({
-                  name: 'bgColor',
-                  title: 'Background colour',
-                  type: 'string',
-                  description: 'Hex (e.g. "#1A232E") or CSS background value.',
-                  hidden: ({parent}) => parent?.backgroundType !== 'color',
-                }),
-                defineField({
-                  name: 'bgVideo',
-                  title: 'Background video',
-                  type: 'file',
-                  options: {accept: 'video/*'},
-                  hidden: ({parent}) => parent?.backgroundType !== 'video',
-                }),
-                defineField({
-                  name: 'bgImage',
-                  title: 'Background image',
-                  type: 'image',
-                  options: {hotspot: true},
-                  hidden: ({parent}) => parent?.backgroundType !== 'image',
+                  name: 'brioColors',
+                  title: 'Brio colours',
+                  type: 'array',
+                  description:
+                    'Hex stops fed into the WebGL Brio gradient behind the case. Add 2 to 7 colours; the system orders them by luminance and interpolates.',
+                  of: [
+                    defineArrayMember({
+                      type: 'string',
+                      validation: (Rule) =>
+                        Rule.regex(/^#?[0-9a-f]{6}$/i, {name: 'hex colour'}).error(
+                          'Use 6-digit hex like #1A232E.',
+                        ),
+                    }),
+                  ],
+                  validation: (Rule) =>
+                    Rule.min(2)
+                      .error('Add at least two colours so Brio has something to interpolate.')
+                      .max(7)
+                      .warning('Brio only blends up to 7 stops; extras are ignored.'),
                 }),
                 defineField({
                   name: 'fgColor',
                   title: 'Text colour',
                   type: 'string',
-                  description: 'Hex for the text overlay on top of the background.',
+                  description: 'Colour of the case label + tags overlay on top of the Brio backdrop.',
+                  options: {
+                    list: [
+                      {title: 'Black', value: '#181614'},
+                      {title: 'White', value: '#FFFFFF'},
+                    ],
+                    layout: 'radio',
+                  },
+                  initialValue: '#FFFFFF',
                 }),
                 defineField({
                   name: 'trail',

@@ -197,10 +197,6 @@ export function getHomePage(locale: string = DEFAULT_SANITY_LOCALE) {
         title,
         "items": items[]{
           _key,
-          backgroundType,
-          bgColor,
-          bgVideo,
-          bgImage,
           fgColor,
           brioColors,
           trail,
