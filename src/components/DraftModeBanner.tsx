@@ -1,16 +1,27 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { VisualEditing } from "@sanity/visual-editing/react";
 
 /**
- * Draft Mode overlay: shows an exit-preview pill in the bottom-left and
- * mounts Sanity's `<VisualEditing />` overlay for the bottom-right toolbar.
- * Imported as a single client island so the server layout doesn't drag any
- * createContext-using modules into the RSC graph.
+ * Draft Mode overlay. Two responsibilities:
+ *
+ * - Always render an exit-preview pill so a user who landed in Draft Mode
+ *   has a visible way out.
+ * - Mount Sanity's `<VisualEditing />` overlay only when the page is loaded
+ *   inside Sanity Studio's Presentation tool (i.e. as an iframed child).
+ *   On the live frontend we don't want clickable "Open in Studio" badges —
+ *   editing should be initiated from Studio, not from the public site.
  */
 export function DraftModeBanner() {
   const pathname = usePathname() ?? "/";
+  const [isPresentationFrame, setIsPresentationFrame] = useState(false);
+
+  useEffect(() => {
+    setIsPresentationFrame(window.self !== window.top);
+  }, []);
+
   return (
     <>
       <a
@@ -20,7 +31,7 @@ export function DraftModeBanner() {
         <span className="h-2 w-2 rounded-full bg-emerald-400" />
         Draft mode · Exit preview
       </a>
-      <VisualEditing />
+      {isPresentationFrame && <VisualEditing />}
     </>
   );
 }
