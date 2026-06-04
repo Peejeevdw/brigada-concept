@@ -117,8 +117,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   // component (which manages a lot of scroll choreography) untouched.
   const tagline = data?.intro?.taglines?.length ? data.intro.taglines : [];
   const paragraphText = data?.intro?.paragraph ?? "";
+  // Each newline is a visual line. The auto-fit logic scales the widest
+  // line to viewport width, so the editor controls how big the paragraph
+  // reads by deciding where to break.
   const paragraphLines = paragraphText
-    ? paragraphText.split(/(?<=[.!?])\s+/).filter((line) => line.length > 0)
+    ? paragraphText
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
     : [];
   const reelHls = data?.reel?.hlsUrl ?? "";
   const awardsItems = data?.awards?.items ?? [];

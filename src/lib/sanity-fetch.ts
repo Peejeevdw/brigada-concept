@@ -44,8 +44,12 @@ async function fetch<T>(
   if (!client) return null;
   try {
     return await client.fetch<T>(query, params, {
-      // Tag every fetch so we can revalidate via revalidateTag from a webhook.
-      next: { tags: ["sanity", ...tags] },
+      // In production we cache by tag so a webhook can revalidate the
+      // affected pages. In dev we always bypass the cache so editor changes
+      // are reflected on the next request without a server restart.
+      ...(process.env.NODE_ENV === "production"
+        ? { next: { tags: ["sanity", ...tags] } }
+        : { cache: "no-store" as const }),
     });
   } catch (error) {
     console.error("Sanity query failed:", error);
@@ -198,6 +202,7 @@ export function getHomePage(locale: string = DEFAULT_SANITY_LOCALE) {
           bgVideo,
           bgImage,
           fgColor,
+          brioColors,
           trail,
           "work": work->${WORK_LIST_PROJECTION}
         }
