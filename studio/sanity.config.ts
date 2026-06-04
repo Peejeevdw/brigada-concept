@@ -11,7 +11,26 @@ import {localeSingletonTemplates} from './templates'
 import {FilteredLanguageMenu} from './components/FilteredLanguageMenu'
 import {API_VERSION} from './schemaTypes/helpers'
 
-const previewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL ?? 'http://localhost:3000'
+/**
+ * Where Presentation iframes the frontend.
+ *
+ * Resolution order (first match wins):
+ * 1. An explicit `SANITY_STUDIO_PREVIEW_URL` from `.env` — only honour it
+ *    when we're running the Studio locally (`localhost`), so it doesn't
+ *    accidentally pin the deployed Studio to a developer's machine.
+ * 2. If the Studio is being served from a `*.sanity.studio` host, point at
+ *    the production frontend.
+ * 3. Otherwise (running locally without an override), default to the local
+ *    Next.js dev server.
+ *
+ * `process.env.SANITY_STUDIO_PREVIEW_URL` is inlined at build time by Vite,
+ * so this expression resolves on the client without needing a runtime fetch.
+ */
+const PRODUCTION_PREVIEW_ORIGIN = 'https://brigada.be'
+const previewOrigin =
+  typeof window !== 'undefined' && /\.sanity\.studio$/.test(window.location.hostname)
+    ? PRODUCTION_PREVIEW_ORIGIN
+    : process.env.SANITY_STUDIO_PREVIEW_URL ?? 'http://localhost:3000'
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID ?? ''
 const dataset = process.env.SANITY_STUDIO_DATASET ?? 'production'
