@@ -1054,10 +1054,17 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             : null;
           const img = sanityImg ?? (assets.img ? `/${assets.img}` : "/placeholder.svg");
           const bgVideo = assets.bgVideo;
-          const brioStops = (c.brioColors ?? []).filter(
-            (s): s is string => typeof s === "string" && /^#?[0-9a-f]{6}$/i.test(s),
-          );
-          const fgColor = c.fgColor ?? "#181614";
+          // Sanity stega embeds invisible chars in every string when Draft
+          // Mode is on; strip them before hex validation or the regex below
+          // filters every colour out and the Brio backdrop silently
+          // disappears. Covers the Tag-char range (U+E0000–U+E007F) used by
+          // modern stega plus the older ZWJ/ZWNJ/BOM set.
+          const stripStega = (s: string) =>
+            s.replace(/[​-‍﻿]|[\u{E0000}-\u{E007F}]/gu, "");
+          const brioStops = (c.brioColors ?? [])
+            .map((s) => (typeof s === "string" ? stripStega(s) : ""))
+            .filter((s) => /^#?[0-9a-f]{6}$/i.test(s));
+          const fgColor = c.fgColor ? stripStega(c.fgColor) : "#181614";
           return (
           <section
             key={c._key ?? slug}
