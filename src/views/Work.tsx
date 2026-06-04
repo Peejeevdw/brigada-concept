@@ -41,6 +41,7 @@ const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
         sanityImg ||
         (w.slug && caseImages[w.slug]) ||
         "/assets/placeholder.svg",
+      slug: w.slug ?? undefined,
     };
   });
   // Scroll-driven background — warms from white to a soft paper tint across the

@@ -48,13 +48,16 @@ export type WorkLayoutData = {
   mediaRows?: ({ items?: (SanityMedia | null)[] | null } | null)[] | null;
 };
 
-function toMedia(sm?: SanityMedia | null): Media | null {
+function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
   if (!sm) return null;
   if (sm.kind === "video") {
     return sm.videoUrl ? { type: "video", src: sm.videoUrl } : null;
   }
   if (sm.image) {
-    const url = urlFor(sm.image)?.width(2000).auto("format").url();
+    // Size per slot (fit:max never upscales past the source) and let Sanity
+    // pick webp/avif via auto:format, so we don't ship 2000px images into a
+    // small gallery cell.
+    const url = urlFor(sm.image)?.width(width).fit("max").quality(72).auto("format").url();
     if (url) return { type: "image", src: url };
   }
   return null;
@@ -75,12 +78,17 @@ export function fromSanity(data: WorkLayoutData | null): CaseData | null {
     .filter((s) => s.title);
 
   const gallery: Media[][] = (data.mediaRows ?? [])
-    .map((row) =>
-      (row?.items ?? []).map(toMedia).filter((m): m is Media => m !== null),
-    )
+    .map((row) => {
+      const items = row?.items ?? [];
+      // Request a width that matches how wide the cell actually renders.
+      const width = items.length >= 3 ? 760 : items.length === 2 ? 1040 : 1600;
+      return items
+        .map((m) => toMedia(m, width))
+        .filter((m): m is Media => m !== null);
+    })
     .filter((r) => r.length > 0);
 
-  const hero = toMedia(data.hero);
+  const hero = toMedia(data.hero, 1920);
 
   // Nothing meaningful filled in yet.
   if (!hero && sections.length === 0 && gallery.length === 0) return null;
@@ -200,6 +208,7 @@ function GalleryMedia({ media, aspect }: { media: Media; aspect: string }) {
         <img
           src={media.src}
           alt=""
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
       )}

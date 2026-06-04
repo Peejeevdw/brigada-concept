@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
+import { usePageTransition } from "@/components/PageTransition";
 import { caseImages } from "@/data/caseImages";
 const brandCrelan = "/assets/brand-case-crelan.png";
 const brandNanopixel = "/assets/brand-case-nanopixel.png";
@@ -18,7 +19,7 @@ const peopleLidl = "/assets/people-case-lidl.jpg";
 // [data-filter-*] hooks are unchanged. Markup is React; the show/hide transition
 // CSS lives in index.css (Osmo block); card styling matches the work mockup.
 
-export type WorkItem = { client: string; tags: string[]; img: string };
+export type WorkItem = { client: string; tags: string[]; img: string; slug?: string };
 
 const CATEGORIES = ["All", "Brand", "Marketing", "People", "Product"];
 
@@ -46,6 +47,7 @@ const WorkFilter = ({
   categories?: string[];
 } = {}) => {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const transitionTo = usePageTransition();
 
   // Custom cursor: a "Watch case" pill that trails the real cursor (with delay)
   // while hovering a case. The native cursor stays visible. Same setup as the
@@ -182,8 +184,15 @@ const WorkFilter = ({
             data-filter-status="active"
             className="filter-list__item"
           >
-            <div
+            <a
               className="work-card"
+              href={it.slug ? `/work/${it.slug}` : undefined}
+              onClick={(e) => {
+                if (!it.slug) return;
+                e.preventDefault();
+                transitionTo(`/work/${it.slug}`);
+              }}
+              style={{ color: "inherit", textDecoration: "none", cursor: it.slug ? "pointer" : "default" }}
               onPointerEnter={() => setHoverCase(it.client)}
               onPointerLeave={() => setHoverCase(null)}
             >
@@ -200,7 +209,7 @@ const WorkFilter = ({
                 <h3 className="work-card__title">{it.client}</h3>
                 <p className="work-card__tags">{it.tags.join(", ")}</p>
               </div>
-            </div>
+            </a>
           </div>
         ))}
       </div>
