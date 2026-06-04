@@ -80,6 +80,7 @@ export interface ConceptData {
       work?: {
         _id?: string;
         name?: string | null;
+        client?: string | null;
         slug?: string | null;
         image?: unknown;
         expertises?: Array<{ name?: string | null }> | null;
@@ -315,30 +316,35 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     window.dispatchEvent(new Event("resize"));
   }, [heroVh, videoPull]);
 
-  // ---- Per-card image parallax ----
-  // Each card scrolls past the viewport on its own; the image inside drifts
-  // slightly slower than its frame, like the parallax effect on brigada.be's
-  // TUI case. Cards no longer overlap each other.
+  // ---- Stacking case cards (Osmo "Stacking Cards Parallax") ----
+  // As each card scrolls in, the PREVIOUS card parallaxes down (yPercent 0→50)
+  // and its image rotates/lifts, so the incoming card slides over it.
   useEffect(() => {
     const ctx = gsap.context(() => {
       const cards = gsap.utils.toArray<HTMLElement>("[data-stacking-cards-item]");
-      cards.forEach((card) => {
-        const img = card.querySelector("[data-stacking-cards-img]");
-        if (!img) return;
-        gsap.fromTo(
-          img,
-          { yPercent: -8 },
-          {
-            yPercent: 8,
-            ease: "none",
-            scrollTrigger: {
-              trigger: card,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
+      if (cards.length < 2) return;
+      cards.forEach((card, i) => {
+        if (i === 0) return;
+        const previousCard = cards[i - 1];
+        if (!previousCard) return;
+        const previousCardImage = previousCard.querySelector(
+          "[data-stacking-cards-img]"
+        );
+        const tl = gsap.timeline({
+          defaults: { ease: "none", duration: 1 },
+          scrollTrigger: {
+            trigger: card,
+            start: "top bottom",
+            end: "top top",
+            scrub: true,
+            invalidateOnRefresh: true,
           },
+        });
+        tl.fromTo(previousCard, { yPercent: 0 }, { yPercent: 50 }).fromTo(
+          previousCardImage,
+          { yPercent: 0 },
+          { yPercent: -25 },
+          "<"
         );
       });
       ScrollTrigger.refresh();
@@ -1040,6 +1046,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
       >
         {caseItems.map((c) => {
           const name = c.work?.name ?? "";
+          const client = c.work?.client ?? "";
           const tags = (c.work?.expertises ?? [])
             .map((e) => e?.name)
             .filter(Boolean)
@@ -1069,7 +1076,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           <section
             key={c._key ?? slug}
             data-stacking-cards-item
-            className="relative flex min-h-screen w-full items-center overflow-hidden bg-white"
+            className="relative -mt-4 flex min-h-screen w-full items-center overflow-hidden bg-white"
             role={slug ? "link" : undefined}
             tabIndex={slug ? 0 : undefined}
             onClick={slug ? () => transitionTo(`/work/${slug}`) : undefined}
@@ -1100,34 +1107,35 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
 
             {/* Full-width content row (same gutters as the paragraph above) */}
             <div className="relative z-10 flex w-full flex-col gap-8 px-[clamp(24px,5vw,72px)] py-[clamp(56px,12vh,140px)] md:flex-row md:items-center md:gap-[clamp(40px,10vw,221px)]">
-              {/* Meta — name + disciplines */}
+              {/* Meta — client (large) + project title (small) */}
               <div className="flex shrink-0 flex-col gap-4 md:w-[171px]">
-                <span
-                  className="text-[clamp(20px,1.9vw,27px)] uppercase leading-none"
-                  style={{ fontFamily: SANS, fontStretch: "125%", fontWeight: 500 }}
-                >
-                  {name}
-                </span>
-                <span
-                  className="text-[clamp(13px,1.05vw,15px)] tracking-[-0.015em]"
-                  style={{ fontFamily: SANS }}
-                >
-                  {tags}
-                </span>
+                <div className="flex flex-col gap-1">
+                  <span
+                    className="text-[clamp(20px,1.9vw,27px)] uppercase leading-none"
+                    style={{ fontFamily: SANS, fontStretch: "125%", fontWeight: 500 }}
+                  >
+                    {client || name}
+                  </span>
+                  {client && name && (
+                    <span
+                      className="text-[clamp(12px,0.95vw,14px)] tracking-[-0.015em] opacity-70"
+                      style={{ fontFamily: SANS }}
+                    >
+                      {name}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Media — large landscape visual; "Watch case" pill on hover.
-                  The image is intentionally taller than its frame so the
-                  parallax (yPercent ±8) never reveals empty space at the
-                  top/bottom of the card. */}
+              {/* Media — large landscape visual; "Watch case" pill on hover. */}
               <div
-                className="relative aspect-[1342/813] w-full overflow-hidden md:flex-1"
+                className="relative w-full overflow-hidden md:flex-1"
                 onPointerEnter={() => setHoverCase(true)}
                 onPointerLeave={() => setHoverCase(false)}
               >
                 <img
                   data-stacking-cards-img
-                  className="absolute inset-x-0 -top-[10%] block h-[120%] w-full object-cover"
+                  className="block aspect-[1342/813] w-full object-cover"
                   src={img}
                   alt={`${name} — ${tags}`}
                 />

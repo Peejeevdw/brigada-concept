@@ -339,11 +339,16 @@ void main(){
   if (u_grain > 0.001) {
     // Screen-locked paper grain: sits on top of all prior effects (warp,
     // liquify, lava) so blob pull can't distort the ink texture.
-    vec2 p = vUv * (u_canvasSize / max(u_canvasSize.y, 1.0));
+    // Pixel-locked frequency — the grain cell size is tied to actual device
+    // pixels (u_canvasSize), so a grain stays the same physical size no matter
+    // how large the element is. (Previously it was height-normalised — a fixed
+    // ~200 cells over the element height — so big full-screen cards stretched
+    // the grain into a coarse texture.) Smaller divisor = finer grain.
+    vec2 p = vUv * u_canvasSize;
     float n =
-        (snoise(p * 200.0) * 0.5 + 0.5) * 0.55 +
-        (snoise(p * 500.0) * 0.5 + 0.5) * 0.30 +
-        (snoise(p * 1200.0) * 0.5 + 0.5) * 0.15;
+        (snoise(p / 3.0) * 0.5 + 0.5) * 0.55 +   // ~3px base cells
+        (snoise(p / 1.6) * 0.5 + 0.5) * 0.30 +   // ~1.6px
+        (snoise(p / 1.0) * 0.5 + 0.5) * 0.15;    // ~1px sparkle
     // Push contrast so we get clusters instead of smooth haze.
     n = clamp((n - 0.5) * 1.8 + 0.5, 0.0, 1.0);
 
