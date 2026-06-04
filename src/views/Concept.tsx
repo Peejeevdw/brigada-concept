@@ -312,35 +312,30 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     window.dispatchEvent(new Event("resize"));
   }, [heroVh, videoPull]);
 
-  // ---- Stacking case cards (Osmo "Stacking Cards Parallax") ----
-  // As each card scrolls in, the PREVIOUS card parallaxes down (yPercent 0→50)
-  // and its image rotates/lifts, so the incoming card slides over it.
+  // ---- Per-card image parallax ----
+  // Each card scrolls past the viewport on its own; the image inside drifts
+  // slightly slower than its frame, like the parallax effect on brigada.be's
+  // TUI case. Cards no longer overlap each other.
   useEffect(() => {
     const ctx = gsap.context(() => {
       const cards = gsap.utils.toArray<HTMLElement>("[data-stacking-cards-item]");
-      if (cards.length < 2) return;
-      cards.forEach((card, i) => {
-        if (i === 0) return;
-        const previousCard = cards[i - 1];
-        if (!previousCard) return;
-        const previousCardImage = previousCard.querySelector(
-          "[data-stacking-cards-img]"
-        );
-        const tl = gsap.timeline({
-          defaults: { ease: "none", duration: 1 },
-          scrollTrigger: {
-            trigger: card,
-            start: "top bottom",
-            end: "top top",
-            scrub: true,
-            invalidateOnRefresh: true,
+      cards.forEach((card) => {
+        const img = card.querySelector("[data-stacking-cards-img]");
+        if (!img) return;
+        gsap.fromTo(
+          img,
+          { yPercent: -8 },
+          {
+            yPercent: 8,
+            ease: "none",
+            scrollTrigger: {
+              trigger: card,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
           },
-        });
-        tl.fromTo(previousCard, { yPercent: 0 }, { yPercent: 50 }).fromTo(
-          previousCardImage,
-          { yPercent: 0 },
-          { yPercent: -25 },
-          "<"
         );
       });
       ScrollTrigger.refresh();
@@ -1043,7 +1038,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             .filter(Boolean)
             .join(", ");
           const slug = c.work?.slug ?? "";
-          const assets = CASE_ASSETS[slug] ?? {};
+          const assets: { img?: string; bgVideo?: string } = CASE_ASSETS[slug] ?? {};
           // Prefer the Sanity-stored work.image; fall back to the local map
           // while editors haven't uploaded one yet. urlFor returns null when
           // the source is empty, so we keep the legacy path as a safety net.
@@ -1056,7 +1051,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           <section
             key={c._key ?? slug}
             data-stacking-cards-item
-            className="relative -mt-4 flex min-h-screen w-full items-center overflow-hidden"
+            className="relative flex min-h-screen w-full items-center overflow-hidden"
             style={{ background: c.bgColor ?? undefined, color: c.fgColor ?? undefined }}
           >
             {/* Optional full-bleed video background */}
@@ -1091,15 +1086,18 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 </span>
               </div>
 
-              {/* Media — large landscape visual; "Watch case" pill on hover. */}
+              {/* Media — large landscape visual; "Watch case" pill on hover.
+                  The image is intentionally taller than its frame so the
+                  parallax (yPercent ±8) never reveals empty space at the
+                  top/bottom of the card. */}
               <div
-                className="relative w-full overflow-hidden md:flex-1"
+                className="relative aspect-[1342/813] w-full overflow-hidden md:flex-1"
                 onPointerEnter={() => setHoverCase(true)}
                 onPointerLeave={() => setHoverCase(false)}
               >
                 <img
                   data-stacking-cards-img
-                  className="block aspect-[1342/813] w-full object-cover"
+                  className="absolute inset-x-0 -top-[10%] block h-[120%] w-full object-cover"
                   src={img}
                   alt={`${name} — ${tags}`}
                 />
