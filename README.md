@@ -31,19 +31,25 @@ Copy `.env.example` to `.env` and fill in the Sanity variables, or use [`direnv`
 
 ## Environment
 
-| Variable | Where it's read | Description |
-|---|---|---|
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | FE (client + server) | Sanity project ID. Public — appears in every CDN URL we serve. Required so the image URL builder produces the same URLs during SSR and after hydration. |
-| `NEXT_PUBLIC_SANITY_DATASET` | FE (client + server) | Dataset name, defaults to `production`. Same public reason as above. |
-| `SANITY_PROJECT_ID` | FE (server) + Studio | Server-only fallback for the project ID. Set when not exposing the public variant. |
-| `SANITY_DATASET` | FE (server) + Studio | Server-only fallback for the dataset. |
-| `SANITY_API_VERSION` | FE (server) | Content Lake API version, defaults to `2026-04-08`. |
-| `SANITY_LOCALE` | FE (server) | Default locale code, `en` for now. |
-| `SANITY_VIEWER_TOKEN` | FE (server) | Viewer-scoped read token. Required: some doc types (e.g. `job`, imported from Recruitee) aren't readable anonymously. Also enables Draft Mode preview drafts. |
-| `SANITY_STUDIO_URL` | FE (server) | Studio base URL for stega click-through, defaults to `http://localhost:3333`. |
-| `SANITY_API_TOKEN` | MCP server only | Write-scoped token used by `mcp__Sanity__*`. Never imported by the Next.js app. |
+### Frontend `.env`
 
-GROQ queries run server-side in Server Components. The image URL builder needs project ID + dataset on the client too so the hydrated DOM matches what the server painted — hence the `NEXT_PUBLIC_*` mirror for those two values.
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Sanity project ID. Public — appears in every CDN URL we serve. Read on both server and client so SSR + hydration build identical image URLs. |
+| `NEXT_PUBLIC_SANITY_DATASET` | Dataset name, defaults to `production`. Same public reason. |
+| `SANITY_API_VERSION` | Content Lake API version, defaults to `2026-04-08`. |
+| `SANITY_LOCALE` | Default locale code, `en` for now. |
+| `SANITY_VIEWER_TOKEN` | Viewer-scoped read token. Required: some doc types (e.g. `job`, imported from Recruitee) aren't readable anonymously. Also enables Draft Mode preview drafts. |
+| `SANITY_STUDIO_URL` | Studio base URL for stega click-through, defaults to `http://localhost:3333`. |
+
+### Studio `.env` (in `studio/`)
+
+| Variable | Description |
+|---|---|
+| `SANITY_STUDIO_PROJECT_ID` | Project ID used by the Studio at build/deploy time. |
+| `SANITY_API_TOKEN` | Write-scoped token. Used by `studio/scripts/*` (seed, Recruitee sync) and the `mcp__Sanity__*` tooling — never imported by the Next.js app. |
+
+GROQ queries run server-side in Server Components. The image URL builder needs project ID + dataset on the client too so the hydrated DOM matches what the server painted — hence the `NEXT_PUBLIC_*` prefix on those two values.
 
 ## Scripts
 

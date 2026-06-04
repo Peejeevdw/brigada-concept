@@ -3,19 +3,12 @@ import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 
 // Project ID and dataset are not secret — they appear in every CDN URL we
-// serve, so we read them from NEXT_PUBLIC_* with a fall-back to the legacy
-// server-only names. This is what lets `urlFor()` resolve the same CDN URL
-// on the server AND in the hydrated client bundle (otherwise non-NEXT_PUBLIC_
-// env vars are stripped at build time, the client falls back, and we get a
-// hydration mismatch on every image).
-export const SANITY_PROJECT_ID =
-  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ??
-  process.env.SANITY_PROJECT_ID ??
-  "";
-export const SANITY_DATASET =
-  process.env.NEXT_PUBLIC_SANITY_DATASET ??
-  process.env.SANITY_DATASET ??
-  "production";
+// serve. They live in NEXT_PUBLIC_* so the value is identical in the server
+// bundle and the client bundle; without that, `urlFor()` would silently
+// return null on the client and every Sanity image would hydration-mismatch
+// against the server-rendered CDN URL.
+export const SANITY_PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "";
+export const SANITY_DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production";
 export const SANITY_API_VERSION = process.env.SANITY_API_VERSION ?? "2026-04-08";
 export const SANITY_STUDIO_URL =
   process.env.SANITY_STUDIO_URL ?? "http://localhost:3333";
@@ -26,7 +19,7 @@ export const SANITY_VIEWER_TOKEN = process.env.SANITY_VIEWER_TOKEN ?? "";
 
 if (!SANITY_PROJECT_ID && process.env.NODE_ENV !== "test") {
   console.warn(
-    "SANITY_PROJECT_ID is not set. Sanity-backed pages will return null. Set it in .env (and in Cloudflare for production).",
+    "NEXT_PUBLIC_SANITY_PROJECT_ID is not set. Sanity-backed pages will return null. Set it in .env (and in Cloudflare for production).",
   );
 }
 
