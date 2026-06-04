@@ -1052,6 +1052,20 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             key={c._key ?? slug}
             data-stacking-cards-item
             className="relative flex min-h-screen w-full items-center overflow-hidden bg-white text-brigada-black"
+            role={slug ? "link" : undefined}
+            tabIndex={slug ? 0 : undefined}
+            onClick={slug ? () => transitionTo(`/work/${slug}`) : undefined}
+            onKeyDown={
+              slug
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      transitionTo(`/work/${slug}`);
+                    }
+                  }
+                : undefined
+            }
+            style={{ cursor: slug ? "pointer" : undefined }}
           >
             {/* Optional full-bleed video background */}
             {bgVideo && (
