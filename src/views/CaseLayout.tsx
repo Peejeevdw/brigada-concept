@@ -599,6 +599,9 @@ export default function CaseLayout({
   if (!c) return null;
 
   const theme = data?.darkMode ? THEME.dark : THEME.light;
+  // TEST: the related-cases section uses the *opposite* theme so it reads as a
+  // distinct band off the case (dark under a light case, light under a dark one).
+  const relatedTheme = data?.darkMode ? THEME.light : THEME.dark;
   // --fg/--bg cascade to in-page elements (e.g. the title-bar button hover).
   const pageStyle = {
     background: theme.bg,
@@ -626,8 +629,11 @@ export default function CaseLayout({
         {c.gallery.length > 0 && <CaseGallery rows={c.gallery} />}
 
         {relatedSlides.length > 0 && (
-          <section className={`pb-24 ${GUTTER}`}>
-            <div className="border-t pt-[clamp(28px,4vw,56px)]" style={{ borderColor: theme.line }}>
+          <section
+            className={`pt-[clamp(48px,7vw,110px)] pb-[clamp(80px,12vw,180px)] ${GUTTER}`}
+            style={{ background: relatedTheme.bg, color: relatedTheme.fg }}
+          >
+            <div>
               <h2
                 className="text-[clamp(18px,1.5vw,22px)] uppercase leading-none"
                 style={{ fontFamily: SANS, fontWeight: 500 }}
@@ -637,15 +643,16 @@ export default function CaseLayout({
             </div>
             {/* Override the slider's global max-width: 90em cap so it fills the
                 full gutter content width, matching the gallery/title above. */}
-            <div className="mt-[clamp(28px,4vw,56px)] [&_.cascading-slider]:max-w-none">
+            <div className="mt-[clamp(48px,7vw,110px)] [&_.cascading-slider]:max-w-none">
               <CascadingSlider slides={relatedSlides} ariaLabel="Related cases" />
             </div>
           </section>
         )}
 
-        {/* Footer — contrasts the page: black under a light case, white under a
-            dark one. */}
-        {data?.darkMode ? <BrandFooter light /> : <BrandFooter dark />}
+        {/* TEST: always show the /brand footer (brio-06 + meetmarcel backdrop)
+            on case detail. Previous (contrast) behaviour was:
+            {data?.darkMode ? <BrandFooter light /> : <BrandFooter dark />} */}
+        <BrandFooter brioPaletteId="brio-06" brioSrc={`/meetmarcel.jpg`} />
 
         <ProjectInfoDrawer info={c.projectInfo} title={c.title} />
       </Drawer.Root>
