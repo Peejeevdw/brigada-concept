@@ -9,7 +9,6 @@ import { PortableText, toPlainText, type PortableTextBlock } from "@portabletext
 import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
 import CareersCarousel, { type CarouselSlide } from "@/components/CareersCarousel";
-import SharpBeatsLoud from "@/components/SharpBeatsLoud";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
 
@@ -135,7 +134,6 @@ const CAROUSEL_SLIDES: CarouselSlide[] = [
 ];
 
 const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
-  const heroWords = data?.hero?.words ?? [];
   const narrativeBlocks = data?.narrative ?? [];
   const narrativeText = narrativeBlocks.length > 0 ? toPlainText(narrativeBlocks) : "";
   const sections = data?.sections ?? [];
@@ -202,9 +200,18 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
       {/* Content — full width (gutters only, no centred max-width), like /concept.
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
-        {/* Hero — gooey word-morph (looping). Words come from Sanity hero.words. */}
+        {/* Hero — baseline reel (looping). */}
         <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
-          <SharpBeatsLoud className="flex w-full items-center justify-center text-white" words={heroWords} />
+          <video
+            className="relative z-10 aspect-[560/240] w-[min(780px,60vw)] object-contain mix-blend-screen"
+            src={`/Website-Baseline-Cropped.mp4`}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden
+          />
         </section>
 
         {/* Intro — words fill from #424242 to #fff on scroll */}

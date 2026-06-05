@@ -19,6 +19,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrandFooter from "@/components/BrandFooter";
 import BunnyReelLightbox from "@/components/BunnyReelLightbox";
+import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
 import { urlFor } from "@/lib/sanity";
@@ -1320,12 +1321,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         />
         {/* Centered reel, blended into the background */}
         <video
-          className="relative z-10 aspect-[1090/613] w-[min(1090px,82vw)] object-cover mix-blend-screen"
-          src={`/sharp-beats-loud.mp4`}
+          className="relative z-10 aspect-[560/240] w-[min(780px,60vw)] object-contain mix-blend-screen"
+          src={`/Website-Baseline-Cropped.mp4`}
+          autoPlay
           muted
           loop
           playsInline
           preload="auto"
+          aria-hidden
         />
       </section>
 

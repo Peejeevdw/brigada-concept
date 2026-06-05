@@ -8,12 +8,6 @@ import Reveal from "@/components/site/Reveal";
 import BrandFooter from "@/components/BrandFooter";
 import { BrioEffect } from "@/brio-effect";
 import { GUTTER, INK } from "@/lib/siteTokens";
-const gallery1 = "/assets/contact/c1.avif";
-const gallery2 = "/assets/contact/c2.avif";
-const gallery3 = "/assets/contact/c3.avif";
-const gallery4 = "/assets/contact/c4.avif";
-const gallery5 = "/assets/contact/c5.avif";
-const gallery6 = "/assets/contact/c6.avif";
 
 // Contact page — built on the shared site foundation in the new-style idiom.
 // Section rhythm follows the brief: hero (modelled on /careers-v2) → contact
@@ -55,18 +49,6 @@ export interface ContactData {
     phone?: string | null;
   }> | null;
 }
-
-// Masonry gallery images (varying aspect ratios → column-flow masonry).
-// Visual placeholders — not editorial copy, kept hardcoded for now.
-const GALLERY = [gallery1, gallery2, gallery3, gallery4, gallery5, gallery6];
-
-// Split images round-robin into n columns, so we can render a column-flex
-// masonry whose columns stay equal-height (straight bottom edge).
-const splitColumns = (items: string[], n: number) => {
-  const cols: string[][] = Array.from({ length: n }, () => []);
-  items.forEach((src, i) => cols[i % n].push(src));
-  return cols;
-};
 
 const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | null; generalEmail?: string; generalPhone?: string } = {}) => {
   const hero = data?.hero;
@@ -139,7 +121,7 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
 
         {/* Contact form */}
         <section
-          className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`}
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(48px,7vw,96px)]`}
           style={{ color: INK.dark }}
         >
           <Reveal>
@@ -277,44 +259,6 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
           </Reveal>
         </section>
       </div>
-
-      {/* Masonry gallery — full-bleed to the viewport edges. Column-flex layout:
-          columns stay equal-height and the last image in each column fills the
-          remaining space so the grid ends flush along a straight bottom edge. */}
-      <section className="pt-[clamp(24px,4vw,64px)] pb-[clamp(24px,4vw,64px)]">
-        <Reveal>
-          {[
-            { cols: 2, className: "flex md:hidden" },
-            { cols: 3, className: "hidden md:flex" },
-          ].map(({ cols, className }) => (
-            <div
-              key={cols}
-              className={`${className} items-stretch gap-[clamp(8px,1vw,16px)]`}
-            >
-              {splitColumns(GALLERY, cols).map((col, ci) => (
-                <div
-                  key={ci}
-                  className="flex flex-1 flex-col gap-[clamp(8px,1vw,16px)]"
-                >
-                  {col.map((src, idx) => (
-                    <img
-                      key={idx}
-                      src={src}
-                      alt=""
-                      loading="lazy"
-                      className={
-                        idx === col.length - 1
-                          ? "block min-h-0 w-full flex-1 object-cover"
-                          : "block w-full"
-                      }
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-          ))}
-        </Reveal>
-      </section>
 
       {/* Parallax footer — solid black, links wired to the pages. */}
       <BrandFooter dark />
