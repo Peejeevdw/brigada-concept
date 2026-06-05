@@ -3,6 +3,7 @@ import { draftMode } from "next/headers";
 import Script from "next/script";
 import { Providers } from "./providers";
 import { DraftModeBanner } from "@/components/DraftModeBanner";
+import SmallScreenNotice from "@/components/SmallScreenNotice";
 import { SiteChromeProvider } from "@/lib/site-chrome";
 import { getChrome } from "@/lib/sanity-fetch";
 import "@/index.css";
@@ -62,6 +63,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <SiteChromeProvider value={chrome}>
           <Providers>{children}</Providers>
         </SiteChromeProvider>
+        <SmallScreenNotice />
         {isDraft && <DraftModeBanner />}
       </body>
     </html>
