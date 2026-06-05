@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { usePageTransition } from "@/components/PageTransition";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
@@ -110,7 +110,18 @@ const SiteNav = ({
   navTargets?: Record<string, string>;
 } = {}) => {
   const [openLabel, setOpenLabel] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const transitionTo = usePageTransition();
+
+  // Lock body scroll while the full-screen mobile menu is open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
 
   // Hover-intent for the submenu: a short close delay so moving between a label
   // and its submenu (or just past the label) doesn't snap it shut. Re-entering
@@ -148,13 +159,19 @@ const SiteNav = ({
   const onSub = (sub: string) => {
     const to = targets[sub];
     if (to) transitionTo(to);
+    setMobileOpen(false);
   };
+
+  // Flat list for the mobile menu: top-level labels with their sub-items
+  // expanded inline (no hover dropdowns on touch).
+  const MOBILE_ITEMS = [...NAV_LEFT, ...NAV_RIGHT];
 
   const blurOpen = [...NAV_LEFT, ...NAV_RIGHT].some(
     (i) => i.label === openLabel && i.items.length > 0
   );
 
   return (
+    <>
     <motion.div
       className="fixed inset-x-0 top-0 z-50"
       initial={{ y: "-100%" }}
@@ -169,7 +186,7 @@ const SiteNav = ({
         <div className="progressive-blur__layer is--5" />
       </div>
       <nav
-        className={`relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] ${textClassName}`}
+        className={`relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] ${textClassName} ${mobileOpen ? "max-md:!text-white" : ""}`}
       >
         {/* Wordmark — first in-flow item so justify-between pins it to the left
             gutter and spreads the nav items evenly across the rest. Click
@@ -182,30 +199,110 @@ const SiteNav = ({
         >
           <BrigadaWordmark className="block h-auto w-[100px]" />
         </button>
-        {NAV_LEFT.map((item) => (
-          <NavItem
-            key={item.label}
-            item={item}
-            openLabel={openLabel}
-            openMenu={openMenu}
-            scheduleClose={scheduleMenuClose}
-            alignRight={false}
-            onSub={onSub}
-          />
-        ))}
-        {NAV_RIGHT.map((item) => (
-          <NavItem
-            key={item.label}
-            item={item}
-            openLabel={openLabel}
-            openMenu={openMenu}
-            scheduleClose={scheduleMenuClose}
-            alignRight
-            onSub={onSub}
-          />
-        ))}
+        {/* Desktop nav items — collapsed into the hamburger below md.
+            `md:contents` lets the children keep spreading via justify-between. */}
+        <div className="hidden md:contents">
+          {NAV_LEFT.map((item) => (
+            <NavItem
+              key={item.label}
+              item={item}
+              openLabel={openLabel}
+              openMenu={openMenu}
+              scheduleClose={scheduleMenuClose}
+              alignRight={false}
+              onSub={onSub}
+            />
+          ))}
+          {NAV_RIGHT.map((item) => (
+            <NavItem
+              key={item.label}
+              item={item}
+              openLabel={openLabel}
+              openMenu={openMenu}
+              scheduleClose={scheduleMenuClose}
+              alignRight
+              onSub={onSub}
+            />
+          ))}
+        </div>
+
+        {/* Hamburger — only below md. */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label={mobileOpen ? "Menu sluiten" : "Menu openen"}
+          aria-expanded={mobileOpen}
+          className="relative z-50 -mr-2 flex h-11 w-11 items-center justify-center self-center md:hidden"
+        >
+          <span className="relative block h-[14px] w-6">
+            <span
+              className="absolute left-0 block h-[1.5px] w-full bg-current transition-all duration-300"
+              style={{
+                top: mobileOpen ? "6px" : "0px",
+                transform: mobileOpen ? "rotate(45deg)" : "none",
+              }}
+            />
+            <span
+              className="absolute left-0 bottom-0 block h-[1.5px] w-full bg-current transition-all duration-300"
+              style={{
+                bottom: mobileOpen ? "6px" : "0px",
+                transform: mobileOpen ? "rotate(-45deg)" : "none",
+              }}
+            />
+          </span>
+        </button>
       </nav>
     </motion.div>
+
+      {/* Full-screen mobile menu overlay — sibling of the (transformed) nav
+          wrapper so `fixed` resolves against the viewport, not the wrapper. */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: EASE_OUT }}
+            className="fixed inset-0 z-40 flex flex-col bg-brigada-black px-[clamp(24px,5vw,72px)] pt-[88px] pb-12 text-white md:hidden"
+            style={{ fontFamily: SANS }}
+          >
+            <ul className="mt-6 flex flex-1 flex-col gap-7 overflow-y-auto">
+              {MOBILE_ITEMS.map((item, i) => (
+                <motion.li
+                  key={item.label}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: EASE_OUT, delay: 0.08 + i * 0.05 }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onSub(item.label)}
+                    className="text-[28px] uppercase leading-none tracking-[0.02em]"
+                  >
+                    {item.label}
+                  </button>
+                  {item.items.length > 0 && (
+                    <ul className="mt-4 flex flex-col gap-3 pl-1">
+                      {item.items.map((sub) => (
+                        <li key={sub}>
+                          <button
+                            type="button"
+                            onClick={() => onSub(sub)}
+                            className="text-[15px] uppercase tracking-[0.1em] text-white/60 transition-colors hover:text-white"
+                          >
+                            {sub}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
