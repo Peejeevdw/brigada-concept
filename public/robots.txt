@@ -1,14 +1,4 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Pre-launch: block all crawlers. Restore the per-bot allow rules below
+# (or delete this file and let app/robots.ts take over) before going public.
 User-agent: *
-Allow: /
+Disallow: /

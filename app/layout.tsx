@@ -14,6 +14,16 @@ const GTM_ID = "GTM-59KTNVKX";
 export const metadata: Metadata = {
   title: "Brigada",
   description: "We cut through the noise to set brands in motion across everything they do.",
+  // Pre-launch: tell search engines and AI crawlers not to index the site.
+  // Drop this `robots` block to make it discoverable.
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
   openGraph: {
     type: "website",
     title: "Brigada",
