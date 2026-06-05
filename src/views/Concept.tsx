@@ -1007,7 +1007,11 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           <svg aria-hidden width="0" height="0" className="absolute">
             <defs>
               <filter id="hero-goo" x="-10%" y="-60%" width="120%" height="220%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="0" result="blur" />
+                {/* Initialise at the t=0 goo amount (GOO_BLUR_START) so the
+                    first paint already shows the gooey state. Hardcoding "0"
+                    here flashed the sharp logo for one frame before the
+                    entrance effect kicked in. */}
+                <feGaussianBlur in="SourceGraphic" stdDeviation={GOO_BLUR_START} result="blur" />
                 <feColorMatrix in="blur" mode="matrix" values={`1 0 0 0 0  0 1 0 0 0  1 0 1 0 0  0 0 0 ${GOO_ALPHA_MUL} ${GOO_ALPHA_OFF}`} result="goo" />
                 <feComposite in="SourceGraphic" in2="goo" operator="atop" />
               </filter>
