@@ -635,7 +635,9 @@ export default function CaseLayout({
                 Related cases
               </h2>
             </div>
-            <div className="mt-[clamp(28px,4vw,56px)]">
+            {/* Override the slider's global max-width: 90em cap so it fills the
+                full gutter content width, matching the gallery/title above. */}
+            <div className="mt-[clamp(28px,4vw,56px)] [&_.cascading-slider]:max-w-none">
               <CascadingSlider slides={relatedSlides} ariaLabel="Related cases" />
             </div>
           </section>
