@@ -30,20 +30,23 @@ export interface WorkIndexData {
 const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
   const eyebrow = data?.page?.hero?.eyebrow ?? "";
   const title = data?.page?.hero?.title ?? "";
-  const items: WorkItem[] = (data?.items ?? []).map((w) => {
-    const sanityImg = w.image
-      ? urlFor(w.image)?.width(1200).height(800).fit("crop").auto("format").url()
-      : null;
-    return {
-      client: w.client || w.name || "",
-      tags: (w.expertises ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
-      img:
-        sanityImg ||
-        (w.slug && caseImages[w.slug]) ||
-        "/assets/placeholder.svg",
-      slug: w.slug ?? undefined,
-    };
-  });
+  const items: WorkItem[] = (data?.items ?? [])
+    .map((w) => {
+      const sanityImg = w.image
+        ? urlFor(w.image)?.width(1200).height(800).fit("crop").auto("format").url()
+        : null;
+      // A real thumbnail = a Sanity image or a legacy caseImages fallback. Cases
+      // with neither are hidden from the index (no placeholder fallback).
+      const img = sanityImg || (w.slug ? caseImages[w.slug] : null) || null;
+      if (!img) return null;
+      return {
+        client: w.client || w.name || "",
+        tags: (w.expertises ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
+        img,
+        slug: w.slug ?? undefined,
+      };
+    })
+    .filter((it) => it !== null) as WorkItem[];
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, the way the sibling pages warm toward the footer.
   const contentRef = useRef<HTMLDivElement>(null);
