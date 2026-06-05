@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
 import { usePageTransition } from "@/components/PageTransition";
 import { caseImages } from "@/data/caseImages";
@@ -74,6 +75,14 @@ const WorkFilter = ({
     const buttons = [...group.querySelectorAll<HTMLElement>("[data-filter-target]")];
     const itemEls = [...group.querySelectorAll<HTMLElement>("[data-filter-name]")];
     const timers = new Map<Element, number>();
+    // Filtering swaps items to position:absolute, so the page height changes.
+    // The footer's parallax ScrollTrigger caches its start/end on load, so it
+    // breaks unless we recalc once the layout has settled (after the swap).
+    let refreshTimer = 0;
+    const scheduleRefresh = () => {
+      clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), transitionDelay + 60);
+    };
 
     // cache tokens
     const itemTokens = new Map<Element, Set<string>>();
@@ -143,6 +152,8 @@ const WorkFilter = ({
         const t = (btn.getAttribute("data-filter-target") || "").trim().toLowerCase();
         setButtonState(btn, (activeTarget === "all" && t === "all") || (!!t && t === activeTarget));
       });
+
+      scheduleRefresh();
     };
 
     const onClick = (e: MouseEvent) => {
@@ -154,6 +165,7 @@ const WorkFilter = ({
     return () => {
       group.removeEventListener("click", onClick);
       timers.forEach((id) => clearTimeout(id));
+      clearTimeout(refreshTimer);
     };
   }, [items, categories]);
 
