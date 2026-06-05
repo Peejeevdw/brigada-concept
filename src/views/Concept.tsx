@@ -50,9 +50,11 @@ const SHOW_TUNING_PANEL = false;
 const SHOW_AWARDS = false;
 
 // goo-1 "WAVE" reveal values (codrops), shared with the brand footers.
-const GOO_BLUR_START = 50;
-const GOO_ALPHA_MUL = 31;
-const GOO_ALPHA_OFF = -6;
+const GOO_BLUR_START = 46;
+const GOO_ALPHA_MUL = 14;
+const GOO_ALPHA_OFF = -5;
+// Hero wordmark goo-reveal duration (ms).
+const GOO_REVEAL_MS = 1550;
 
 // Recognition list for the "Proud not loud" section (placeholder content from Figma).
 // `img` = the case visual shown in the cursor-follower preview on hover (placeholder).
@@ -207,7 +209,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const bgOpacity = useTransform(t, [0.55, 0.85], [0, 1], { clamp: true });
   const bgScale = useTransform(t, [0.3, 1], [1.08, 1], { clamp: true });
 
-  // Logo entrance: drive `t` from 0 → 1 over 2.6s. We use a manual rAF loop
+  // Logo entrance: drive `t` from 0 → 1 over GOO_REVEAL_MS. We use a manual rAF loop
   // because the imperative `animate(motionValue, ...)` was not progressing
   // under Next 16 + React 19 strict mode in this codebase — the value stayed
   // pinned at 0 and the change-listeners never fired. rAF is simpler and the
@@ -218,9 +220,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     t.set(0);
     let raf = 0;
     const start = performance.now();
-    const DURATION = 2600;
     const step = (ts: number) => {
-      const k = Math.min(1, (ts - start) / DURATION);
+      const k = Math.min(1, (ts - start) / GOO_REVEAL_MS);
       t.set(1 - Math.pow(1 - k, 3));
       if (k < 1) raf = requestAnimationFrame(step);
     };
