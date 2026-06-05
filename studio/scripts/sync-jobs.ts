@@ -368,15 +368,31 @@ async function main() {
     activeRecruiteeIds.add(String(summary.id))
     const completedLocales: string[] = []
     try {
+      // Recruitee returns the offer in every locale even if only one was
+      // actually translated — empty title means "no source content here".
+      // Brigada writes vacancies in Dutch first, so NL is the fallback when
+      // a target locale has no content of its own.
+      const fallbackLocale = 'nl'
+      let fallbackOffer: Awaited<ReturnType<typeof fetchOffer>> | undefined
+      const getFallbackOffer = async () => {
+        if (fallbackOffer !== undefined) return fallbackOffer
+        fallbackOffer = await fetchOffer(recruiteeConfig, summary.id, fallbackLocale)
+        return fallbackOffer
+      }
+
       for (const locale of locales) {
-        const offer = await fetchOffer(recruiteeConfig, summary.id, locale)
-        if (!offer) {
-          console.warn(`[sync-jobs] offer ${summary.id} (locale ${locale}) not available, skipping`)
-          continue
+        let offer = await fetchOffer(recruiteeConfig, summary.id, locale)
+        if ((!offer || !offer.title) && locale !== fallbackLocale) {
+          const fb = await getFallbackOffer()
+          if (fb?.title) {
+            console.log(
+              `[sync-jobs] offer ${summary.id} (locale ${locale}) empty in source, using ${fallbackLocale} fallback`,
+            )
+            offer = fb
+          }
         }
-        if (!offer.title) {
-          // Recruitee returns the offer in every locale even when only one is
-          // translated — empty title means "no content for this locale".
+        if (!offer || !offer.title) {
+          console.warn(`[sync-jobs] offer ${summary.id} (locale ${locale}) has no content, skipping`)
           continue
         }
         await upsertJobForLocale(
