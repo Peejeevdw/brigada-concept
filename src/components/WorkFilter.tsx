@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
+import { useCoarsePointer } from "@/lib/useCoarsePointer";
 import { usePageTransition } from "@/components/PageTransition";
 import { caseImages } from "@/data/caseImages";
 const brandCrelan = "/assets/brand-case-crelan.png";
@@ -54,18 +55,20 @@ const WorkFilter = ({
   // while hovering a case. The native cursor stays visible. Same setup as the
   // /concept page.
   const [hoverCase, setHoverCase] = useState<string | null>(null);
+  const isCoarse = useCoarsePointer();
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
   const pillX = useSpring(cursorX, { stiffness: 180, damping: 17, mass: 0.7 });
   const pillY = useSpring(cursorY, { stiffness: 180, damping: 17, mass: 0.7 });
   useEffect(() => {
+    if (isCoarse) return;
     const move = (e: PointerEvent) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
     };
     window.addEventListener("pointermove", move, { passive: true });
     return () => window.removeEventListener("pointermove", move);
-  }, [cursorX, cursorY]);
+  }, [cursorX, cursorY, isCoarse]);
 
   useEffect(() => {
     const group = wrapRef.current;
@@ -228,7 +231,8 @@ const WorkFilter = ({
     </div>
 
     {/* Custom cursor — delayed "Watch case" pill trailing the real cursor, the
-        same as /concept. */}
+        same as /concept. Pointer devices only (no cursor on touch). */}
+    {!isCoarse && (
     <motion.div
       className="pointer-events-none fixed left-0 top-0 z-[100]"
       style={{ x: pillX, y: pillY }}
@@ -251,6 +255,7 @@ const WorkFilter = ({
         </AnimatePresence>
       </div>
     </motion.div>
+    )}
     </>
   );
 };

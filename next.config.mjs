@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Allow mobile/LAN testing: when the dev server is reached via its network
+  // IP (e.g. from a phone) instead of localhost, Next 16 otherwise blocks the
+  // cross-origin dev/RSC requests, so the page renders but never hydrates.
+  // Add your machine's current LAN IP here when it changes (office vs. home).
+  allowedDevOrigins: ["10.18.18.230", "192.168.68.59"],
   // TODO: re-enable strict typecheck + lint after the React 19 / Next 16
   // ref-callback and unused-import cleanup pass.
   typescript: {

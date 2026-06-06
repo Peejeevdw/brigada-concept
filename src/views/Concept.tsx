@@ -21,6 +21,7 @@ import BrandFooter from "@/components/BrandFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
+import { useCoarsePointer } from "@/lib/useCoarsePointer";
 import { urlFor } from "@/lib/sanity";
 import { BrioEffect } from "@/brio-effect";
 
@@ -163,6 +164,33 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
       navCloseTimer.current = null;
     }, 180);
   };
+
+  // Mobile menu (below md). The hover-dropdown nav collapses into a hamburger
+  // that opens a full-screen overlay. Routing mirrors the inline nav below.
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+  const NAV_TARGETS: Record<string, string> = {
+    Expertise: "/expertise",
+    Work: "/work",
+    About: "/about",
+    Careers: "/careers",
+    Contact: "/contact",
+    Brand: "/brand",
+    Product: "/product",
+    People: "/people",
+  };
+  const navTo = (label: string) => {
+    const to = NAV_TARGETS[label];
+    if (to) transitionTo(to);
+    setMobileOpen(false);
+  };
   // Dev-only live tuning (see the on-page panel below).
   const [baseStart, setBaseStart] = useState(42);
   const [baseEnd, setBaseEnd] = useState(61);
@@ -257,6 +285,22 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const heroRef = useRef<HTMLElement>(null);
   const collectionRef = useRef<HTMLDivElement>(null);
 
+  // Touch devices have no cursor, so the "Watch case" pill and image-preview
+  // followers below never show — skip their pointer tracking and rendering.
+  const isCoarse = useCoarsePointer();
+
+  // Mobile (<768px) gets a different hero arrangement. Driven from JS + inline
+  // styles (not new Tailwind classes) so tweaks come through HMR without a
+  // dev-server restart. Starts false on SSR, resolves after mount.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767.98px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
   // Custom cursor: a "Watch case" pill that trails the real cursor (with delay)
   // while hovering a case visual. The native cursor stays visible.
   // (Shared cursorX/Y also drives the award image-preview follower below.)
@@ -266,13 +310,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const pillX = useSpring(cursorX, { stiffness: 180, damping: 17, mass: 0.7 });
   const pillY = useSpring(cursorY, { stiffness: 180, damping: 17, mass: 0.7 });
   useEffect(() => {
+    if (isCoarse) return;
     const move = (e: PointerEvent) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
     };
     window.addEventListener("pointermove", move, { passive: true });
     return () => window.removeEventListener("pointermove", move);
-  }, [cursorX, cursorY]);
+  }, [cursorX, cursorY, isCoarse]);
 
   // Image-preview cursor-follower for the awards list ("Proud not loud").
   // Hovering an award shows that case's visual, trailing the cursor.
@@ -673,6 +718,9 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           style={{ color: textColor }}
           className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)]"
         >
+          {/* Desktop nav — collapses into the hamburger below md.
+              `md:contents` keeps the children spreading via justify-between. */}
+          <div className="hidden md:contents">
           {NAV_ITEMS.map((item, i) => {
             const alignRight = i >= NAV_ITEMS.length - 2;
             return (
@@ -730,8 +778,85 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
               </div>
             );
           })}
+          </div>
+
+          {/* Hamburger — only below md. */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Menu sluiten" : "Menu openen"}
+            aria-expanded={mobileOpen}
+            className="relative z-50 -mr-2 ml-auto flex h-11 w-11 items-center justify-center self-center md:hidden"
+            style={mobileOpen ? { color: "#fff" } : undefined}
+          >
+            <span className="relative block h-[14px] w-6">
+              <span
+                className="absolute left-0 block h-[1.5px] w-full bg-current transition-all duration-300"
+                style={{
+                  top: mobileOpen ? "6px" : "0px",
+                  transform: mobileOpen ? "rotate(45deg)" : "none",
+                }}
+              />
+              <span
+                className="absolute left-0 bottom-0 block h-[1.5px] w-full bg-current transition-all duration-300"
+                style={{
+                  bottom: mobileOpen ? "6px" : "0px",
+                  transform: mobileOpen ? "rotate(-45deg)" : "none",
+                }}
+              />
+            </span>
+          </button>
         </motion.nav>
       </motion.div>
+
+      {/* Full-screen mobile menu overlay — sibling of the (transformed) nav
+          wrapper so `fixed` resolves against the viewport. */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: EASE_OUT }}
+            className="fixed inset-0 z-40 flex flex-col bg-brigada-black px-[clamp(24px,5vw,72px)] pt-[88px] pb-12 text-white md:hidden"
+            style={{ fontFamily: SANS }}
+          >
+            <ul className="mt-6 flex flex-1 flex-col gap-7 overflow-y-auto">
+              {NAV_ITEMS.map((item, i) => (
+                <motion.li
+                  key={item.label}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: EASE_OUT, delay: 0.08 + i * 0.05 }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => navTo(item.label)}
+                    className="text-[28px] uppercase leading-none tracking-[0.02em]"
+                  >
+                    {item.label}
+                  </button>
+                  {item.items.length > 0 && (
+                    <ul className="mt-4 flex flex-col gap-3 pl-1">
+                      {item.items.map((sub) => (
+                        <li key={sub}>
+                          <button
+                            type="button"
+                            onClick={() => navTo(sub)}
+                            className="text-[15px] uppercase tracking-[0.1em] text-white/60 transition-colors hover:text-white"
+                          >
+                            {sub}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Dev-only type tuning panel — hidden (set SHOW_TUNING_PANEL = true to restore) */}
       {SHOW_TUNING_PANEL && (process.env.NODE_ENV !== "production") && (
@@ -832,6 +957,9 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         </div>
       )}
 
+      {/* Cursor-follower effects — only on devices with a real pointer. */}
+      {!isCoarse && (
+      <>
       {/* Custom cursor — delayed "Watch case" pill trailing the real cursor */}
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[100]"
@@ -911,16 +1039,34 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           </AnimatePresence>
         </div>
       </motion.div>
+      </>
+      )}
 
       {/* Scroll track — drives the pinned hero through its states */}
       <section ref={heroRef} className="relative z-10" style={{ height: `${heroVh}vh` }}>
         <div className="sticky top-0 h-screen select-none overflow-hidden bg-brigada-black">
-          {/* Background reel */}
+          {/* Background reel — full-bleed on desktop; a centred 90vh band on
+              mobile (5vh black above/below). */}
           <motion.div
-            className="absolute inset-0 z-0"
-            style={{ opacity: bgOpacity, scale: bgScale }}
+            className="absolute z-0"
+            style={{
+              opacity: bgOpacity,
+              scale: bgScale,
+              left: 0,
+              right: 0,
+              top: isMobile ? "5vh" : 0,
+              bottom: isMobile ? "5vh" : 0,
+            }}
           >
             <video
+              // iOS only autoplays when the `muted` *property* is set on the
+              // element — React's `muted` attribute alone is unreliable, so set
+              // it imperatively and kick off play() once it can.
+              ref={(el) => {
+                if (!el) return;
+                el.muted = true;
+                el.play().catch(() => {});
+              }}
               src={`/reel.mp4`}
               className="h-full w-full object-cover"
               autoPlay
@@ -988,7 +1134,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             </motion.div>
           </div>
 
-          {/* Tagline — SHARP · BEATS · LOUD (sits above the paragraph) */}
+          {/* Tagline — SHARP · BEATS · LOUD. Desktop only: the horizontal row. */}
+          {!isMobile && (
           <motion.div
             style={{ color: textColor }}
             className="absolute inset-x-0 top-[76vh] px-[clamp(24px,5vw,72px)]"
@@ -1008,6 +1155,44 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             ))}
             </motion.div>
           </motion.div>
+          )}
+
+          {/* Mobile tagline — SHARP / BEATS / LOUD stacked vertically under the
+              (centred) logo, over the 90vh reel. Inline styles so tweaks come
+              through HMR without a restart. top / fontSize are tunable. */}
+          {isMobile && (
+          <motion.div
+            style={{
+              color: textColor,
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: "56%",
+              paddingLeft: 24,
+              paddingRight: 24,
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 0.9 }}>
+              {tagline.map((word, i) => (
+                <motion.span
+                  key={`m-${word}-${i}`}
+                  style={{
+                    fontFamily: SANS,
+                    fontStretch: "125%",
+                    fontSize: "clamp(44px,14vw,88px)",
+                    textTransform: "uppercase",
+                    letterSpacing: "-0.015em",
+                  }}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                  transition={{ duration: 0.55, ease: EASE_OUT, delay: revealed ? 0.05 + i * 0.12 : 0 }}
+                >
+                  {word}
+                </motion.span>
+              ))}
+            </div>
+          </motion.div>
+          )}
 
           {/* Paragraph — 2 lines, auto-sized; moves with the group (constant gap to baseline) */}
           <motion.div

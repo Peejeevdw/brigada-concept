@@ -152,7 +152,7 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
               <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
                 {/* Left column — people + office addresses. */}
                 <div className="flex w-full flex-col gap-[clamp(28px,3vw,40px)] md:w-[42%]">
-                  <div className="grid grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)]">
                   {expertiseContacts.map((c) => {
                     const name = c.person?.name ?? "";
                     const phone = c.person?.phone ?? "";
@@ -184,7 +184,7 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
                   })}
                 </div>
                 {/* Office addresses — spaced apart from the people above. */}
-                <div className="grid grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)] pt-[clamp(28px,3vw,40px)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)] pt-[clamp(28px,3vw,40px)]">
                   {offices.map((l, i) => (
                     <div key={l.city || `o${i}`} className="text-[clamp(14px,1.1vw,16px)] leading-[1.5]">
                       <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">

@@ -289,8 +289,8 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
       >
         <div className="grid grid-cols-6 gap-3 md:gap-5 items-start">
           <div
-            className="col-span-6 md:col-start-1 md:col-span-1"
-            style={{ paddingLeft: `${clientPaddingLeft}px` }}
+            className="col-span-6 md:col-start-1 md:col-span-1 pl-0 md:pl-[var(--cpl)]"
+            style={{ "--cpl": `${clientPaddingLeft}px` } as CSSProperties}
           >
             <img
               src={caseImages[project.slug] ?? caseImages.bmw}
