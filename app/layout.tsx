@@ -3,6 +3,7 @@ import { draftMode } from "next/headers";
 import Script from "next/script";
 import { Providers } from "./providers";
 import { DraftModeBanner } from "@/components/DraftModeBanner";
+import Preloader from "@/components/Preloader";
 import SmallScreenNotice from "@/components/SmallScreenNotice";
 import { SiteChromeProvider } from "@/lib/site-chrome";
 import { getChrome } from "@/lib/sanity-fetch";
@@ -63,6 +64,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <SiteChromeProvider value={chrome}>
           <Providers>{children}</Providers>
         </SiteChromeProvider>
+        <Preloader />
         {/* Production only — keeps visitors gated below 1240px while mobile is
             still in progress, but doesn't block local mobile development. */}
         {process.env.NODE_ENV === "production" && <SmallScreenNotice />}
