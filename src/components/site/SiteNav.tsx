@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { usePageTransition } from "@/components/PageTransition";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
@@ -48,6 +49,7 @@ const NavItem = ({
   scheduleClose,
   alignRight,
   onSub,
+  onPrefetch,
 }: {
   item: NavItemDef;
   openLabel: string | null;
@@ -55,10 +57,14 @@ const NavItem = ({
   scheduleClose: () => void;
   alignRight: boolean;
   onSub: (sub: string) => void;
+  onPrefetch: (key: string) => void;
 }) => (
   <div
     className="relative flex items-center px-5 -mx-5"
-    onMouseEnter={() => openMenu(item.label)}
+    onMouseEnter={() => {
+      openMenu(item.label);
+      onPrefetch(item.label);
+    }}
     onMouseLeave={scheduleClose}
   >
     <span
@@ -83,6 +89,7 @@ const NavItem = ({
                 <button
                   type="button"
                   onClick={() => onSub(sub)}
+                  onMouseEnter={() => onPrefetch(sub)}
                   className="block text-[14px] uppercase leading-[20px] tracking-[1.4px] opacity-90 transition-opacity hover:opacity-60"
                   style={{ fontFamily: SANS }}
                 >
@@ -112,6 +119,7 @@ const SiteNav = ({
   const [openLabel, setOpenLabel] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const transitionTo = usePageTransition();
+  const router = useRouter();
 
   // Lock body scroll while the full-screen mobile menu is open.
   useEffect(() => {
@@ -160,6 +168,12 @@ const SiteNav = ({
     const to = targets[sub];
     if (to) transitionTo(to);
     setMobileOpen(false);
+  };
+  // Warm the route (and its cached Sanity data) on hover, so the click commits
+  // near-instantly and the crossfade gap stays tiny.
+  const prefetch = (key: string) => {
+    const to = targets[key];
+    if (to) router.prefetch(to);
   };
 
   // Flat list for the mobile menu: top-level labels with their sub-items
@@ -211,6 +225,7 @@ const SiteNav = ({
               scheduleClose={scheduleMenuClose}
               alignRight={false}
               onSub={onSub}
+              onPrefetch={prefetch}
             />
           ))}
           {NAV_RIGHT.map((item) => (
@@ -222,6 +237,7 @@ const SiteNav = ({
               scheduleClose={scheduleMenuClose}
               alignRight
               onSub={onSub}
+              onPrefetch={prefetch}
             />
           ))}
         </div>

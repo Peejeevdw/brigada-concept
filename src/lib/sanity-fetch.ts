@@ -29,6 +29,11 @@ const draftClient = SANITY_PROJECT_ID
     })
   : null;
 
+// Time-based backstop for the published data cache (seconds). The Sanity
+// webhook → /api/revalidate busts the "sanity" tag instantly on edits; this
+// just guarantees freshness if a webhook delivery is ever missed.
+const SANITY_CACHE_REVALIDATE_S = 3600;
+
 /**
  * Server-side GROQ wrapper. Falls back to the published client when Draft
  * Mode is off; otherwise uses the draft client with stega encoding so query
@@ -44,11 +49,12 @@ async function fetch<T>(
   if (!client) return null;
   try {
     return await client.fetch<T>(query, params, {
-      // In production we cache by tag so a webhook can revalidate the
-      // affected pages. In dev we always bypass the cache so editor changes
-      // are reflected on the next request without a server restart.
+      // In production we cache by tag so the /api/revalidate webhook can bust
+      // the affected pages instantly on a Sanity edit. `revalidate` is a
+      // time-based backstop in case the webhook ever misses. In dev we always
+      // bypass the cache so editor changes show on the next request.
       ...(process.env.NODE_ENV === "production"
-        ? { next: { tags: ["sanity", ...tags] } }
+        ? { next: { tags: ["sanity", ...tags], revalidate: SANITY_CACHE_REVALIDATE_S } }
         : { cache: "no-store" as const }),
     });
   } catch (error) {

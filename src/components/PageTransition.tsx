@@ -29,8 +29,8 @@ import { motion } from "framer-motion";
 // Hard cap on how long we stay faded-out waiting for a navigation to commit.
 const NAV_TIMEOUT_MS = 5000;
 
-const LEAVE_S = 0.5; // current page fades out (power1.in)
-const ENTER_S = 0.75; // new page fades in (power1.inOut)
+const LEAVE_S = 0.3; // current page fades out (power1.in)
+const ENTER_S = 0.45; // new page fades in (power1.inOut)
 
 const reduceMotion =
   typeof window !== "undefined" &&

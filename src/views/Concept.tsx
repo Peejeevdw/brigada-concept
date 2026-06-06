@@ -19,6 +19,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrandFooter from "@/components/BrandFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
+import { useRouter } from "next/navigation";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
 import { useCoarsePointer } from "@/lib/useCoarsePointer";
@@ -131,6 +132,7 @@ const CLIENTS = [
 
 const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const transitionTo = usePageTransition();
+  const router = useRouter();
   // Sanity-driven content blocks — read once at render to keep the rest of the
   // component (which manages a lot of scroll choreography) untouched.
   const tagline = data?.intro?.taglines?.length ? data.intro.taglines : [];
@@ -190,6 +192,11 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     const to = NAV_TARGETS[label];
     if (to) transitionTo(to);
     setMobileOpen(false);
+  };
+  // Warm the route on hover so the click commits near-instantly.
+  const navPrefetch = (label: string) => {
+    const to = NAV_TARGETS[label];
+    if (to) router.prefetch(to);
   };
   // Dev-only live tuning (see the on-page panel below).
   const [baseStart, setBaseStart] = useState(42);
@@ -727,7 +734,10 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
               <div
                 key={item.label}
                 className="relative flex items-center px-5 -mx-5"
-                onMouseEnter={() => openMenu(i)}
+                onMouseEnter={() => {
+                  openMenu(i);
+                  navPrefetch(item.label);
+                }}
                 onMouseLeave={scheduleMenuClose}
               >
                 <span
@@ -764,6 +774,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                                 else if (sub === "Product") transitionTo("/product");
                                 else if (sub === "People") transitionTo("/people");
                               }}
+                              onMouseEnter={() => navPrefetch(sub)}
                               className="block text-[14px] uppercase leading-[20px] tracking-[1.4px] opacity-90 transition-opacity hover:opacity-60"
                               style={{ fontFamily: SANS }}
                             >
