@@ -8,7 +8,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PortableText, type PortableTextBlock } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
 import CareersFooter from "@/components/CareersFooter";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { usePageTransition } from "@/components/PageTransition";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -163,8 +166,10 @@ const LabelledSection = ({
 
 const JobDetail = ({ job }: { job: JobData | null }) => {
   const transitionTo = usePageTransition();
-  // Local "sent" state — see TODO at the submit handler for the wiring plan.
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // Smooth scroll — same Lenis setup as /concept + /careers, reduced-motion
   // falls back to native scroll.
@@ -213,11 +218,97 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
     );
   }
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: wire to /api/jobs/apply. Local optimistic state only for now —
-    // intentionally no network call so we surface the UI without a backend.
-    setSent(true);
+    if (submitting) return;
+    if (!job?._id) return;
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setError("Please complete the challenge before sending.");
+      return;
+    }
+    const formEl = e.currentTarget;
+    const formData = new FormData(formEl);
+    const formFields = job.form?.fields ?? [];
+
+    // Split text fields from file fields. Text values go into the JSON
+    // payload; files travel alongside as multipart parts so the API can
+    // upload them to Sanity assets + forward them as email attachments.
+    const payloadFields: Array<{name: string; label: string; value: string}> = [];
+    const fileFields: Array<{name: string; label: string}> = [];
+    const filesToSend: Array<{name: string; blob: File}> = [];
+    for (let i = 0; i < formFields.length; i++) {
+      const f = formFields[i];
+      const name = f.name ?? `f${i}`;
+      const label = f.label ?? name;
+      if (f.type === "file") {
+        const blob = formData.get(name);
+        if (blob && typeof blob !== "string" && (blob as File).size > 0) {
+          const file = blob as File;
+          filesToSend.push({name, blob: file});
+          fileFields.push({name, label});
+          payloadFields.push({
+            name,
+            label,
+            value: `${file.name} (${file.size} bytes)`,
+          });
+        } else {
+          payloadFields.push({name, label, value: ""});
+        }
+      } else {
+        const raw = formData.get(name);
+        payloadFields.push({
+          name,
+          label,
+          value: typeof raw === "string" ? raw : "",
+        });
+      }
+    }
+
+    const payload = {
+      jobId: job._id,
+      jobName: job.name ?? null,
+      jobSlug: job.slug ?? null,
+      fields: payloadFields,
+      fileFields,
+      turnstileToken,
+      pageUrl: typeof window !== "undefined" ? window.location.href : null,
+    };
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      let res: Response;
+      if (filesToSend.length > 0) {
+        const body = new FormData();
+        body.set("payload", JSON.stringify(payload));
+        for (const {name, blob} of filesToSend) body.set(name, blob, blob.name);
+        res = await fetch("/api/jobs/apply", {method: "POST", body});
+      } else {
+        res = await fetch("/api/jobs/apply", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+        });
+      }
+      const json = (await res.json().catch(() => ({}))) as {ok?: boolean; error?: string};
+      if (res.ok && json.ok) {
+        setSent(true);
+      } else {
+        setError(
+          json.error?.startsWith("file-too-large")
+            ? "One of the files is larger than 5 MB. Please send a smaller file."
+            : json.error === "files-total-too-large"
+              ? "Attached files exceed the 8 MB limit."
+              : json.error === "turnstile:rejected"
+                ? "The challenge couldn't be verified. Reload and try again."
+                : "Something went wrong. Please try again or email us directly.",
+        );
+      }
+    } catch {
+      setError("Couldn't reach the server. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const city = job.location?.city || job.location?.title || "";
@@ -453,12 +544,28 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
                             </div>
                           );
                         })}
+                        {TURNSTILE_SITE_KEY && (
+                          <div className="sm:col-span-2">
+                            <TurnstileWidget
+                              siteKey={TURNSTILE_SITE_KEY}
+                              action="job-apply"
+                              onVerify={setTurnstileToken}
+                              onExpire={() => setTurnstileToken(null)}
+                            />
+                          </div>
+                        )}
+                        {error && (
+                          <p className="sm:col-span-2 text-[clamp(13px,1vw,15px)] text-red-700">
+                            {error}
+                          </p>
+                        )}
                         <div className="sm:col-span-2">
                           <button
                             type="submit"
-                            className="group flex items-center gap-2 bg-brigada-black px-[clamp(32px,3vw,48px)] py-[clamp(16px,1.4vw,20px)] text-[clamp(13px,1.05vw,15px)] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
+                            disabled={submitting}
+                            className="group flex items-center gap-2 bg-brigada-black px-[clamp(32px,3vw,48px)] py-[clamp(16px,1.4vw,20px)] text-[clamp(13px,1.05vw,15px)] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80 disabled:opacity-50"
                           >
-                            <span>{submitLabel}</span>
+                            <span>{submitting ? "Sending…" : submitLabel}</span>
                             <span className="relative top-[-1px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
                               →
                             </span>

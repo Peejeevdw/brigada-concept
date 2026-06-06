@@ -7,7 +7,10 @@ import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import BrandFooter from "@/components/BrandFooter";
 import { BrioEffect } from "@/brio-effect";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { GUTTER, INK } from "@/lib/siteTokens";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 // Contact page — built on the shared site foundation in the new-style idiom.
 // Section rhythm follows the brief: hero (modelled on /careers-v2) → contact
@@ -80,10 +83,56 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
   });
 
   const [sent, setSent] = useState(false);
-  const onSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // No backend yet — acknowledge locally so the interaction feels complete.
-    setSent(true);
+    if (submitting) return;
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setError("Please complete the challenge before sending.");
+      return;
+    }
+    const formEl = e.currentTarget;
+    const formData = new FormData(formEl);
+    const payloadFields = fields.map((f, i) => {
+      const name = f.name ?? `f${i}`;
+      const value = formData.get(name);
+      return {
+        name,
+        label: f.label ?? name,
+        value: typeof value === "string" ? value : "",
+      };
+    });
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          fields: payloadFields,
+          turnstileToken,
+          pageUrl: typeof window !== "undefined" ? window.location.href : null,
+        }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {ok?: boolean; error?: string};
+      if (res.ok && json.ok) {
+        setSent(true);
+      } else {
+        setError(
+          json.error === "turnstile:rejected"
+            ? "The challenge couldn't be verified. Reload and try again."
+            : "Something went wrong on our end. Please try again or email us directly.",
+        );
+      }
+    } catch {
+      setError("Couldn't reach the server. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Shared input styling — transparent field with a single ink underline.
@@ -240,12 +289,24 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
                         </div>
                       );
                     })}
+                    {TURNSTILE_SITE_KEY && (
+                      <TurnstileWidget
+                        siteKey={TURNSTILE_SITE_KEY}
+                        action="contact-form"
+                        onVerify={setTurnstileToken}
+                        onExpire={() => setTurnstileToken(null)}
+                      />
+                    )}
+                    {error && (
+                      <p className="text-[clamp(13px,1vw,15px)] text-red-700">{error}</p>
+                    )}
                     <div>
                       <button
                         type="submit"
-                        className="group flex w-full items-center justify-center gap-2 bg-brigada-black py-[clamp(16px,1.4vw,20px)] text-[clamp(15px,1.25vw,18px)] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
+                        disabled={submitting}
+                        className="group flex w-full items-center justify-center gap-2 bg-brigada-black py-[clamp(16px,1.4vw,20px)] text-[clamp(15px,1.25vw,18px)] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80 disabled:opacity-50"
                       >
-                        <span>{submitLabel}</span>
+                        <span>{submitting ? "Sending…" : submitLabel}</span>
                         <span className="relative top-[-1px] inline-block transition-transform duration-300 ease-out group-hover:translate-x-1">
                           →
                         </span>

@@ -18,7 +18,6 @@ import {statBlock} from './objects/blocks/statBlock'
 
 // Documents
 import {locale} from './documents/locale'
-import {translationNamespace} from './documents/translationNamespace'
 import {expertise} from './documents/expertise'
 import {job} from './documents/job'
 import {person} from './documents/person'
@@ -26,6 +25,7 @@ import {work} from './documents/work'
 import {location} from './documents/location'
 import {menu} from './documents/menu'
 import {legalPage} from './documents/legalPage'
+import {formSubmission} from './documents/formSubmission'
 
 // Singletons
 import {homePage} from './singletons/homePage'
@@ -59,7 +59,6 @@ export const schemaTypes = [
 
   // Documents
   locale,
-  translationNamespace,
   expertise,
   job,
   person,
@@ -67,6 +66,7 @@ export const schemaTypes = [
   location,
   menu,
   legalPage,
+  formSubmission,
 
   // Singletons
   homePage,

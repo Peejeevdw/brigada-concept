@@ -145,16 +145,29 @@ export default defineConfig({
         const type = templateId.replace(/-by-locale$/, '')
         if (LOCALIZED_TYPES.includes(type)) return false
         if (type === 'locale') return isAdmin
+        // Submissions only come from the website API.
+        if (type === 'formSubmission') return false
         return type !== 'translation.metadata'
       })
     },
-    // Strip destructive doc actions on every singleton.
-    actions: (prev, {schemaType}) =>
-      isSingletonType(schemaType)
-        ? prev.filter(({action}) =>
-            action ? !['duplicate', 'unpublish', 'delete'].includes(action) : true,
-          )
-        : prev,
+    // Strip destructive doc actions on every singleton, and lock down
+    // `formSubmission` to view-only — submissions come from the website API,
+    // never from the Studio.
+    actions: (prev, {schemaType}) => {
+      if (schemaType === 'formSubmission') {
+        return prev.filter(({action}) =>
+          action
+            ? !['publish', 'unpublish', 'duplicate', 'delete', 'restore'].includes(action)
+            : false,
+        )
+      }
+      if (isSingletonType(schemaType)) {
+        return prev.filter(({action}) =>
+          action ? !['duplicate', 'unpublish', 'delete'].includes(action) : true,
+        )
+      }
+      return prev
+    },
     unstable_languageFilter: (prev, ctx) => {
       if (LOCALIZED_TYPES.includes(ctx.schemaType) && ctx.documentId) {
         const documentId = ctx.documentId
