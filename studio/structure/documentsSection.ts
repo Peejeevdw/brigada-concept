@@ -22,7 +22,6 @@ const FIELD_TRANSLATED_DOCUMENT_ITEMS: ReadonlyArray<{
 }> = [
   {schemaType: 'location', title: 'Offices'},
   {schemaType: 'menu', title: 'Menus'},
-  {schemaType: 'translationNamespace', title: 'UI text translations'},
 ]
 
 function localizedDocumentList(
