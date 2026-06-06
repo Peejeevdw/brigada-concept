@@ -63,7 +63,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <SiteChromeProvider value={chrome}>
           <Providers>{children}</Providers>
         </SiteChromeProvider>
-        <SmallScreenNotice />
+        {/* Production only — keeps visitors gated below 1240px while mobile is
+            still in progress, but doesn't block local mobile development. */}
+        {process.env.NODE_ENV === "production" && <SmallScreenNotice />}
         {isDraft && <DraftModeBanner />}
       </body>
     </html>
