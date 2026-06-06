@@ -5,7 +5,7 @@ import {socialLink} from './objects/socialLink'
 import {seo} from './objects/seo'
 import {link} from './objects/link'
 import {submenuItem} from './objects/submenuItem'
-import {caseMedia} from './objects/caseMedia'
+import {caseMedia, caseHeroMedia} from './objects/caseMedia'
 import {galleryRow} from './objects/galleryRow'
 
 // Page builder blocks (case-story focused)
@@ -46,6 +46,7 @@ export const schemaTypes = [
   link,
   submenuItem,
   caseMedia,
+  caseHeroMedia,
   galleryRow,
 
   // Page builder blocks

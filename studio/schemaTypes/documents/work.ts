@@ -12,6 +12,7 @@ export const work = defineType({
   groups: [
     {name: 'general', title: 'General', default: true},
     {name: 'layout', title: 'Case layout'},
+    {name: 'projectInfo', title: 'Project info'},
     {name: 'related', title: 'Related'},
     {name: 'seo', title: 'SEO'},
   ],
@@ -118,7 +119,7 @@ export const work = defineType({
     defineField({
       name: 'hero',
       title: 'Hero',
-      type: 'caseMedia',
+      type: 'caseHeroMedia',
       group: 'layout',
       description: 'Full-bleed image or video at the very top of the case.',
     }),
@@ -126,7 +127,7 @@ export const work = defineType({
       name: 'projectInfo',
       title: 'Project info',
       type: 'object',
-      group: 'layout',
+      group: 'projectInfo',
       description: 'Shown in the slide-in "Project info" drawer.',
       fields: [
         defineField({

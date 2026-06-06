@@ -18,6 +18,9 @@ type Options = {
   loop?: boolean // mobile background-loop URL (reel)
   poster?: boolean // mobile poster image
   gateOnVideoKind?: boolean
+  sourceNote?: string // appended to the mobile video source descriptions (e.g. aspect ratio)
+  posterNote?: string // appended to the mobile poster description (e.g. exact size)
+  hlsNote?: string // when set, marks the mobile HLS URL as deprecated (don't-use note + ⚠️ title)
 }
 
 export function mobileVideoFields({
@@ -27,7 +30,11 @@ export function mobileVideoFields({
   loop = false,
   poster = true,
   gateOnVideoKind = false,
+  sourceNote,
+  posterNote,
+  hlsNote,
 }: Options = {}) {
+  const withNote = (base: string, note?: string) => (note ? `${base} ${note}` : base)
   const kindHidden = (parent?: MobileParent) =>
     gateOnVideoKind && parent?.kind !== 'video'
   const toggleHidden = ({parent}: {parent?: MobileParent}) => kindHidden(parent)
@@ -52,8 +59,10 @@ export function mobileVideoFields({
         name: 'mobileVimeoId',
         title: 'Mobile — Vimeo ID',
         type: 'string',
-        description:
+        description: withNote(
           'Optional. Mobile-only Vimeo ID (add /hash for unlisted). Falls back to the desktop video when blank.',
+          sourceNote,
+        ),
         hidden: fieldHidden,
       }),
     )
@@ -62,9 +71,11 @@ export function mobileVideoFields({
     fields.push(
       defineField({
         name: 'mobileHlsUrl',
-        title: 'Mobile — HLS URL',
+        title: hlsNote ? '⚠️ Mobile — HLS URL (don’t use)' : 'Mobile — HLS URL',
         type: 'url',
-        description: 'Optional Bunny / Mux .m3u8 for mobile. Falls back to desktop when blank.',
+        description:
+          hlsNote ??
+          withNote('Optional Bunny / Mux .m3u8 for mobile. Falls back to desktop when blank.', sourceNote),
         hidden: fieldHidden,
       }),
     )
@@ -99,7 +110,10 @@ export function mobileVideoFields({
         title: 'Mobile — poster image',
         type: 'image',
         options: {hotspot: true},
-        description: 'Optional mobile placeholder. Falls back to the desktop poster when blank.',
+        description: withNote(
+          'Optional mobile placeholder. Falls back to the desktop poster when blank.',
+          posterNote,
+        ),
         hidden: fieldHidden,
         fields: [
           defineField({
