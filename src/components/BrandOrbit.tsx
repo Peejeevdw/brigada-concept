@@ -212,7 +212,7 @@ const BrandOrbit = () => {
   return (
     <section ref={containerRef} data-orbit-tiles-init className="orbit-tiles">
       <style>{`
-        .orbit-tiles { justify-content: center; align-items: center; width: 100%; height: 900px; padding-bottom: 120px; display: flex; position: relative; overflow: clip; background-color: ${BRIGADA_BLACK}; }
+        .orbit-tiles { justify-content: center; align-items: center; width: 100%; height: clamp(480px, 70vh, 900px); padding-bottom: clamp(48px, 12vw, 120px); display: flex; position: relative; overflow: clip; background-color: ${BRIGADA_BLACK}; }
         .orbit-tiles__collection { justify-content: center; align-items: center; display: flex; position: relative; }
         .orbit-tiles__list { place-items: center; display: grid; }
         .orbit-tiles__item { will-change: transform, opacity, filter; grid-area: 1 / 1; justify-content: center; align-items: center; width: max-content; height: max-content; display: flex; }

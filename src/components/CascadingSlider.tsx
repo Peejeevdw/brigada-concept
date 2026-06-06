@@ -247,8 +247,14 @@ const CascadingSlider = ({
       const handler = () => {
         if (index !== activeIndex) goTo(index);
       };
+      // mouseenter for pointer devices; click so touch users can tap a sibling
+      // slide to bring it to the front (mouseenter never fires on touch).
       slide.addEventListener("mouseenter", handler);
-      return () => slide.removeEventListener("mouseenter", handler);
+      slide.addEventListener("click", handler);
+      return () => {
+        slide.removeEventListener("mouseenter", handler);
+        slide.removeEventListener("click", handler);
+      };
     });
 
     const onKeydown = (event: KeyboardEvent) => {

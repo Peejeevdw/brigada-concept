@@ -21,6 +21,7 @@ import BrandFooter from "@/components/BrandFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
+import { useCoarsePointer } from "@/lib/useCoarsePointer";
 import { urlFor } from "@/lib/sanity";
 import { BrioEffect } from "@/brio-effect";
 
@@ -284,6 +285,22 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const heroRef = useRef<HTMLElement>(null);
   const collectionRef = useRef<HTMLDivElement>(null);
 
+  // Touch devices have no cursor, so the "Watch case" pill and image-preview
+  // followers below never show — skip their pointer tracking and rendering.
+  const isCoarse = useCoarsePointer();
+
+  // Mobile (<768px) gets a different hero arrangement. Driven from JS + inline
+  // styles (not new Tailwind classes) so tweaks come through HMR without a
+  // dev-server restart. Starts false on SSR, resolves after mount.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767.98px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
   // Custom cursor: a "Watch case" pill that trails the real cursor (with delay)
   // while hovering a case visual. The native cursor stays visible.
   // (Shared cursorX/Y also drives the award image-preview follower below.)
@@ -293,13 +310,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const pillX = useSpring(cursorX, { stiffness: 180, damping: 17, mass: 0.7 });
   const pillY = useSpring(cursorY, { stiffness: 180, damping: 17, mass: 0.7 });
   useEffect(() => {
+    if (isCoarse) return;
     const move = (e: PointerEvent) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
     };
     window.addEventListener("pointermove", move, { passive: true });
     return () => window.removeEventListener("pointermove", move);
-  }, [cursorX, cursorY]);
+  }, [cursorX, cursorY, isCoarse]);
 
   // Image-preview cursor-follower for the awards list ("Proud not loud").
   // Hovering an award shows that case's visual, trailing the cursor.
@@ -939,6 +957,9 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         </div>
       )}
 
+      {/* Cursor-follower effects — only on devices with a real pointer. */}
+      {!isCoarse && (
+      <>
       {/* Custom cursor — delayed "Watch case" pill trailing the real cursor */}
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[100]"
@@ -1018,14 +1039,24 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           </AnimatePresence>
         </div>
       </motion.div>
+      </>
+      )}
 
       {/* Scroll track — drives the pinned hero through its states */}
       <section ref={heroRef} className="relative z-10" style={{ height: `${heroVh}vh` }}>
         <div className="sticky top-0 h-screen select-none overflow-hidden bg-brigada-black">
-          {/* Background reel */}
+          {/* Background reel — full-bleed on desktop; a centred 90vh band on
+              mobile (5vh black above/below). */}
           <motion.div
-            className="absolute inset-0 z-0"
-            style={{ opacity: bgOpacity, scale: bgScale }}
+            className="absolute z-0"
+            style={{
+              opacity: bgOpacity,
+              scale: bgScale,
+              left: 0,
+              right: 0,
+              top: isMobile ? "5vh" : 0,
+              bottom: isMobile ? "5vh" : 0,
+            }}
           >
             <video
               // iOS only autoplays when the `muted` *property* is set on the
@@ -1103,7 +1134,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             </motion.div>
           </div>
 
-          {/* Tagline — SHARP · BEATS · LOUD (sits above the paragraph) */}
+          {/* Tagline — SHARP · BEATS · LOUD. Desktop only: the horizontal row. */}
+          {!isMobile && (
           <motion.div
             style={{ color: textColor }}
             className="absolute inset-x-0 top-[76vh] px-[clamp(24px,5vw,72px)]"
@@ -1123,6 +1155,44 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             ))}
             </motion.div>
           </motion.div>
+          )}
+
+          {/* Mobile tagline — SHARP / BEATS / LOUD stacked vertically under the
+              (centred) logo, over the 90vh reel. Inline styles so tweaks come
+              through HMR without a restart. top / fontSize are tunable. */}
+          {isMobile && (
+          <motion.div
+            style={{
+              color: textColor,
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: "56%",
+              paddingLeft: 24,
+              paddingRight: 24,
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 0.9 }}>
+              {tagline.map((word, i) => (
+                <motion.span
+                  key={`m-${word}-${i}`}
+                  style={{
+                    fontFamily: SANS,
+                    fontStretch: "125%",
+                    fontSize: "clamp(44px,14vw,88px)",
+                    textTransform: "uppercase",
+                    letterSpacing: "-0.015em",
+                  }}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                  transition={{ duration: 0.55, ease: EASE_OUT, delay: revealed ? 0.05 + i * 0.12 : 0 }}
+                >
+                  {word}
+                </motion.span>
+              ))}
+            </div>
+          </motion.div>
+          )}
 
           {/* Paragraph — 2 lines, auto-sized; moves with the group (constant gap to baseline) */}
           <motion.div
