@@ -11,6 +11,7 @@ import BlurImage from "@/components/BlurImage";
 import { SANS } from "@/lib/siteTokens";
 import { urlFor } from "@/lib/sanity";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import {
   Accordion,
   AccordionItem,
@@ -634,6 +635,12 @@ export default function CaseLayout({
         .filter((s): s is CascadingSlide => s !== null),
     [data?.relatedCases],
   );
+  // Match the document canvas to this case's theme so a page crossfade never
+  // flashes the wrong colour through the gap. Derived before the early return
+  // (and from data, not `c`) so the hook order stays stable. Light cases land
+  // on the light CSS default anyway.
+  useCanvasColor((data?.darkMode ? THEME.dark : THEME.light).bg);
+
   const c = fromSanity(data) ?? (mockFallback ? mock ?? null : null);
   if (!c) return null;
 

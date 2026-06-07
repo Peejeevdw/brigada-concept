@@ -142,7 +142,12 @@ All colors MUST be HSL.
   }
 
   html {
-    background-color: #2D2928;
+    /* Light base canvas, matching <body>'s --background. <html> (not <body>)
+       is the canvas the browser paints behind everything, so this is what a
+       page crossfade exposes in the gap between pages. Dark pages — the
+       homepage and dark cases — override it per-page via useCanvasColor; every
+       light page just inherits this, so the gap never flashes black. */
+    background-color: hsl(45 36% 93%);
   }
 
   body {

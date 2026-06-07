@@ -22,6 +22,7 @@ import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import { useRouter } from "next/navigation";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { useCoarsePointer } from "@/lib/useCoarsePointer";
 import { urlFor } from "@/lib/sanity";
 import { BrioEffect } from "@/brio-effect";
@@ -133,6 +134,9 @@ const CLIENTS = [
 const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const transitionTo = usePageTransition();
   const router = useRouter();
+  // The homepage opens on the dark hero, so claim a dark document canvas — keeps
+  // a crossfade into the homepage from flashing the light default through the gap.
+  useCanvasColor(BRIGADA_BLACK);
   // Sanity-driven content blocks — read once at render to keep the rest of the
   // component (which manages a lot of scroll choreography) untouched.
   const tagline = data?.intro?.taglines?.length ? data.intro.taglines : [];
