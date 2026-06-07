@@ -59,9 +59,6 @@ export default function Preloader() {
       return;
     }
 
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     let loaded = document.readyState === "complete";
     const onLoad = () => {
       loaded = true;
@@ -96,9 +93,22 @@ export default function Preloader() {
       window.removeEventListener("load", onLoad);
       window.clearTimeout(maxTimer);
       window.clearTimeout(dismissTimer);
-      document.body.style.overflow = prevOverflow;
     };
   }, []);
+
+  // Lock body scroll only while the overlay is visible, and release it the
+  // instant it dismisses (setShow(false)) — not on unmount, which never happens
+  // since Preloader lives in the root layout for the whole session. Tying the
+  // lock to `show` was the fix for the case-detail "can't scroll" bug: the
+  // overflow:hidden set on mount used to linger after the preloader faded.
+  useEffect(() => {
+    if (!show) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [show]);
 
   return (
     <AnimatePresence>
