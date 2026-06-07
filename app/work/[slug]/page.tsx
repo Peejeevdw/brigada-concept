@@ -1,6 +1,16 @@
 import WorkDetail, { type WorkDocData } from "@/views/WorkDetail";
 import CaseLayout, { type WorkLayoutData } from "@/views/CaseLayout";
-import { getWork } from "@/lib/sanity-fetch";
+import { getWork, getWorkSlugs } from "@/lib/sanity-fetch";
+
+// Prerender every case at build time so /work/[slug] is static + ISR instead
+// of server-rendered on demand — this is what makes navigating into a case
+// near-instant. New slugs not built yet are rendered on first request and
+// cached (dynamicParams defaults to true); draft mode still bypasses to a
+// fresh dynamic render for editor preview.
+export async function generateStaticParams() {
+  const slugs = await getWorkSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 export default async function WorkDetailPage({
   params,

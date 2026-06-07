@@ -63,6 +63,33 @@ async function fetch<T>(
   }
 }
 
+/**
+ * Slug lists for `generateStaticParams`. These run at build time (outside a
+ * request), where `draftMode()` isn't available — so they bypass the
+ * draft-aware `fetch()` wrapper and hit the published client directly. Tagged
+ * + time-revalidated like every other production read, so the /api/revalidate
+ * webhook re-runs them when a case/job is added or removed.
+ */
+async function publishedSlugs(type: string, tag: string): Promise<string[]> {
+  if (!sanityClient) return [];
+  try {
+    const slugs = await sanityClient.fetch<string[]>(
+      groq`*[_type == $type && defined(slug.current)].slug.current`,
+      { type },
+      process.env.NODE_ENV === "production"
+        ? { next: { tags: ["sanity", tag], revalidate: SANITY_CACHE_REVALIDATE_S } }
+        : { cache: "no-store" as const },
+    );
+    return Array.from(new Set(slugs ?? []));
+  } catch (error) {
+    console.error(`Sanity slug query failed for "${type}":`, error);
+    return [];
+  }
+}
+
+export const getWorkSlugs = () => publishedSlugs("work", "work");
+export const getJobSlugs = () => publishedSlugs("job", "job");
+
 // ---------- Common projections ----------
 
 const I18N_STRING = `coalesce(
