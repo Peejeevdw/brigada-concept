@@ -14,10 +14,14 @@ const HlsBackgroundVideo = ({
   src,
   className = "",
   poster,
+  onPlaying,
 }: {
   src: string;
   className?: string;
   poster?: string;
+  // Fires once the first frame has actually been painted (first `timeupdate`),
+  // so an overlaying poster can fade away without exposing a black gap.
+  onPlaying?: () => void;
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -28,6 +32,9 @@ const HlsBackgroundVideo = ({
     // Background video must be muted to satisfy autoplay policies.
     video.muted = true;
     video.playsInline = true;
+
+    const onFirstFrame = () => onPlaying?.();
+    video.addEventListener("timeupdate", onFirstFrame, { once: true });
 
     const tryPlay = () => {
       const p = video.play();
@@ -51,12 +58,13 @@ const HlsBackgroundVideo = ({
     }
 
     return () => {
+      video.removeEventListener("timeupdate", onFirstFrame);
       if (hls) {
         try { hls.destroy(); } catch (_) { /* noop */ }
       }
       try { video.pause(); } catch (_) { /* noop */ }
     };
-  }, [src]);
+  }, [src, onPlaying]);
 
   return (
     <video

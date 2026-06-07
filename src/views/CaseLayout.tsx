@@ -1,7 +1,8 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Drawer } from "vaul";
+import Player from "@vimeo/player";
 import SiteNav from "@/components/site/SiteNav";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import CascadingSlider, { type CascadingSlide } from "@/components/CascadingSlider";
@@ -248,14 +249,44 @@ function CaseVideo({
   src,
   className,
   controls = false,
+  onPlaying,
 }: {
   src: string;
   className: string;
   controls?: boolean;
+  // Fires once a real frame is painted, so a poster overlay can fade without a
+  // black flash. Vimeo reports it via the player API; <video>/HLS via the
+  // element's first `timeupdate`.
+  onPlaying?: () => void;
 }) {
-  if (src.includes("player.vimeo.com")) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const isVimeo = src.includes("player.vimeo.com");
+
+  // Attach the Vimeo player API to the existing iframe and fade the poster on
+  // the first `timeupdate` (= playback actually advanced → a frame is up).
+  useEffect(() => {
+    if (!isVimeo || !onPlaying) return;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const player = new Player(iframe);
+    let fired = false;
+    const onFirstFrame = () => {
+      if (fired) return;
+      fired = true;
+      onPlaying();
+    };
+    player.on("timeupdate", onFirstFrame);
+    return () => {
+      // Don't destroy(): React owns this iframe and destroy() would rip it out
+      // of the DOM. Just drop our listener.
+      player.off("timeupdate", onFirstFrame);
+    };
+  }, [isVimeo, onPlaying, src]);
+
+  if (isVimeo) {
     return (
       <iframe
+        ref={iframeRef}
         src={src}
         className={className}
         title=""
@@ -267,7 +298,7 @@ function CaseVideo({
     );
   }
   const isHls = /\.m3u8(\?|#|$)/i.test(src);
-  if (isHls) return <HlsBackgroundVideo src={src} className={className} />;
+  if (isHls) return <HlsBackgroundVideo src={src} className={className} onPlaying={onPlaying} />;
   return (
     <video
       src={src}
@@ -276,6 +307,7 @@ function CaseVideo({
       loop
       playsInline
       className={className}
+      onTimeUpdate={onPlaying ? () => onPlaying() : undefined}
     />
   );
 }
@@ -290,16 +322,22 @@ function PosteredVideo({ media, eager = false }: { media: Media; eager?: boolean
   const hasPoster = !!(media.poster || media.lqip);
   const ref = useRef<HTMLDivElement>(null);
   const [covered, setCovered] = useState(true);
+  const reveal = useCallback(() => setCovered(false), []);
 
+  // Keep the poster up until the player paints a real frame (onPlaying from
+  // CaseVideo), so it never crossfades to a black mid-buffer iframe. A vangnet
+  // timeout — armed only once the box scrolls into view — still reveals if the
+  // playback events never arrive (e.g. autoplay blocked), so the poster can't
+  // get stuck on screen.
   useEffect(() => {
     if (!hasPoster) return;
     const el = ref.current;
     if (!el) return;
-    let revealTimer: number | undefined;
+    let fallback: number | undefined;
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          revealTimer = window.setTimeout(() => setCovered(false), 450);
+          fallback = window.setTimeout(reveal, 4000);
           io.disconnect();
         }
       },
@@ -308,15 +346,16 @@ function PosteredVideo({ media, eager = false }: { media: Media; eager?: boolean
     io.observe(el);
     return () => {
       io.disconnect();
-      window.clearTimeout(revealTimer);
+      window.clearTimeout(fallback);
     };
-  }, [hasPoster]);
+  }, [hasPoster, reveal]);
 
   return (
     <div ref={ref} className="absolute inset-0">
       <CaseVideo
         src={media.src}
         controls={media.controls}
+        onPlaying={hasPoster ? reveal : undefined}
         className="absolute inset-0 h-full w-full object-cover"
       />
       {hasPoster && (
