@@ -33,8 +33,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ]);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        {/* No-flash preloader gate: runs before first paint. If the intro
+            already played this session, mark <html> so CSS hides the overlay
+            instantly — otherwise a full page load (e.g. a direct visit) would
+            briefly re-show the blurred wordmark before React can hide it. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(sessionStorage.getItem('brigada-preloaded'))document.documentElement.classList.add('preloaded')}catch(e){}",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

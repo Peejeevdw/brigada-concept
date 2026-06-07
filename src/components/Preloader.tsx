@@ -114,6 +114,7 @@ export default function Preloader() {
     <AnimatePresence>
       {show && (
         <motion.div
+          data-preloader
           className={`fixed inset-0 z-[9990] flex items-center justify-center overflow-hidden ${
             isDark ? "bg-brigada-black" : "bg-white"
           }`}

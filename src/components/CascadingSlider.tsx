@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
+import { usePageTransition } from "@/components/PageTransition";
 
 const productCase1 = "/assets/product-case-1.png";
 const productCase2 = "/assets/product-case-2.png";
@@ -33,6 +34,7 @@ const CascadingSlider = ({
   ariaLabel?: string;
 } = {}) => {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const transitionTo = usePageTransition();
 
   useEffect(() => {
     const wrapper = wrapRef.current;
@@ -338,6 +340,15 @@ const CascadingSlider = ({
                     href={s.href}
                     aria-label={s.title}
                     className="absolute inset-0 z-[3]"
+                    onClick={(e) => {
+                      // Route internal links through the in-app crossfade so a
+                      // related-case click is a client navigation, not a full
+                      // page load (which would remount the intro preloader).
+                      if (s.href?.startsWith("/")) {
+                        e.preventDefault();
+                        transitionTo(s.href);
+                      }
+                    }}
                   />
                 )}
               </div>

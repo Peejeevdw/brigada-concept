@@ -141,6 +141,13 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  /* No-flash preloader: when the inline head gate finds the intro already
+     played this session, it adds .preloaded to <html> before first paint, so
+     the overlay never shows on a repeat full load (no blurred-wordmark flash). */
+  html.preloaded [data-preloader] {
+    display: none !important;
+  }
+
   html {
     /* Light base canvas, matching <body>'s --background. <html> (not <body>)
        is the canvas the browser paints behind everything, so this is what a
