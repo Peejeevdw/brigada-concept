@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { VisualEditing } from "@sanity/visual-editing/react";
 
 /**
@@ -16,6 +16,7 @@ import { VisualEditing } from "@sanity/visual-editing/react";
  */
 export function DraftModeBanner() {
   const pathname = usePathname() ?? "/";
+  const router = useRouter();
   const [isPresentationFrame, setIsPresentationFrame] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,15 @@ export function DraftModeBanner() {
         <span className="h-2 w-2 rounded-full bg-emerald-400" />
         Draft mode · Exit preview
       </a>
-      {isPresentationFrame && <VisualEditing />}
+      {isPresentationFrame && (
+        <VisualEditing
+          refresh={async (payload) => {
+            // `mutation` fires when Studio writes a change. Re-fetch server
+            // data so the iframe shows it without a manual reload.
+            if (payload.source === "mutation") router.refresh();
+          }}
+        />
+      )}
     </>
   );
 }

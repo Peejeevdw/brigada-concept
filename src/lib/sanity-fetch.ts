@@ -51,11 +51,12 @@ async function fetch<T>(
     return await client.fetch<T>(query, params, {
       // In production we cache by tag so the /api/revalidate webhook can bust
       // the affected pages instantly on a Sanity edit. `revalidate` is a
-      // time-based backstop in case the webhook ever misses. In dev we always
-      // bypass the cache so editor changes show on the next request.
-      ...(process.env.NODE_ENV === "production"
-        ? { next: { tags: ["sanity", ...tags], revalidate: SANITY_CACHE_REVALIDATE_S } }
-        : { cache: "no-store" as const }),
+      // time-based backstop in case the webhook ever misses. In dev — and in
+      // draft mode (Studio Presentation) — we always bypass the cache so
+      // editor changes are visible on the next request.
+      ...(isDraft || process.env.NODE_ENV !== "production"
+        ? { cache: "no-store" as const }
+        : { next: { tags: ["sanity", ...tags], revalidate: SANITY_CACHE_REVALIDATE_S } }),
     });
   } catch (error) {
     console.error("Sanity query failed:", error);
