@@ -165,7 +165,6 @@ const WORK_LIST_PROJECTION = `{
   client,
   intro,
   year,
-  code,
   featured,
   "slug": slug.current,
   image,

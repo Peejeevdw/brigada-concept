@@ -81,14 +81,21 @@ export type WorkLayoutData = {
   relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown; lqip?: string | null } | null)[] | null;
 };
 
-function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
+function toMedia(
+  sm?: SanityMedia | null,
+  width = 1600,
+  opts: {forceNoControls?: boolean} = {},
+): Media | null {
   if (!sm) return null;
   if (sm.kind === "video") {
     // A Vimeo ID wins over a Bunny/MP4 source; both render as a muted autoplay
     // loop. We resolve the ID to a player URL here so CaseVideo just sees a
     // vimeo.com src and renders the iframe. `aspect` (Vimeo's real ratio) lets
     // the gallery size the video to its own shape instead of cropping it.
-    const controls = !!sm.showControls;
+    //
+    // `forceNoControls` overrides any `showControls=true` on the doc — used by
+    // the case hero, which always plays as a silent background loop.
+    const controls = opts.forceNoControls ? false : !!sm.showControls;
     const src = (sm.vimeoId && vimeoEmbedSrc(sm.vimeoId, controls)) || sm.videoUrl;
     if (!src) return null;
     // A poster fills the box while the player loads / repaints. Prefer the
@@ -130,6 +137,12 @@ function toMedia(sm?: SanityMedia | null, width = 1600): Media | null {
     };
   }
   if (sm.image) {
+    // An image object can carry alt + crop + hotspot metadata while its
+    // `asset` ref is still empty (editor started filling in fields without
+    // uploading a file). `urlFor` throws on that shape, which used to break
+    // the whole page — bail out cleanly so the placeholder shows instead.
+    const hasAsset = !!(sm.image as { asset?: unknown }).asset;
+    if (!hasAsset) return null;
     // Size per slot (fit:max never upscales past the source) and let Sanity
     // pick webp/avif via auto:format, so we don't ship 2000px images into a
     // small gallery cell.
@@ -183,7 +196,12 @@ export function fromSanity(data: WorkLayoutData | null): CaseData | null {
     })
     .filter((r) => r.items.length > 0);
 
-  const hero = toMedia(data.hero, 1920);
+  // Hero always plays as a silent background loop — no chrome — regardless
+  // of any legacy `showControls=true` on the doc. The Studio toggle for that
+  // is gone on hero now; this override keeps already-published data sane.
+  // Also request a large Sanity image for the hero poster so it lands sharp
+  // on retina hero-sized screens (LCP candidate).
+  const hero = toMedia(data.hero, 3840, {forceNoControls: true});
 
   // Nothing meaningful filled in yet.
   if (!hero && sections.length === 0 && gallery.length === 0) return null;

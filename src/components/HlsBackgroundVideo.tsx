@@ -48,7 +48,19 @@ const HlsBackgroundVideo = ({
       video.src = src;
       video.addEventListener("loadedmetadata", tryPlay, { once: true });
     } else if (Hls.isSupported()) {
-      hls = new Hls({ maxBufferLength: 10 });
+      // Tuned for case heroes + gallery clips:
+      // - `capLevelToPlayerSize` keeps us from streaming a 4k variant into a
+      //   1080p box (saves bandwidth without losing perceived quality).
+      // - `abrEwmaDefaultEstimate` seeds the bandwidth estimator high so the
+      //   first segment lands at a high-quality variant on a normal
+      //   broadband connection, instead of starting at the lowest rung and
+      //   ramping up.
+      // - Bigger buffer = smoother loop with fewer rebuffers.
+      hls = new Hls({
+        maxBufferLength: 30,
+        capLevelToPlayerSize: true,
+        abrEwmaDefaultEstimate: 5_000_000,
+      });
       hls.loadSource(src);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, tryPlay);
