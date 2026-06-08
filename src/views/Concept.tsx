@@ -1386,49 +1386,15 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                     className="flex flex-col gap-[clamp(6px,0.6vw,10px)]"
                     style={{ fontFamily: SANS }}
                   >
-                    {categories.map((cat) => {
-                      const catImg = cat?.image
-                        ? urlFor(cat.image)?.width(80).height(80).fit("crop").auto("format").url()
-                        : null;
-                      // Brio palette → a single representative hex so missing
-                      // images still get a coloured swatch instead of a hole.
-                      const SWATCH_BY_PALETTE: Record<string, string> = {
-                        "brio-02": "#7DDB9C",
-                        "brio-03": "#5BB8FF",
-                        "brio-04": "#FFB14A",
-                        "brio-05": "#E879F9",
-                        "brio-06": "#F87171",
-                      };
-                      const swatch = cat?.brioPaletteId
-                        ? SWATCH_BY_PALETTE[cat.brioPaletteId]
-                        : null;
-                      return (
-                        <li
-                          key={cat?._id ?? cat?.name}
-                          className="flex items-center gap-[clamp(8px,0.8vw,12px)] text-[clamp(11px,0.85vw,13px)] uppercase tracking-[0.08em] leading-none opacity-90"
-                          style={{ fontWeight: 500 }}
-                        >
-                          <span
-                            className="inline-block size-[clamp(18px,1.6vw,22px)] shrink-0 overflow-hidden rounded-full"
-                            style={{
-                              backgroundColor: swatch ?? "currentColor",
-                              opacity: catImg ? 1 : 0.85,
-                            }}
-                            aria-hidden
-                          >
-                            {catImg && (
-                              <img
-                                src={catImg}
-                                alt=""
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            )}
-                          </span>
-                          <span>{cat?.name}</span>
-                        </li>
-                      );
-                    })}
+                    {categories.map((cat) => (
+                      <li
+                        key={cat?._id ?? cat?.name}
+                        className="text-[clamp(11px,0.85vw,13px)] uppercase tracking-[0.08em] leading-none opacity-90"
+                        style={{ fontWeight: 500 }}
+                      >
+                        {cat?.name}
+                      </li>
+                    ))}
                   </ul>
                 )}
               </div>
