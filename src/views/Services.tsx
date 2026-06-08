@@ -13,7 +13,7 @@ import { EASE_OUT, GUTTER, INK } from "@/lib/siteTokens";
 
 export interface ServicesOverviewData {
   page?: {
-    hero?: { eyebrow?: string | null; title?: string | null } | null;
+    hero?: { eyebrow?: string | null; title?: string | null; intro?: string | null } | null;
     pillars?: ServicesOverviewPillar[] | null;
   } | null;
   pillars?: ServicesOverviewPillar[] | null;
@@ -35,7 +35,8 @@ export interface ServicesOverviewPillar {
 const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
   const transitionTo = usePageTransition();
   const eyebrow = data?.page?.hero?.eyebrow ?? "";
-  const intro = data?.page?.hero?.title ?? "";
+  const title = data?.page?.hero?.title ?? "";
+  const intro = data?.page?.hero?.intro ?? "";
   // Prefer the curated page.pillars order; fall back to the dataset-wide list.
   const pillars = data?.page?.pillars?.length ? data.page.pillars : (data?.pillars ?? []);
 
@@ -70,8 +71,15 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
             <p className="font-eyebrow text-brigada-black">{eyebrow}</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">{intro}</h1>
+            <h1 className="font-display w-full text-brigada-black">{title}</h1>
           </Reveal>
+          {intro && (
+            <Reveal delay={0.16} className="mt-[clamp(20px,2vw,32px)] max-w-[60ch]">
+              <p className="font-body text-[clamp(18px,1.5vw,22px)] leading-[1.4] text-brigada-black">
+                {intro}
+              </p>
+            </Reveal>
+          )}
         </section>
 
         {/* The four domains — one row per pillar. On desktop the whole row is a

@@ -21,7 +21,7 @@ const peopleLidl = "/assets/people-case-lidl.jpg";
 // [data-filter-*] hooks are unchanged. Markup is React; the show/hide transition
 // CSS lives in index.css (Osmo block); card styling matches the work mockup.
 
-export type WorkItem = { client: string; tags: string[]; img: string; slug?: string };
+export type WorkItem = { client: string; tags: string[]; img: string | null; slug?: string };
 
 const CATEGORIES = ["All", "Brand", "Marketing", "People", "Product"];
 
@@ -212,13 +212,27 @@ const WorkFilter = ({
               onPointerLeave={() => setHoverCase(null)}
             >
               <div className="work-card__visual">
-                <img
-                  src={it.img}
-                  alt={it.client}
-                  loading="lazy"
-                  draggable={false}
-                  className="work-card__img"
-                />
+                {it.img ? (
+                  <img
+                    src={it.img}
+                    alt={it.client}
+                    loading="lazy"
+                    draggable={false}
+                    className="work-card__img"
+                  />
+                ) : (
+                  <div
+                    aria-hidden
+                    className="work-card__img flex items-center justify-center bg-[#e7e6e1] text-[#181614]/40"
+                  >
+                    <span
+                      className="text-[clamp(10px,0.8vw,12px)] uppercase tracking-[0.14em]"
+                      style={{ fontFamily: SANS, fontWeight: 500 }}
+                    >
+                      No thumbnail yet
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="work-card__meta">
                 <h3 className="work-card__title">{it.client}</h3>
