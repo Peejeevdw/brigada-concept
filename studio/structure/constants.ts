@@ -27,7 +27,7 @@ export const isSingletonType = (type: string): boolean =>
   (LOCALE_SINGLETONS as readonly string[]).includes(type)
 
 /** Non-singleton document types translated per locale (one document per locale). */
-export const I18N_DOCUMENTS = ['work', 'service', 'person', 'job'] as const
+export const I18N_DOCUMENTS = ['work', 'serviceCategory', 'person', 'job'] as const
 
 /**
  * Every schema type managed by `@sanity/document-internationalization`.

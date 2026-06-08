@@ -35,18 +35,18 @@ const PEOPLE_CASES: CascadingSlide[] = [
   { img: peopleCase4, title: "Placeholder" },
 ];
 
-const People = ({ service }: PillarViewProps) => {
-  const lead = service?.lead;
+const People = ({ category }: PillarViewProps) => {
+  const lead = category?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
   const position = lead?.position ?? "";
   const phone = lead?.phone ?? "";
   const email = lead?.email ?? "";
-  const leadInText = (service?.leadIn ?? "").replace("{name}", firstName);
-  const brioPalette = service?.brioPaletteId ?? undefined;
-  const pillarName = service?.name ?? "People";
-  const intro = service?.intro ?? "";
-  const services = service?.services ?? [];
+  const leadInText = (category?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = category?.brioPaletteId ?? undefined;
+  const pillarName = category?.name ?? "People";
+  const intro = category?.intro ?? "";
+  const services = category?.services ?? [];
   const transitionTo = usePageTransition();
   // Scroll-driven background — warms from white to a soft lilac tint across the
   // content block, reaching full tint as the dark orbit slides over.

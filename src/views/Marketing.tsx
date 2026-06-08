@@ -11,22 +11,23 @@ import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import type { PillarViewProps } from "./pillar-types";
 
-// Marketing page — the Marketing service detail, built on the shared site
-// foundation with the same section rhythm as /product and /people: intro →
-// services → contact → cases → parallax footer. All content from Sanity.
+// Marketing page — the Marketing service-category detail, built on the
+// shared site foundation with the same section rhythm as /product and
+// /people: intro → services → contact → cases → parallax footer. All
+// content from Sanity.
 
-const Marketing = ({ service }: PillarViewProps) => {
-  const lead = service?.lead;
+const Marketing = ({ category }: PillarViewProps) => {
+  const lead = category?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
   const position = lead?.position ?? "";
   const phone = lead?.phone ?? "";
   const email = lead?.email ?? "";
-  const leadInText = (service?.leadIn ?? "").replace("{name}", firstName);
-  const brioPalette = service?.brioPaletteId ?? undefined;
-  const pillarName = service?.name ?? "Marketing";
-  const intro = service?.intro ?? "";
-  const services = service?.services ?? [];
+  const leadInText = (category?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = category?.brioPaletteId ?? undefined;
+  const pillarName = category?.name ?? "Marketing";
+  const intro = category?.intro ?? "";
+  const services = category?.services ?? [];
   // Scroll-driven background — warms from white to a soft yellow-green tint
   // across the content block, reaching full tint as the dark cases slide over.
   const contentRef = useRef<HTMLDivElement>(null);

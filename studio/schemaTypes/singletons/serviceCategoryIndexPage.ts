@@ -3,15 +3,16 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {localeField} from '../helpers'
 
 /**
- * The /services landing page. Hero + curated list of pillar references shown
- * in the grid. Each linked service has its own pillar page (e.g. /brand).
+ * The /services landing page. Hero + curated list of service category
+ * references shown in the grid. Each linked category has its own pillar page
+ * (e.g. /brand).
  */
-export const serviceIndexPage = defineType({
-  name: 'serviceIndexPage',
+export const serviceCategoryIndexPage = defineType({
+  name: 'serviceCategoryIndexPage',
   title: 'Services — index',
   type: 'document',
   icon: StarIcon,
-  description: 'Intro and pillar grid on /services. Each language has its own version.',
+  description: 'Intro and category grid on /services. Each language has its own version.',
   groups: [
     {name: 'general', title: 'General', default: true},
     {name: 'hero', title: 'Hero'},
@@ -43,8 +44,8 @@ export const serviceIndexPage = defineType({
       type: 'array',
       group: 'pillars',
       description:
-        'The four pillars shown on the overview, in display order. Each references a Service document (which holds the pillar page content).',
-      of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
+        'The four categories shown on the overview, in display order. Each references a Service category document (which holds the pillar page content).',
+      of: [defineArrayMember({type: 'reference', to: [{type: 'serviceCategory'}]})],
       validation: (Rule) =>
         Rule.min(1).error('Add at least one pillar.').max(8).warning('More than eight starts to feel cluttered.'),
     }),

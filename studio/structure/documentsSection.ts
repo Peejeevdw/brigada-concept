@@ -11,7 +11,7 @@ const LOCALIZED_DOCUMENT_ITEMS: ReadonlyArray<{
   icon: ComponentType
 }> = [
   {schemaType: 'work', title: 'Work cases', icon: CaseIcon},
-  {schemaType: 'service', title: 'Services', icon: StarIcon},
+  {schemaType: 'serviceCategory', title: 'Service categories', icon: StarIcon},
   {schemaType: 'job', title: 'Jobs', icon: CaseIcon},
   {schemaType: 'person', title: 'People', icon: UserIcon},
 ]

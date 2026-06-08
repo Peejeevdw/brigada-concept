@@ -85,7 +85,7 @@ export interface ConceptData {
         client?: string | null;
         slug?: string | null;
         image?: unknown;
-        services?: Array<{ name?: string | null }> | null;
+        serviceCategories?: Array<{ name?: string | null }> | null;
       } | null;
     }> | null;
   } | null;
@@ -1255,7 +1255,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         {caseItems.map((c) => {
           const name = c.work?.name ?? "";
           const client = c.work?.client ?? "";
-          const tags = (c.work?.services ?? [])
+          const tags = (c.work?.serviceCategories ?? [])
             .map((e) => e?.name)
             .filter(Boolean)
             .join(", ");

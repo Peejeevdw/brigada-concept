@@ -10,13 +10,13 @@ const BRIO_PALETTES = [
   {title: 'Brio 06 (brand accent)', value: 'brio-06'},
 ] as const
 
-export const service = defineType({
-  name: 'service',
-  title: 'Service',
+export const serviceCategory = defineType({
+  name: 'serviceCategory',
+  title: 'Service category',
   type: 'document',
   icon: StarIcon,
   description:
-    'A pillar (Brand / Product / People / Marketing). Each language has its own document version.',
+    'A pillar (Brand / Product / People / Marketing). Each category contains a list of services. Each language has its own document version.',
   groups: [
     {name: 'general', title: 'General', default: true},
     {name: 'content', title: 'Pillar page'},
@@ -37,7 +37,7 @@ export const service = defineType({
     slugField({
       group: 'general',
       source: 'name',
-      docType: 'service',
+      docType: 'serviceCategory',
       scopeField: 'locale',
       description:
         'Used in the URL (/<slug>, e.g. /brand). Click Generate to derive it from the name.',
@@ -231,7 +231,7 @@ export const service = defineType({
       type: 'string',
       group: 'settings',
       description:
-        'Recruitee department ID. Set this to link an offer’s department to this service during the jobs sync.',
+        'Recruitee department ID. Set this to link an offer’s department to this service category during the jobs sync.',
     }),
     defineField({
       name: 'links',
@@ -264,7 +264,7 @@ export const service = defineType({
     select: {title: 'name', subtitle: 'intro', locale: 'locale', media: 'image'},
     prepare({title, subtitle, locale, media}) {
       return {
-        title: title || 'Untitled service',
+        title: title || 'Untitled service category',
         subtitle: languageVersionSubtitle(
           locale,
           subtitle ? subtitle.slice(0, 80) : 'No intro yet',

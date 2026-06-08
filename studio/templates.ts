@@ -9,7 +9,7 @@ const TEMPLATE_TITLES: Record<string, string> = {
   privacyPage: 'Privacy page',
   siteSettings: 'Site settings',
   work: 'Work case',
-  service: 'Service',
+  serviceCategory: 'Service category',
   person: 'Person',
   job: 'Job',
 }
@@ -31,7 +31,7 @@ function humanize(type: string) {
 
 /**
  * One `${type}-by-locale` template per localized type — singletons AND
- * non-singleton localized documents (work, service, person). The
+ * non-singleton localized documents (work, serviceCategory, person). The
  * FilteredLanguageMenu references these by id when strengthening
  * weak translation references on publish.
  */

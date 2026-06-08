@@ -91,12 +91,12 @@ export const job = defineType({
       to: [{type: 'location'}],
     }),
     defineField({
-      name: 'service',
-      title: 'Service / team',
+      name: 'serviceCategory',
+      title: 'Service category / team',
       type: 'reference',
       group: 'general',
-      description: 'Which service this role sits under (Brand, Product, Marketing, etc.).',
-      to: [{type: 'service'}],
+      description: 'Which service category this role sits under (Brand, Product, Marketing, etc.).',
+      to: [{type: 'serviceCategory'}],
     }),
     defineField({
       name: 'publishDate',

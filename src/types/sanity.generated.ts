@@ -323,11 +323,11 @@ export type WorkIndexPageReference = {
   [internalGroqTypeReferenceTo]?: "workIndexPage";
 };
 
-export type ServiceIndexPageReference = {
+export type ServiceCategoryIndexPageReference = {
   _ref: string;
   _type: "reference";
   _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "serviceIndexPage";
+  [internalGroqTypeReferenceTo]?: "serviceCategoryIndexPage";
 };
 
 export type AboutPageReference = {
@@ -365,11 +365,11 @@ export type WorkReference = {
   [internalGroqTypeReferenceTo]?: "work";
 };
 
-export type ServiceReference = {
+export type ServiceCategoryReference = {
   _ref: string;
   _type: "reference";
   _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "service";
+  [internalGroqTypeReferenceTo]?: "serviceCategory";
 };
 
 export type SubmenuItem = {
@@ -379,13 +379,13 @@ export type SubmenuItem = {
   internal?:
     | HomePageReference
     | WorkIndexPageReference
-    | ServiceIndexPageReference
+    | ServiceCategoryIndexPageReference
     | AboutPageReference
     | CareersPageReference
     | ContactPageReference
     | LegalPageReference
     | WorkReference
-    | ServiceReference
+    | ServiceCategoryReference
     | JobReference;
   url?: string;
   anchor?: string;
@@ -399,13 +399,13 @@ export type Link = {
   internal?:
     | HomePageReference
     | WorkIndexPageReference
-    | ServiceIndexPageReference
+    | ServiceCategoryIndexPageReference
     | AboutPageReference
     | CareersPageReference
     | ContactPageReference
     | LegalPageReference
     | WorkReference
-    | ServiceReference
+    | ServiceCategoryReference
     | JobReference;
   url?: string;
   email?: string;
@@ -446,9 +446,9 @@ export type Seo = {
   };
 };
 
-export type ServiceIndexPage = {
+export type ServiceCategoryIndexPage = {
   _id: string;
-  _type: "serviceIndexPage";
+  _type: "serviceCategoryIndexPage";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
@@ -461,7 +461,7 @@ export type ServiceIndexPage = {
   pillars?: Array<
     {
       _key: string;
-    } & ServiceReference
+    } & ServiceCategoryReference
   >;
   seo?: Seo;
 };
@@ -622,7 +622,7 @@ export type InternationalizedArrayReferenceValue = {
     | PrivacyPageReference
     | SiteSettingsReference
     | WorkReference
-    | ServiceReference
+    | ServiceCategoryReference
     | PersonReference
     | JobReference;
   language: string;
@@ -653,7 +653,7 @@ export type Job = {
   };
   type?: "full-time" | "part-time" | "internship" | "freelance";
   location?: LocationReference;
-  service?: ServiceReference;
+  serviceCategory?: ServiceCategoryReference;
   publishDate?: string;
   recruiteeId?: string;
   introIndex?: string;
@@ -827,11 +827,11 @@ export type ContactPage = {
       _key: string;
     }>;
   };
-  serviceContacts?: Array<{
+  serviceCategoryContacts?: Array<{
     label: string;
-    service?: ServiceReference;
+    serviceCategory?: ServiceCategoryReference;
     person?: PersonReference;
-    _type: "serviceContact";
+    _type: "serviceCategoryContact";
     _key: string;
   }>;
   locations?: {
@@ -854,9 +854,9 @@ export type ContactPage = {
   seo?: Seo;
 };
 
-export type Service = {
+export type ServiceCategory = {
   _id: string;
-  _type: "service";
+  _type: "serviceCategory";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
@@ -1127,10 +1127,10 @@ export type Work = {
     _type: "image";
   };
   intro?: string;
-  services?: Array<
+  serviceCategories?: Array<
     {
       _key: string;
-    } & ServiceReference
+    } & ServiceCategoryReference
   >;
   year?: number;
   code?: string;
@@ -1278,18 +1278,18 @@ export type AllSanitySchemaTypes =
   | CaseMedia
   | HomePageReference
   | WorkIndexPageReference
-  | ServiceIndexPageReference
+  | ServiceCategoryIndexPageReference
   | AboutPageReference
   | CareersPageReference
   | ContactPageReference
   | LegalPageReference
   | WorkReference
-  | ServiceReference
+  | ServiceCategoryReference
   | SubmenuItem
   | Link
   | LegalPage
   | Seo
-  | ServiceIndexPage
+  | ServiceCategoryIndexPage
   | WorkIndexPage
   | SocialLink
   | BlockContentTextOnly
@@ -1315,7 +1315,7 @@ export type AllSanitySchemaTypes =
   | SiteSettings
   | PrivacyPage
   | ContactPage
-  | Service
+  | ServiceCategory
   | Person
   | CareersPage
   | AboutPage
@@ -1332,7 +1332,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../src/lib/sanity-fetch.ts
 // Variable: settingsAndChromeQuery
-// Query: {  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{    title, tagline, email, phone, ogImage,    "socials": socials[]{platform, url, label},    "legalLinks": legalLinks[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "service" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}  },  "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "service" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "service" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "locations": *[_type == "location"] | order(_createdAt asc){  _id,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value, title[0].value),  "street": coalesce(street[_key == $locale][0].value, street[_key == "en"][0].value, street[0].value),  number,  postalCode,  "city": coalesce(city[_key == $locale][0].value, city[_key == "en"][0].value, city[0].value),  "country": coalesce(country[_key == $locale][0].value, country[_key == "en"][0].value, country[0].value),  email,  phone}}
+// Query: {  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{    title, tagline, email, phone, ogImage,    "socials": socials[]{platform, url, label},    "legalLinks": legalLinks[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceCategoryIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "serviceCategory" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}  },  "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceCategoryIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "serviceCategory" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceCategoryIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "serviceCategory" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "locations": *[_type == "location"] | order(_createdAt asc){  _id,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value, title[0].value),  "street": coalesce(street[_key == $locale][0].value, street[_key == "en"][0].value, street[0].value),  number,  postalCode,  "city": coalesce(city[_key == $locale][0].value, city[_key == "en"][0].value, city[0].value),  "country": coalesce(country[_key == $locale][0].value, country[_key == "en"][0].value, country[0].value),  email,  phone}}
 export type SettingsAndChromeQueryResult = {
   settings: {
     title: string;

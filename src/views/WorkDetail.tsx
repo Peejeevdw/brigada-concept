@@ -89,7 +89,7 @@ export interface WorkDocData {
   intro?: string | null;
   year?: number | null;
   code?: string | null;
-  services?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
+  serviceCategories?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
   body?: CaseBlock[] | null;
   gallery?: unknown[] | null;
   related?: Array<RelatedWork> | null;
@@ -103,7 +103,7 @@ interface RelatedWork {
   intro?: string | null;
   year?: number | null;
   featured?: boolean | null;
-  services?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
+  serviceCategories?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
 }
 
 const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
@@ -116,7 +116,7 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
     title: work?.name || "",
     tagline: work?.intro ?? undefined,
     year: work?.year ?? null,
-    pillars: (work?.services ?? []).map((e) => e?.name).filter(Boolean) as string[],
+    pillars: (work?.serviceCategories ?? []).map((e) => e?.name).filter(Boolean) as string[],
   };
   const body: CaseBlock[] = (work?.body ?? []) as CaseBlock[];
 
@@ -346,7 +346,7 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
             title: r.name ?? "",
             client: r.client ?? r.name ?? "",
             year: r.year ?? new Date().getFullYear(),
-            pillars: ((r.services ?? [])
+            pillars: ((r.serviceCategories ?? [])
               .map((e) => e?.name)
               .filter(Boolean) as string[]) as Pillar[],
             clickable: true,

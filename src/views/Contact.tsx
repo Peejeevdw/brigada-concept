@@ -36,7 +36,7 @@ export interface ContactData {
       placeholder?: string | null;
     }> | null;
   } | null;
-  serviceContacts?: Array<{
+  serviceCategoryContacts?: Array<{
     _key?: string;
     label?: string | null;
     person?: { name?: string | null; email?: string | null; phone?: string | null } | null;
@@ -62,7 +62,7 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
   const submitLabel = data?.form?.submitLabel ?? "Send";
   const successMessage = data?.form?.successMessage ?? "";
   const fields = data?.form?.fields ?? [];
-  const serviceContacts = data?.serviceContacts ?? [];
+  const serviceContacts = data?.serviceCategoryContacts ?? [];
   const offices = (data?.locations ?? []).map((l) => ({
     city: `BRIGADA ${(l.city ?? l.title ?? "").toUpperCase()}`.trim(),
     address: [l.street, l.number].filter(Boolean).join(" "),

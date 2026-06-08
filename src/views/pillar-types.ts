@@ -1,12 +1,14 @@
 /**
  * Shared shape of the data passed from `app/<pillar>/page.tsx` server
- * components into the four pillar view components.
+ * components into the four pillar view components. Each pillar view
+ * receives ONE service-category document (Brand / Marketing / People /
+ * Product) which contains a list of individual services in `services[]`.
  *
  * Optional fields — every pillar view falls back to its hardcoded contact +
- * brio palette when Sanity is unconfigured or has no service doc for the
- * slug yet.
+ * brio palette when Sanity is unconfigured or has no serviceCategory doc
+ * for the slug yet.
  */
-export interface PillarService {
+export interface ServiceCategoryDoc {
   _id?: string;
   name?: string | null;
   slug?: string | null;
@@ -27,5 +29,5 @@ export interface PillarService {
 }
 
 export interface PillarViewProps {
-  service?: PillarService | null;
+  category?: ServiceCategoryDoc | null;
 }

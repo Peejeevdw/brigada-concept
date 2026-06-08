@@ -60,19 +60,19 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const Brand = ({ service }: PillarViewProps) => {
-  const lead = service?.lead;
+const Brand = ({ category }: PillarViewProps) => {
+  const lead = category?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
   const position = lead?.position ?? "";
   const phone = lead?.phone ?? "";
   const email = lead?.email ?? "";
-  const leadInText = (service?.leadIn ?? "").replace("{name}", firstName);
-  const brioPalette = service?.brioPaletteId ?? undefined;
-  const eyebrow = service?.eyebrow ?? "";
-  const pillarName = service?.name ?? "Brand";
-  const intro = service?.intro ?? "";
-  const services = service?.services ?? [];
+  const leadInText = (category?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = category?.brioPaletteId ?? undefined;
+  const eyebrow = category?.eyebrow ?? "";
+  const pillarName = category?.name ?? "Brand";
+  const intro = category?.intro ?? "";
+  const services = category?.services ?? [];
   const transitionTo = usePageTransition();
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll

@@ -3,9 +3,9 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {localeField} from '../helpers'
 
 /**
- * Contact page (/contact). Hero + form + service contacts + locations +
- * optional gallery. Practice leads / general contact come from siteSettings
- * + per-service refs, so we don't duplicate them here.
+ * Contact page (/contact). Hero + form + service category contacts +
+ * locations + optional gallery. Practice leads / general contact come from
+ * siteSettings + per-category refs, so we don't duplicate them here.
  */
 export const contactPage = defineType({
   name: 'contactPage',
@@ -172,17 +172,17 @@ export const contactPage = defineType({
         }),
       ],
     }),
-    // ---- Service contacts ----
+    // ---- Service category contacts ----
     defineField({
-      name: 'serviceContacts',
-      title: 'Service contacts',
+      name: 'serviceCategoryContacts',
+      title: 'Service category contacts',
       type: 'array',
       group: 'contacts',
-      description: 'Per-pillar leads shown below the form. Override or add entries here.',
+      description: 'Per-category leads shown below the form. Override or add entries here.',
       of: [
         defineArrayMember({
           type: 'object',
-          name: 'serviceContact',
+          name: 'serviceCategoryContact',
           fields: [
             defineField({
               name: 'label',
@@ -192,26 +192,26 @@ export const contactPage = defineType({
               validation: (Rule) => Rule.required(),
             }),
             defineField({
-              name: 'service',
-              title: 'Service (optional)',
+              name: 'serviceCategory',
+              title: 'Service category (optional)',
               type: 'reference',
-              to: [{type: 'service'}],
-              description: 'If set, the person can be auto-resolved from `service.lead`.',
+              to: [{type: 'serviceCategory'}],
+              description: 'If set, the person can be auto-resolved from `serviceCategory.lead`.',
             }),
             defineField({
               name: 'person',
               title: 'Person',
               type: 'reference',
               to: [{type: 'person'}],
-              description: 'Direct override. If empty and a service is set, we fall back to its lead.',
+              description: 'Direct override. If empty and a category is set, we fall back to its lead.',
             }),
           ],
           preview: {
-            select: {label: 'label', personName: 'person.name', serviceName: 'service.name'},
-            prepare({label, personName, serviceName}) {
+            select: {label: 'label', personName: 'person.name', categoryName: 'serviceCategory.name'},
+            prepare({label, personName, categoryName}) {
               return {
-                title: label || serviceName || 'Contact',
-                subtitle: personName || (serviceName ? `lead of ${serviceName}` : ''),
+                title: label || categoryName || 'Contact',
+                subtitle: personName || (categoryName ? `lead of ${categoryName}` : ''),
               }
             },
           },

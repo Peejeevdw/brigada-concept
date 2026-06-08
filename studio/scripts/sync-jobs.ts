@@ -12,7 +12,7 @@
  * patch wherever the doc lives — published, draft, or both.
  *
  * Sync-managed fields (overwritten every run): name, slug, recruiteeId,
- * publishDate, jobDescription, profile, location, service.
+ * publishDate, jobDescription, profile, location, serviceCategory.
  *
  * Editor-managed fields (only seeded on the first create, never touched
  * afterwards): image, type, introIndex, introDetail, offer, spotify,
@@ -38,7 +38,7 @@ function required(name: string): string {
 }
 
 type LocationRow = {_id: string; postalCode: string | null}
-type ServiceRow = {_id: string; recruiteeId: string; locale: string | null}
+type CategoryRow = {_id: string; recruiteeId: string; locale: string | null}
 type JobRow = {_id: string; recruiteeId: string; locale: string | null}
 
 /** Lookup-table entry — bare doc id + whether it's draft-only. */
@@ -95,11 +95,11 @@ async function fetchLocationsByPostalCode(client: SanityClient): Promise<Map<str
   return map
 }
 
-async function fetchServicesByRecruiteeId(
+async function fetchCategoriesByRecruiteeId(
   client: SanityClient,
 ): Promise<Map<string, Map<string, Target>>> {
   const rows = await client.fetch<ServiceRow[]>(
-    `*[_type == "service" && defined(recruiteeId)]{_id, recruiteeId, locale}`,
+    `*[_type == "serviceCategory" && defined(recruiteeId)]{_id, recruiteeId, locale}`,
   )
   const map = new Map<string, Map<string, Target>>()
   for (const row of rows) {
@@ -113,7 +113,7 @@ async function fetchServicesByRecruiteeId(
   return map
 }
 
-function resolveService(
+function resolveCategory(
   byRecruiteeId: Map<string, Map<string, Target>>,
   departmentId: number | string | null | undefined,
   locale: string,
@@ -130,7 +130,7 @@ function resolveService(
  * - target draft-only → weak ref + `_strengthenOnPublish` so the studio
  *   auto-strengthens once the editor publishes the target
  */
-function refTo(target: Target, type: 'location' | 'service') {
+function refTo(target: Target, type: 'location' | 'serviceCategory') {
   const base = {_type: 'reference' as const, _ref: target.id}
   if (!target.isDraft) return base
   return {...base, _weak: true, _strengthenOnPublish: {type}}
@@ -146,17 +146,17 @@ type SyncedFields = {
   jobDescription: unknown[]
   profile: unknown[]
   location: Ref | null
-  service: Ref | null
+  serviceCategory: Ref | null
 }
 
 function buildSyncedFields(
   offer: RecruiteeOffer,
   locale: string,
   locationByPostal: Map<string, Target>,
-  serviceByRecruiteeId: Map<string, Map<string, Target>>,
+  categoryByRecruiteeId: Map<string, Map<string, Target>>,
 ): SyncedFields {
   const locationTarget = offer.postal_code ? locationByPostal.get(offer.postal_code) : undefined
-  const serviceTarget = resolveService(serviceByRecruiteeId, offer.department_id, locale)
+  const categoryTarget = resolveCategory(categoryByRecruiteeId, offer.department_id, locale)
   return {
     name: offer.title,
     slug: {_type: 'slug', current: slugify(offer.title)},
@@ -165,7 +165,7 @@ function buildSyncedFields(
     jobDescription: htmlToPortableText(offer.description),
     profile: htmlToPortableText(offer.requirements),
     location: locationTarget ? refTo(locationTarget, 'location') : null,
-    service: serviceTarget ? refTo(serviceTarget, 'service') : null,
+    serviceCategory: categoryTarget ? refTo(categoryTarget, 'serviceCategory') : null,
   }
 }
 
@@ -204,15 +204,15 @@ async function upsertJobForLocale(
   offer: RecruiteeOffer,
   locale: string,
   locationByPostal: Map<string, Target>,
-  serviceByRecruiteeId: Map<string, Map<string, Target>>,
+  categoryByRecruiteeId: Map<string, Map<string, Target>>,
   dryRun: boolean,
 ): Promise<void> {
   const baseId = jobIdFor(locale, offer.id)
-  const synced = buildSyncedFields(offer, locale, locationByPostal, serviceByRecruiteeId)
+  const synced = buildSyncedFields(offer, locale, locationByPostal, categoryByRecruiteeId)
 
   if (dryRun) {
     console.log(
-      `[dry-run] upsert ${baseId} — name="${synced.name}", location=${synced.location?._ref ?? 'none'}, service=${synced.service?._ref ?? 'none'}`,
+      `[dry-run] upsert ${baseId} — name="${synced.name}", location=${synced.location?._ref ?? 'none'}, serviceCategory=${synced.serviceCategory?._ref ?? 'none'}`,
     )
     return
   }
@@ -223,7 +223,7 @@ async function upsertJobForLocale(
     // First-time create: arrive as a draft so editors can fill in image,
     // type, intros, contact, etc. before going live. Reference fields are
     // omitted when no match was found — the schema rejects `null`.
-    const {location, service, ...scalar} = synced
+    const {location, serviceCategory, ...scalar} = synced
     const doc = {
       _id: `drafts.${baseId}`,
       _type: 'job' as const,
@@ -232,7 +232,7 @@ async function upsertJobForLocale(
       order: 100,
       ...scalar,
       ...(location ? {location} : {}),
-      ...(service ? {service} : {}),
+      ...(serviceCategory ? {serviceCategory} : {}),
     }
     await client.create(doc)
     return
@@ -249,8 +249,8 @@ async function upsertJobForLocale(
   const unsetFields: string[] = []
   if (synced.location) patchFields.location = synced.location
   else unsetFields.push('location')
-  if (synced.service) patchFields.service = synced.service
-  else unsetFields.push('service')
+  if (synced.serviceCategory) patchFields.serviceCategory = synced.serviceCategory
+  else unsetFields.push('serviceCategory')
 
   await patchExisting(client, baseId, existing, patchFields, unsetFields)
 }
@@ -351,15 +351,15 @@ async function main() {
 
   console.log(`[sync-jobs] mode=${dryRun ? 'dry-run' : 'apply'}`)
 
-  const [locales, locationByPostal, serviceByRecruiteeId, recruiteeOffers] = await Promise.all([
+  const [locales, locationByPostal, categoryByRecruiteeId, recruiteeOffers] = await Promise.all([
     fetchSanityLocales(client),
     fetchLocationsByPostalCode(client),
-    fetchServicesByRecruiteeId(client),
+    fetchCategoriesByRecruiteeId(client),
     fetchOffers(recruiteeConfig),
   ])
 
   console.log(
-    `[sync-jobs] locales=[${locales.join(', ')}] locations=${locationByPostal.size} services=${serviceByRecruiteeId.size} offers=${recruiteeOffers.length}`,
+    `[sync-jobs] locales=[${locales.join(', ')}] locations=${locationByPostal.size} serviceCategories=${categoryByRecruiteeId.size} offers=${recruiteeOffers.length}`,
   )
 
   const activeRecruiteeIds = new Set<string>()
@@ -400,7 +400,7 @@ async function main() {
           offer,
           locale,
           locationByPostal,
-          serviceByRecruiteeId,
+          categoryByRecruiteeId,
           dryRun,
         )
         completedLocales.push(locale)

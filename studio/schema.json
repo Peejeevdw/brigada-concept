@@ -1912,7 +1912,7 @@
   },
   {
     "type": "type",
-    "name": "serviceIndexPage.reference",
+    "name": "serviceCategoryIndexPage.reference",
     "value": {
       "type": "object",
       "attributes": {
@@ -1937,7 +1937,7 @@
           "optional": true
         }
       },
-      "dereferencesTo": "serviceIndexPage"
+      "dereferencesTo": "serviceCategoryIndexPage"
     }
   },
   {
@@ -2092,7 +2092,7 @@
   },
   {
     "type": "type",
-    "name": "service.reference",
+    "name": "serviceCategory.reference",
     "value": {
       "type": "object",
       "attributes": {
@@ -2117,7 +2117,7 @@
           "optional": true
         }
       },
-      "dereferencesTo": "service"
+      "dereferencesTo": "serviceCategory"
     }
   },
   {
@@ -2177,7 +2177,7 @@
               },
               {
                 "type": "inline",
-                "name": "serviceIndexPage.reference"
+                "name": "serviceCategoryIndexPage.reference"
               },
               {
                 "type": "inline",
@@ -2201,7 +2201,7 @@
               },
               {
                 "type": "inline",
-                "name": "service.reference"
+                "name": "serviceCategory.reference"
               },
               {
                 "type": "inline",
@@ -2300,7 +2300,7 @@
               },
               {
                 "type": "inline",
-                "name": "serviceIndexPage.reference"
+                "name": "serviceCategoryIndexPage.reference"
               },
               {
                 "type": "inline",
@@ -2324,7 +2324,7 @@
               },
               {
                 "type": "inline",
-                "name": "service.reference"
+                "name": "serviceCategory.reference"
               },
               {
                 "type": "inline",
@@ -2571,7 +2571,7 @@
     }
   },
   {
-    "name": "serviceIndexPage",
+    "name": "serviceCategoryIndexPage",
     "type": "document",
     "attributes": {
       "_id": {
@@ -2584,7 +2584,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "string",
-          "value": "serviceIndexPage"
+          "value": "serviceCategoryIndexPage"
         }
       },
       "_createdAt": {
@@ -2658,7 +2658,7 @@
             },
             "rest": {
               "type": "inline",
-              "name": "service.reference"
+              "name": "serviceCategory.reference"
             }
           }
         },
@@ -3492,7 +3492,7 @@
               },
               {
                 "type": "inline",
-                "name": "service.reference"
+                "name": "serviceCategory.reference"
               },
               {
                 "type": "inline",
@@ -3683,11 +3683,11 @@
         },
         "optional": true
       },
-      "service": {
+      "serviceCategory": {
         "type": "objectAttribute",
         "value": {
           "type": "inline",
-          "name": "service.reference"
+          "name": "serviceCategory.reference"
         },
         "optional": true
       },
@@ -4997,7 +4997,7 @@
         },
         "optional": true
       },
-      "serviceContacts": {
+      "serviceCategoryContacts": {
         "type": "objectAttribute",
         "value": {
           "type": "array",
@@ -5011,11 +5011,11 @@
                 },
                 "optional": false
               },
-              "service": {
+              "serviceCategory": {
                 "type": "objectAttribute",
                 "value": {
                   "type": "inline",
-                  "name": "service.reference"
+                  "name": "serviceCategory.reference"
                 },
                 "optional": true
               },
@@ -5031,7 +5031,7 @@
                 "type": "objectAttribute",
                 "value": {
                   "type": "string",
-                  "value": "serviceContact"
+                  "value": "serviceCategoryContact"
                 }
               }
             },
@@ -5181,7 +5181,7 @@
     }
   },
   {
-    "name": "service",
+    "name": "serviceCategory",
     "type": "document",
     "attributes": {
       "_id": {
@@ -5194,7 +5194,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "string",
-          "value": "service"
+          "value": "serviceCategory"
         }
       },
       "_createdAt": {
@@ -7043,7 +7043,7 @@
         },
         "optional": true
       },
-      "services": {
+      "serviceCategories": {
         "type": "objectAttribute",
         "value": {
           "type": "array",
@@ -7059,7 +7059,7 @@
             },
             "rest": {
               "type": "inline",
-              "name": "service.reference"
+              "name": "serviceCategory.reference"
             }
           }
         },

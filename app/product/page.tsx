@@ -1,8 +1,8 @@
 import Product from "@/views/Product";
-import { getService } from "@/lib/sanity-fetch";
-import type { PillarService } from "@/views/pillar-types";
+import { getServiceCategory } from "@/lib/sanity-fetch";
+import type { ServiceCategoryDoc } from "@/views/pillar-types";
 
 export default async function ProductPage() {
-  const data = await getService("product");
-  return <Product service={(data?.service as PillarService | null) ?? null} />;
+  const data = await getServiceCategory("product");
+  return <Product category={(data?.category as ServiceCategoryDoc | null) ?? null} />;
 }

@@ -202,7 +202,7 @@ async function seedMenus() {
         _type: 'link',
         label: i18nString('Services'),
         target: 'internal',
-        internal: {_type: 'reference', _ref: 'serviceIndexPage.en'},
+        internal: {_type: 'reference', _ref: 'serviceCategoryIndexPage.en'},
         openInNewTab: false,
         submenu: [
           {_key: 'brand', _type: 'submenuItem', label: i18nString('Brand'), target: 'external', url: '/brand'},
@@ -225,7 +225,7 @@ async function seedMenus() {
     identifier: 'footer',
     items: [
       {_key: 'home', _type: 'link', label: i18nString('Home'), target: 'internal', internal: {_type: 'reference', _ref: 'homePage.en'}},
-      {_key: 'services', _type: 'link', label: i18nString('Services'), target: 'internal', internal: {_type: 'reference', _ref: 'serviceIndexPage.en'}},
+      {_key: 'services', _type: 'link', label: i18nString('Services'), target: 'internal', internal: {_type: 'reference', _ref: 'serviceCategoryIndexPage.en'}},
       {_key: 'work', _type: 'link', label: i18nString('Work'), target: 'internal', internal: {_type: 'reference', _ref: 'workIndexPage.en'}},
       {_key: 'about', _type: 'link', label: i18nString('About'), target: 'internal', internal: {_type: 'reference', _ref: 'aboutPage.en'}},
       {_key: 'careers', _type: 'link', label: i18nString('Careers'), target: 'internal', internal: {_type: 'reference', _ref: 'careersPage.en'}},
@@ -273,10 +273,10 @@ async function seedLegal() {
   }
 }
 
-// ---------- 2. Documents: service + work + jobs ----------
+// ---------- 2. Documents: serviceCategory + work + jobs ----------
 
-async function seedServices() {
-  console.log('Services (4 pillars)…')
+async function seedServiceCategories() {
+  console.log('Service categories (4 pillars)…')
 
   // Mirrors src/data/pillars.ts (trimmed for brevity — fill out per-pillar
   // services list with real copy via Studio after the initial seed).
@@ -362,8 +362,8 @@ async function seedServices() {
 
   for (const p of pillars) {
     await upsert({
-      _id: `service.${p.slug}.en`,
-      _type: 'service',
+      _id: `serviceCategory.${p.slug}.en`,
+      _type: 'serviceCategory',
       locale: DEFAULT_LOCALE,
       name: p.name,
       slug: {_type: 'slug', current: p.slug},
@@ -395,10 +395,10 @@ async function seedWork() {
     code: 'BRGD.001',
     featured: true,
     intro: 'Rebrand, naming strategy, design system and digital platform.',
-    services: [
-      {_key: 'brand', _type: 'reference', _ref: 'service.brand.en'},
-      {_key: 'product', _type: 'reference', _ref: 'service.product.en'},
-      {_key: 'marketing', _type: 'reference', _ref: 'service.marketing.en'},
+    serviceCategories: [
+      {_key: 'brand', _type: 'reference', _ref: 'serviceCategory.brand.en'},
+      {_key: 'product', _type: 'reference', _ref: 'serviceCategory.product.en'},
+      {_key: 'marketing', _type: 'reference', _ref: 'serviceCategory.marketing.en'},
     ],
     brief: paragraphsToBlocks([
       'BMW asked us to reframe what the ultimate driving machine stands for in an era where the category is being redefined by electrification, software and shifting cultural codes.',
@@ -428,10 +428,10 @@ async function seedWork() {
     code: 'BRGD.002',
     intro:
       'Brand world, employer platform and digital concepts for a family-run potato company.',
-    services: [
-      {_key: 'brand', _type: 'reference', _ref: 'service.brand.en'},
-      {_key: 'product', _type: 'reference', _ref: 'service.product.en'},
-      {_key: 'marketing', _type: 'reference', _ref: 'service.marketing.en'},
+    serviceCategories: [
+      {_key: 'brand', _type: 'reference', _ref: 'serviceCategory.brand.en'},
+      {_key: 'product', _type: 'reference', _ref: 'serviceCategory.product.en'},
+      {_key: 'marketing', _type: 'reference', _ref: 'serviceCategory.marketing.en'},
     ],
     brief: paragraphsToBlocks([
       'Agristo is a family-run Belgian potato company that supplies frozen products to retail and foodservice clients across the world. They asked us to translate their down-to-earth, hands-on culture into a brand world that could compete with much larger global players.',
@@ -454,7 +454,7 @@ async function seedWork() {
 // ---------- 3. Singletons (home, about, careers, contact, indexes) ----------
 
 async function seedIndexPages() {
-  console.log('Index singletons (work + services)…')
+  console.log('Index singletons (work + service categories)…')
   await upsert({
     _id: 'workIndexPage.en',
     _type: 'workIndexPage',
@@ -468,8 +468,8 @@ async function seedIndexPages() {
   })
 
   await upsert({
-    _id: 'serviceIndexPage.en',
-    _type: 'serviceIndexPage',
+    _id: 'serviceCategoryIndexPage.en',
+    _type: 'serviceCategoryIndexPage',
     locale: DEFAULT_LOCALE,
     title: 'Services index',
     hero: {
@@ -478,10 +478,10 @@ async function seedIndexPages() {
         'Most agencies tell you their craft is their secret sauce. Ours? We see the bigger picture and connect the dots so brand, product, people and marketing all move together.',
     },
     pillars: [
-      {_key: 'brand', _type: 'reference', _ref: 'service.brand.en'},
-      {_key: 'product', _type: 'reference', _ref: 'service.product.en'},
-      {_key: 'people', _type: 'reference', _ref: 'service.people.en'},
-      {_key: 'marketing', _type: 'reference', _ref: 'service.marketing.en'},
+      {_key: 'brand', _type: 'reference', _ref: 'serviceCategory.brand.en'},
+      {_key: 'product', _type: 'reference', _ref: 'serviceCategory.product.en'},
+      {_key: 'people', _type: 'reference', _ref: 'serviceCategory.people.en'},
+      {_key: 'marketing', _type: 'reference', _ref: 'serviceCategory.marketing.en'},
     ],
   })
 }
@@ -634,11 +634,11 @@ async function seedContactPage() {
         {_key: 'message', name: 'message', label: 'Message', type: 'textarea', span: 'full'},
       ],
     },
-    serviceContacts: [
-      {_key: 'brand', label: 'Brand', service: {_type: 'reference', _ref: 'service.brand.en'}, person: {_type: 'reference', _ref: 'person.mathias-delmote'}},
-      {_key: 'product', label: 'Product', service: {_type: 'reference', _ref: 'service.product.en'}, person: {_type: 'reference', _ref: 'person.jeroen-debock'}},
-      {_key: 'people', label: 'People', service: {_type: 'reference', _ref: 'service.people.en'}, person: {_type: 'reference', _ref: 'person.bartel-van-iseghem'}},
-      {_key: 'marketing', label: 'Marketing', service: {_type: 'reference', _ref: 'service.marketing.en'}, person: {_type: 'reference', _ref: 'person.dennis-nicholls'}},
+    serviceCategoryContacts: [
+      {_key: 'brand', label: 'Brand', serviceCategory: {_type: 'reference', _ref: 'serviceCategory.brand.en'}, person: {_type: 'reference', _ref: 'person.mathias-delmote'}},
+      {_key: 'product', label: 'Product', serviceCategory: {_type: 'reference', _ref: 'serviceCategory.product.en'}, person: {_type: 'reference', _ref: 'person.jeroen-debock'}},
+      {_key: 'people', label: 'People', serviceCategory: {_type: 'reference', _ref: 'serviceCategory.people.en'}, person: {_type: 'reference', _ref: 'person.bartel-van-iseghem'}},
+      {_key: 'marketing', label: 'Marketing', serviceCategory: {_type: 'reference', _ref: 'serviceCategory.marketing.en'}, person: {_type: 'reference', _ref: 'person.dennis-nicholls'}},
       {_key: 'newbizz', label: 'New bizz', person: {_type: 'reference', _ref: 'person.evert-vermeire'}},
     ],
     locations: {mode: 'all'},
@@ -670,7 +670,7 @@ async function main() {
     await seedLegal()
   }
   if (phases.has('docs')) {
-    await seedServices()
+    await seedServiceCategories()
     await seedWork()
   }
   if (phases.has('singletons')) {

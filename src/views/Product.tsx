@@ -11,23 +11,24 @@ import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import type { PillarViewProps } from "./pillar-types";
 
-// Product page — the Product service detail, built on the shared site
-// foundation (SiteNav, Reveal, SectionLabel, useLenis, .font-* roles, tokens)
-// with the same section rhythm as /brand: intro → services → contact → orbit
-// → parallax footer. All content read from the matching `service` doc.
+// Product page — the Product service-category detail, built on the shared
+// site foundation (SiteNav, Reveal, SectionLabel, useLenis, .font-* roles,
+// tokens) with the same section rhythm as /brand: intro → services →
+// contact → orbit → parallax footer. All content read from the matching
+// `serviceCategory` doc.
 
-const Product = ({ service }: PillarViewProps) => {
-  const lead = service?.lead;
+const Product = ({ category }: PillarViewProps) => {
+  const lead = category?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
   const position = lead?.position ?? "";
   const phone = lead?.phone ?? "";
   const email = lead?.email ?? "";
-  const leadInText = (service?.leadIn ?? "").replace("{name}", firstName);
-  const brioPalette = service?.brioPaletteId ?? undefined;
-  const pillarName = service?.name ?? "Product";
-  const intro = service?.intro ?? "";
-  const services = service?.services ?? [];
+  const leadInText = (category?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = category?.brioPaletteId ?? undefined;
+  const pillarName = category?.name ?? "Product";
+  const intro = category?.intro ?? "";
+  const services = category?.services ?? [];
 
   // Scroll-driven background — warms from white to a soft blue-green tint across
   // the content block, reaching full tint as the dark orbit slides over.

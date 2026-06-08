@@ -72,13 +72,13 @@ export const work = defineType({
         'One sentence that captures what this project is about. Keep it under ~140 characters.',
     }),
     defineField({
-      name: 'services',
-      title: 'Services',
+      name: 'serviceCategories',
+      title: 'Service categories',
       type: 'array',
       group: 'general',
-      description: 'Which services this case belongs to. Pick at least one.',
-      of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
-      validation: (Rule) => Rule.min(1).error('Tag at least one service.'),
+      description: 'Which service categories (Brand / Marketing / People / Product) this case belongs to. Pick at least one.',
+      of: [defineArrayMember({type: 'reference', to: [{type: 'serviceCategory'}]})],
+      validation: (Rule) => Rule.min(1).error('Tag at least one service category.'),
     }),
     defineField({
       name: 'year',

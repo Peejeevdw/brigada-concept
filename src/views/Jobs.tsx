@@ -17,7 +17,7 @@ const Jobs = ({ jobs }: { jobs: JobListItem[] }) => (
     ) : (
       <ul className="mt-[clamp(40px,5vw,72px)] border-t border-brigada-black/10">
         {jobs.map((j) => {
-          const meta = [j.service, j.location?.city || j.location?.title, j.type]
+          const meta = [j.serviceCategory, j.location?.city || j.location?.title, j.type]
             .filter(Boolean)
             .join(" · ");
           return (
