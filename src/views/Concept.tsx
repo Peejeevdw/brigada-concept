@@ -99,6 +99,7 @@ export interface ConceptData {
     eyebrow?: string | null;
     title?: string | null;
     description?: string | null;
+    recognition?: string | null;
     items?: Array<{
       _key?: string;
       year?: string | null;
@@ -120,22 +121,6 @@ const CASE_ASSETS: Record<string, { img: string; bgVideo?: string; trail?: strin
     trail: ["mm-1.jpg", "mm-2.jpg", "mm-3.jpg", "mm-4.jpg"],
   },
 };
-
-// Client list for the "Working with the best" section (hardcoded placeholder).
-// `img` = the case visual shown in the cursor-follower preview on hover; served
-// from /public. `href` (case link) is not wired yet — anchors render but don't
-// navigate. Edit names/images here to finetune; can move to Sanity later.
-const CLIENTS = [
-  { name: "Bpost", img: "tui-image.jpg" },
-  { name: "Kruidvat", img: "meetmarcel.jpg" },
-  { name: "Lunch Garden", img: "mm-1.jpg" },
-  { name: "Crelan", img: "tui-image.jpg" },
-  { name: "Defensie", img: "meetmarcel.jpg" },
-  { name: "Cupra Seat", img: "concept-hero.jpg" },
-  { name: "AG Insurance", img: "mm-2.jpg" },
-  { name: "Lotus", img: "tui-image.jpg" },
-  { name: "Telenet", img: "meetmarcel.jpg" },
-].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 
 const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const transitionTo = usePageTransition();
@@ -342,7 +327,6 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const [hoverAward, setHoverAward] = useState<number | null>(null);
   // Same mechanic for the clients list ("Working with the best"); shares the
   // preview springs below (only one list is hovered at a time).
-  const [hoverClient, setHoverClient] = useState<number | null>(null);
   const previewX = useSpring(cursorX, { stiffness: 220, damping: 28, mass: 0.6 });
   const previewY = useSpring(cursorY, { stiffness: 220, damping: 28, mass: 0.6 });
   useEffect(() => {
@@ -1063,33 +1047,6 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         </div>
       </motion.div>
 
-      {/* Image-preview cursor-follower — shows the hovered client's case visual */}
-      <motion.div
-        className="pointer-events-none fixed left-0 top-0 z-[90]"
-        style={{ x: previewX, y: previewY }}
-        aria-hidden
-      >
-        <div className="relative aspect-[1/1.25] w-[clamp(180px,18vw,280px)] translate-x-6 -translate-y-1/2">
-          <AnimatePresence>
-            {hoverClient !== null && (
-              <motion.div
-                key={hoverClient}
-                initial={{ opacity: 0, scale: 0.92, y: 24 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.92, y: -24 }}
-                transition={{ duration: 0.35, ease: EASE_OUT }}
-                className="absolute inset-0 overflow-hidden"
-              >
-                <img
-                  src={`/${CLIENTS[hoverClient].img}`}
-                  className="h-full w-full object-cover"
-                  alt=""
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
       </>
       )}
 
@@ -1481,9 +1438,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
       </section>
       )}
 
-      {/* Clients — "Working with the best": intro left, client list right.
-          Names are alphabetical and stacked; hovering one shows that case's
-          visual in the cursor-follower above. */}
+      {/* Recognition — "Working with the best": tagline left, awards paragraph right.
+          Single paragraph fades in once; copy comes from homePage.awards.recognition. */}
       <section className="relative z-10 w-full bg-white text-brigada-black">
         <div className="grid w-full grid-cols-1 gap-x-[clamp(48px,12vw,200px)] gap-y-12 px-[clamp(24px,5vw,72px)] py-[clamp(64px,12vh,160px)] md:grid-cols-2">
           {/* Left — intro (sticky; offset below the nav + its progressive blur) */}
@@ -1494,32 +1450,23 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             The best thing about our line of work? It’s working with the best.
           </h2>
 
-          {/* Right — client names, stacked; hover a name to preview its case. */}
-          <div
-            className="flex flex-col gap-y-[clamp(14px,2vw,36px)]"
-            onPointerLeave={() => setHoverClient(null)}
-          >
-            {CLIENTS.map((c, i) => (
-              <motion.a
-                key={i}
-                href="#"
-                // TODO: link door naar de case zodra die er is — nu nog niet gewired.
-                onClick={(e) => e.preventDefault()}
-                onPointerEnter={() => setHoverClient(i)}
-                className="font-display cursor-pointer leading-[1.15] transition-colors duration-200"
-                style={{
-                  fontSize: "clamp(20px, 3.2vw, 34px)",
-                  color: hoverClient === i ? BRIGADA_BLACK : "rgba(24,22,20,0.35)",
-                }}
-                initial={{ opacity: 0, x: 48 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "0px 0px -12% 0px" }}
-                transition={{ duration: 0.7, ease: EASE_OUT, delay: i * 0.06 }}
-              >
-                {c.name}
-              </motion.a>
-            ))}
-          </div>
+          {/* Right — recognition paragraph (awards copy from Sanity). */}
+          {data?.awards?.recognition && (
+            <motion.p
+              className="leading-[1.35] text-brigada-black"
+              style={{
+                fontFamily: SANS,
+                fontSize: "clamp(18px, 1.7vw, 26px)",
+                fontWeight: 400,
+              }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+              transition={{ duration: 0.8, ease: EASE_OUT }}
+            >
+              {data.awards.recognition}
+            </motion.p>
+          )}
         </div>
       </section>
 
