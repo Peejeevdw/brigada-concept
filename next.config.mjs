@@ -40,7 +40,7 @@ const nextConfig = {
             // the chain must be listed.
             key: "Content-Security-Policy",
             value:
-              "frame-ancestors 'self' https://brigada.sanity.studio https://*.sanity.studio https://sanity.io https://*.sanity.io https://brigada.be",
+              "frame-ancestors 'self' http://localhost:3333 https://brigada.sanity.studio https://*.sanity.studio https://sanity.io https://*.sanity.io https://brigada.be",
           },
         ],
       },
