@@ -85,7 +85,13 @@ export interface ConceptData {
         client?: string | null;
         slug?: string | null;
         image?: unknown;
-        serviceCategories?: Array<{ name?: string | null }> | null;
+        serviceCategories?: Array<{
+          _id?: string;
+          name?: string | null;
+          slug?: string | null;
+          image?: unknown;
+          brioPaletteId?: string | null;
+        }> | null;
       } | null;
     }> | null;
   } | null;
@@ -572,9 +578,20 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cutAt, taglineGap, baseStart, baseEnd]);
 
-  // Paragraph: one shared font size so the WIDEST line fills the full width.
+  // Paragraph: each line gets its OWN font size so it fills the full width
+  // independently. With the old "Sharp Beats Loud" copy every line was roughly
+  // equal length, so a single shared size worked. The new copy mixes long and
+  // short lines ("Being sharper does." is much shorter than the lead-in), and
+  // a shared size left the short line marooned in negative space. Per-line
+  // sizing restores the headline cadence the design was after.
   const paraRef = useRef<HTMLDivElement>(null);
-  const [paraSize, setParaSize] = useState(90);
+  const [paraSizes, setParaSizes] = useState<number[]>(() =>
+    paragraphLines.map(() => 90),
+  );
+  // Cap how big any single line can get, expressed as a multiple of the
+  // smallest fitted size. Without this, a single-word line ("does.") would
+  // blow up dramatically and break the visual rhythm with its neighbours.
+  const MAX_LINE_SIZE_RATIO = 1.6;
   useLayoutEffect(() => {
     const fit = () => {
       const root = paraRef.current;
@@ -583,14 +600,24 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
       if (!spans.length) return;
       const wrap = spans[0].parentElement as HTMLElement;
       const avail = wrap.clientWidth;
-      const current = parseFloat(getComputedStyle(spans[0]).fontSize);
-      let maxNatural = 0;
+      if (avail <= 0) return;
+      // Per-line natural width at the currently-rendered font size lets us
+      // compute how much we'd have to scale each line individually to fill
+      // the viewport.
+      const raw: number[] = [];
       spans.forEach((s) => {
+        const current = parseFloat(getComputedStyle(s).fontSize);
         const range = document.createRange();
         range.selectNodeContents(s);
-        maxNatural = Math.max(maxNatural, range.getBoundingClientRect().width);
+        const natural = range.getBoundingClientRect().width;
+        raw.push(natural > 0 ? (current * avail) / natural : current);
       });
-      if (maxNatural > 0 && avail > 0) setParaSize((current * avail) / maxNatural);
+      // Clamp the largest computed size so the short tail line doesn't tower
+      // over the rest. The smallest line stays at its natural fit; longer
+      // ones (capped at MAX_LINE_SIZE_RATIO× the min) get reduced.
+      const minSize = Math.min(...raw);
+      const next = raw.map((s) => Math.min(s, minSize * MAX_LINE_SIZE_RATIO));
+      setParaSizes(next);
     };
     fit();
     if (document.fonts?.ready) document.fonts.ready.then(fit);
@@ -937,7 +964,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             />
           </label>
           <label className="mb-2 block">
-            Paragraph — {Math.round(paraSize * paraScale)}px{" "}
+            Paragraph — {Math.round((paraSizes[0] ?? 0) * paraScale)}px (largest line){" "}
             <span className="text-white/40">({Math.round(paraScale * 100)}% of fit · "We cut through…")</span>
             <input
               type="range"
@@ -1216,17 +1243,23 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             style={{ color: textColor, y: paraOffsetY }}
             className="absolute inset-x-0 top-[96vh] px-[clamp(24px,5vw,72px)]"
           >
-            {paragraphLines.map((line, i) => (
-              <div key={`${line}-${i}`} className="overflow-hidden">
-                <motion.span
-                  data-line
-                  style={{ y: lineYs[i], fontFamily: SANS, fontSize: `${paraSize * paraScale}px` }}
-                  className="block whitespace-nowrap pb-[0.06em] text-center font-light leading-[1.0] tracking-[-0.02em]"
-                >
-                  {line}
-                </motion.span>
-              </div>
-            ))}
+            {paragraphLines.map((line, i) => {
+              // Fall back to the first computed size while a freshly-changed
+              // paragraph re-runs the fit — keeps lines roughly stable on
+              // re-renders.
+              const size = paraSizes[i] ?? paraSizes[0] ?? 90;
+              return (
+                <div key={`${line}-${i}`} className="overflow-hidden">
+                  <motion.span
+                    data-line
+                    style={{ y: lineYs[i], fontFamily: SANS, fontSize: `${size * paraScale}px` }}
+                    className="block whitespace-nowrap pb-[0.06em] text-center font-light leading-[1.0] tracking-[-0.02em]"
+                  >
+                    {line}
+                  </motion.span>
+                </div>
+              );
+            })}
           </motion.div>
           </motion.div>
         </div>
@@ -1255,7 +1288,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         {caseItems.map((c) => {
           const name = c.work?.name ?? "";
           const client = c.work?.client ?? "";
-          const tags = (c.work?.serviceCategories ?? [])
+          const categories = (c.work?.serviceCategories ?? []).filter((e) => e?.name);
+          const tags = categories
             .map((e) => e?.name)
             .filter(Boolean)
             .join(", ");
@@ -1315,8 +1349,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
 
             {/* Full-width content row (same gutters as the paragraph above) */}
             <div className="relative z-10 flex w-full flex-col gap-8 px-[clamp(24px,5vw,72px)] py-[clamp(56px,12vh,140px)] md:flex-row md:items-center md:gap-[clamp(40px,10vw,221px)]">
-              {/* Meta — client (large) + project title (small) */}
-              <div className="flex shrink-0 flex-col gap-4 md:w-[171px]">
+              {/* Meta — client (large) + project title (small) + service categories */}
+              <div className="flex shrink-0 flex-col gap-[clamp(16px,2vw,24px)] md:w-[171px]">
                 <div className="flex flex-col gap-1">
                   <span
                     className="text-[clamp(20px,1.9vw,27px)] uppercase leading-none"
@@ -1333,6 +1367,56 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                     </span>
                   )}
                 </div>
+                {categories.length > 0 && (
+                  <ul
+                    className="flex flex-col gap-[clamp(6px,0.6vw,10px)]"
+                    style={{ fontFamily: SANS }}
+                  >
+                    {categories.map((cat) => {
+                      const catImg = cat?.image
+                        ? urlFor(cat.image)?.width(80).height(80).fit("crop").auto("format").url()
+                        : null;
+                      // Brio palette → a single representative hex so missing
+                      // images still get a coloured swatch instead of a hole.
+                      const SWATCH_BY_PALETTE: Record<string, string> = {
+                        "brio-02": "#7DDB9C",
+                        "brio-03": "#5BB8FF",
+                        "brio-04": "#FFB14A",
+                        "brio-05": "#E879F9",
+                        "brio-06": "#F87171",
+                      };
+                      const swatch = cat?.brioPaletteId
+                        ? SWATCH_BY_PALETTE[cat.brioPaletteId]
+                        : null;
+                      return (
+                        <li
+                          key={cat?._id ?? cat?.name}
+                          className="flex items-center gap-[clamp(8px,0.8vw,12px)] text-[clamp(11px,0.85vw,13px)] uppercase tracking-[0.08em] leading-none opacity-90"
+                          style={{ fontWeight: 500 }}
+                        >
+                          <span
+                            className="inline-block size-[clamp(18px,1.6vw,22px)] shrink-0 overflow-hidden rounded-full"
+                            style={{
+                              backgroundColor: swatch ?? "currentColor",
+                              opacity: catImg ? 1 : 0.85,
+                            }}
+                            aria-hidden
+                          >
+                            {catImg && (
+                              <img
+                                src={catImg}
+                                alt=""
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            )}
+                          </span>
+                          <span>{cat?.name}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
 
               {/* Media — large landscape visual; "Watch case" pill on hover. */}

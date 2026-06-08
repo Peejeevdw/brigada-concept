@@ -170,13 +170,17 @@ const WORK_LIST_PROJECTION = `{
   "slug": slug.current,
   image,
   "lqip": image.asset->metadata.lqip,
-  "serviceCategories": serviceCategories[]->{_id, name, "slug": slug.current}
+  "serviceCategories": serviceCategories[]->{
+    _id, name, "slug": slug.current, image, brioPaletteId
+  }
 }`;
 
 const WORK_FULL_PROJECTION = `{
   ...,
   "slug": slug.current,
-  "serviceCategories": serviceCategories[]->{_id, name, "slug": slug.current},
+  "serviceCategories": serviceCategories[]->{
+    _id, name, "slug": slug.current, image, brioPaletteId
+  },
   "related": related[]->${WORK_LIST_PROJECTION},
   // Every other case that has a thumbnail — feeds the "Related cases" slider on
   // the case detail. Excludes the current case (all locale variants by slug).

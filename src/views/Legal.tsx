@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { PortableText, type PortableTextBlock } from "@portabletext/react";
 import { useLenis } from "@/hooks/useLenis";
 import SiteNav from "@/components/site/SiteNav";
@@ -16,7 +16,7 @@ export type LegalData = {
   body?: PortableTextBlock[] | null;
 } | null;
 
-const Legal = ({ kind: _kind, data }: { kind: LegalKind; data?: LegalData }) => {
+const Legal = ({ kind, data }: { kind: LegalKind; data?: LegalData }) => {
   const title = data?.title ?? "";
   const body = data?.body ?? null;
 
@@ -25,6 +25,23 @@ const Legal = ({ kind: _kind, data }: { kind: LegalKind; data?: LegalData }) => 
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollP = useMotionValue(0);
   const bgColor = useTransform(scrollP, [0, 1], ["#FFFFFF", "#F6F1EA"]);
+
+  // Cookie-Script renders the auto-generated cookies table at the position of
+  // its script tag. We append the tag to a dedicated container via effect so
+  // the library can resolve `document.currentScript` and insert the table
+  // exactly where we want it. Only on /cookies.
+  const cookieTableRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (kind !== "cookies") return;
+    const el = cookieTableRef.current;
+    if (!el || el.querySelector("script[data-cookiescriptreport]")) return;
+    const s = document.createElement("script");
+    s.src = "//report.cookie-script.com/r/15b92958166470230dd3c72185b67909.js";
+    s.type = "text/javascript";
+    s.charset = "UTF-8";
+    s.setAttribute("data-cookiescriptreport", "report");
+    el.appendChild(s);
+  }, [kind]);
 
   useLenis(() => {
     const el = contentRef.current;
@@ -50,6 +67,14 @@ const Legal = ({ kind: _kind, data }: { kind: LegalKind; data?: LegalData }) => 
                 <div className="font-body text-brigada-black [&_p]:mb-6 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:mb-3 [&_h2]:mt-8 [&_h3]:font-body [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-6 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline">
                   <PortableText value={body} />
                 </div>
+              </Reveal>
+            )}
+            {kind === "cookies" && (
+              <Reveal>
+                <div
+                  ref={cookieTableRef}
+                  className="mt-[clamp(24px,3vw,48px)] font-body text-brigada-black [&_table]:w-full [&_table]:border-collapse [&_th]:text-left [&_th]:font-semibold [&_th]:py-2 [&_th]:pr-4 [&_th]:border-b [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:align-top [&_a]:underline"
+                />
               </Reveal>
             )}
           </div>
