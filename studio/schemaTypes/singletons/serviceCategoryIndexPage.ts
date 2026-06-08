@@ -34,8 +34,9 @@ export const serviceCategoryIndexPage = defineType({
       type: 'object',
       group: 'hero',
       fields: [
-        defineField({name: 'eyebrow', title: 'Eyebrow', type: 'string'}),
-        defineField({name: 'title', title: 'Title / intro paragraph', type: 'text', rows: 3}),
+        defineField({name: 'eyebrow', title: 'Eyebrow', type: 'string', description: 'Small label above the big title — e.g. "OUR SERVICES".'}),
+        defineField({name: 'title', title: 'Title', type: 'text', rows: 2, description: 'Big headline shown as <h1> — e.g. "The things we do (for love)".'}),
+        defineField({name: 'intro', title: 'Intro paragraph', type: 'text', rows: 3, description: 'Short paragraph below the title introducing the four pillars.'}),
       ],
     }),
     defineField({

@@ -8,13 +8,20 @@ import {mobileVideoFields} from './mobileVideoFields'
 // so the fields are built by one factory and exported as two types:
 //   • caseMedia      — gallery-row items (no ratio notes)
 //   • caseHeroMedia  — the case hero (16:9 desktop / 4:5 mobile notes)
-// Video follows the `videoEmbed` pattern: a Vimeo ID or HLS URL (no uploads).
+//
+// Video sources: Vimeo ID and Bunny HLS URL are treated as equally valid.
+// Editors pick one per item. If both are filled the Vimeo source plays (it
+// has richer player features) — a validation warning surfaces this so the
+// editor can clear the field they didn't mean to keep.
 
 type MediaNotes = {
   videoNote?: string // appended to the desktop video source descriptions
   posterNote?: string // appended to the desktop poster description
   mobileSourceNote?: string // appended to the mobile video source descriptions
   mobilePosterNote?: string // appended to the mobile poster description
+  /** Hide the "show player controls" toggle. Used on the case hero, which
+   *  always plays as a silent background loop with no chrome. */
+  hideControlsToggle?: boolean
 }
 
 const withNote = (base: string, note?: string) => (note ? `${base} ${note}` : base)
@@ -58,23 +65,31 @@ function caseMediaFields(notes: MediaNotes = {}): FieldDefinition[] {
       ],
     }),
 
-    // ---- Video ----
+    // ---- Video source (Vimeo OR Bunny — pick one) ----
     defineField({
       name: 'vimeoId',
       title: 'Video — Vimeo ID',
       type: 'string',
       description: withNote(
-        'Just the number from the Vimeo URL — e.g. 123456789 for vimeo.com/123456789. For unlisted videos add the hash: 123456789/abcdef12. Plays as a muted autoplay loop. Wins over everything else when set.',
+        'Just the number from the Vimeo URL — e.g. 123456789 for vimeo.com/123456789. For unlisted videos add the hash: 123456789/abcdef12. Plays as a muted autoplay loop.',
         notes.videoNote,
       ),
       hidden: ({parent}) => parent?.kind !== 'video',
+      validation: (Rule) =>
+        Rule.custom((value, ctx) => {
+          const parent = ctx.parent as {hlsUrl?: string} | undefined
+          if (value && parent?.hlsUrl) {
+            return 'Pick one source — either Vimeo or Bunny HLS. If both are set, the Vimeo video plays.'
+          }
+          return true
+        }).warning(),
     }),
     defineField({
       name: 'hlsUrl',
-      title: '⚠️ Video — HLS URL (don’t use)',
+      title: 'Video — Bunny HLS URL',
       type: 'url',
       description:
-        'Don’t use — kept only so existing cases keep working. For new videos use the Vimeo ID above.',
+        'Bunny (or other) HLS playlist URL — the .m3u8 link from the video library. Plays as a muted autoplay loop. Pick this OR the Vimeo ID above, not both.',
       hidden: ({parent}) => parent?.kind !== 'video',
     }),
     defineField({
@@ -85,15 +100,19 @@ function caseMediaFields(notes: MediaNotes = {}): FieldDefinition[] {
       description: withNote('Shown before the video loads.', notes.posterNote),
       hidden: ({parent}) => parent?.kind !== 'video',
     }),
-    defineField({
-      name: 'showControls',
-      title: 'Video — show player controls',
-      type: 'boolean',
-      initialValue: false,
-      description:
-        'Off (default): plays as a silent, looping background clip with no chrome, like the other case videos. On: keeps autoplay + muted but shows the Vimeo controls, so visitors can pause, scrub and unmute. Only applies to Vimeo videos.',
-      hidden: ({parent}) => parent?.kind !== 'video',
-    }),
+    ...(notes.hideControlsToggle
+      ? []
+      : [
+          defineField({
+            name: 'showControls',
+            title: 'Video — show player controls',
+            type: 'boolean',
+            initialValue: false,
+            description:
+              'Off (default): plays as a silent, looping background clip with no chrome, like the other case videos. On: keeps autoplay + muted but shows the Vimeo controls, so visitors can pause, scrub and unmute. Only applies to Vimeo videos.',
+            hidden: ({parent}) => parent?.kind !== 'video',
+          }),
+        ]),
 
     // ---- Mobile overrides (optional) ----
     ...mobileVideoFields({
@@ -104,8 +123,6 @@ function caseMediaFields(notes: MediaNotes = {}): FieldDefinition[] {
       gateOnVideoKind: true,
       sourceNote: notes.mobileSourceNote,
       posterNote: notes.mobilePosterNote,
-      hlsNote:
-        'Don’t use — kept only so existing cases keep working. For new videos use the Mobile Vimeo ID above.',
     }),
   ]
 }
@@ -141,6 +158,8 @@ export const caseHeroMedia = defineType({
     posterNote: 'Ratio 16:9 — 3840 × 2160 px.',
     mobileSourceNote: 'Use a 4:5 (portrait) video.',
     mobilePosterNote: 'Ratio 4:5 — 2000 × 2500 px.',
+    // The case hero always plays as a silent background loop — no toggle.
+    hideControlsToggle: true,
   }),
   preview: caseMediaPreview,
 })

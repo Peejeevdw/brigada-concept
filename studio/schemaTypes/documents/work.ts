@@ -89,23 +89,12 @@ export const work = defineType({
       validation: (Rule) => Rule.min(1990).max(2100).integer(),
     }),
     defineField({
-      name: 'code',
-      title: 'Project code',
-      type: 'string',
-      group: 'general',
-      description: 'Internal reference in the format BRGD.XXX (e.g. BRGD.001).',
-      validation: (Rule) =>
-        Rule.regex(/^BRGD\.\d{3}$/, {name: 'project code'}).error(
-          'Use the format BRGD followed by a dot and three digits, e.g. BRGD.012.',
-        ),
-    }),
-    defineField({
       name: 'featured',
       title: 'Featured',
       type: 'boolean',
       group: 'general',
       initialValue: false,
-      description: 'Featured cases are surfaced on the homepage and at the top of the work index.',
+      description: 'Pins this case to the top of its service category page (e.g. /brand, /marketing). Has no effect on the homepage or /work index — those are curated/ordered separately.',
     }),
     // ---- New case layout: hero → project-info drawer → gallery rows ----
     defineField({
@@ -198,12 +187,11 @@ export const work = defineType({
     }),
   ],
   preview: {
-    select: {title: 'name', code: 'code', year: 'year', locale: 'locale', media: 'image'},
-    prepare({title, code, year, locale, media}) {
-      const bits = [code, year].filter(Boolean).join(' · ')
+    select: {title: 'name', year: 'year', locale: 'locale', media: 'image'},
+    prepare({title, year, locale, media}) {
       return {
         title: title || 'Untitled case',
-        subtitle: languageVersionSubtitle(locale, bits || 'No code or year yet'),
+        subtitle: languageVersionSubtitle(locale, year ? String(year) : 'No year yet'),
         media,
       }
     },

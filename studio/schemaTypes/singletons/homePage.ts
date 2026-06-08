@@ -225,6 +225,14 @@ export const homePage = defineType({
         defineField({name: 'title', title: 'Section title', type: 'string'}),
         defineField({name: 'description', title: 'Description', type: 'text', rows: 2}),
         defineField({
+          name: 'recognition',
+          title: 'Recognition paragraph',
+          type: 'text',
+          rows: 6,
+          description:
+            'Single paragraph shown next to the "Working with the best" tagline on the homepage. Lists awards / distinctions in prose.',
+        }),
+        defineField({
           name: 'items',
           title: 'Awards',
           type: 'array',
