@@ -9,6 +9,7 @@ import Reveal from "@/components/site/Reveal";
 import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
+import PillarWorkCTA from "@/components/PillarWorkCTA";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import type { CascadingSlide } from "@/components/CascadingSlider";
 import type { PillarViewProps } from "./pillar-types";
@@ -118,6 +119,9 @@ const People = ({ category }: PillarViewProps) => {
             </div>
           </Reveal>
         </section>
+
+        {/* CTA: deep-link to the work index pre-filtered on this pillar. */}
+        <PillarWorkCTA pillarSlug="people" pillarName={pillarName} />
 
         {/* People contact */}
         <section

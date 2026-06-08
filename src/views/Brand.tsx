@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SiteNav from "@/components/site/SiteNav";
 import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
+import PillarWorkCTA from "@/components/PillarWorkCTA";
 import { usePageTransition } from "@/components/PageTransition";
 import type { PillarViewProps } from "./pillar-types";
 
@@ -186,6 +187,9 @@ const Brand = ({ category }: PillarViewProps) => {
             </div>
           </Reveal>
         </section>
+
+        {/* CTA: deep-link to the work index pre-filtered on this pillar. */}
+        <PillarWorkCTA pillarSlug="brand" pillarName={pillarName} />
 
         {/* Brand contact (Figma 308:2437–2440) */}
         <section

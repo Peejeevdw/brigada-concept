@@ -165,6 +165,18 @@ const WorkFilter = ({
     };
     group.addEventListener("click", onClick);
 
+    // Honour `?filter=<pillar>` so the pillar pages can deep-link into a
+    // pre-filtered /work view. Falls through to the default "All" tab when
+    // the param is missing or doesn't match a category.
+    const initial = new URLSearchParams(window.location.search).get("filter");
+    if (initial) {
+      const want = initial.trim().toLowerCase();
+      const known = buttons.some(
+        (b) => (b.getAttribute("data-filter-target") || "").trim().toLowerCase() === want,
+      );
+      if (known) paint(want);
+    }
+
     return () => {
       group.removeEventListener("click", onClick);
       timers.forEach((id) => clearTimeout(id));
