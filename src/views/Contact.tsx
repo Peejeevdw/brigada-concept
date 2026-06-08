@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import { useLenis } from "@/hooks/useLenis";
+import { pushFormSubmission } from "@/lib/dataLayer";
 import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import BrandFooter from "@/components/BrandFooter";
@@ -120,6 +121,7 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
       });
       const json = (await res.json().catch(() => ({}))) as {ok?: boolean; error?: string};
       if (res.ok && json.ok) {
+        pushFormSubmission("contact");
         setSent(true);
       } else {
         setError(

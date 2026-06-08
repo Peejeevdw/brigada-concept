@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { pushFormSubmission } from "@/lib/dataLayer";
 import { PortableText, type PortableTextBlock } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
 import CareersFooter from "@/components/CareersFooter";
@@ -292,6 +293,7 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
       }
       const json = (await res.json().catch(() => ({}))) as {ok?: boolean; error?: string};
       if (res.ok && json.ok) {
+        pushFormSubmission("job_application");
         setSent(true);
       } else {
         setError(
