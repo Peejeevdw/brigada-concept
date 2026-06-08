@@ -19,7 +19,7 @@ export const PAGE_GROUPS: FieldGroupDefinition[] = [
   {name: 'content', title: 'Content'},
 ]
 
-/** Three-tab layout for editorial resources (Expertise). */
+/** Three-tab layout for editorial resources (Services). */
 export const RESOURCE_GROUPS: FieldGroupDefinition[] = [
   {name: 'general', title: 'General', default: true},
   {name: 'content', title: 'Content'},

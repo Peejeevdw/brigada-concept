@@ -31,7 +31,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 
 const NAV_ITEMS = [
-  { label: "Expertise", items: ["Brand", "Product", "People", "Marketing"] },
+  { label: "Services", items: ["Brand", "Marketing", "People", "Product"] },
   { label: "Work", items: [] as string[] },
   { label: "About", items: [] as string[] },
   { label: "Careers", items: [] as string[] },
@@ -66,6 +66,7 @@ export interface ConceptData {
     eyebrow?: string | null;
     taglines?: string[] | null;
     paragraphLines?: string[] | null;
+    explainer?: string | null;
   } | null;
   reel?: {
     hlsUrl?: string | null;
@@ -84,7 +85,7 @@ export interface ConceptData {
         client?: string | null;
         slug?: string | null;
         image?: unknown;
-        expertises?: Array<{ name?: string | null }> | null;
+        services?: Array<{ name?: string | null }> | null;
       } | null;
     }> | null;
   } | null;
@@ -119,9 +120,8 @@ const CASE_ASSETS: Record<string, { img: string; bgVideo?: string; trail?: strin
 // from /public. `href` (case link) is not wired yet — anchors render but don't
 // navigate. Edit names/images here to finetune; can move to Sanity later.
 const CLIENTS = [
-  { name: "bpost", img: "tui-image.jpg" },
+  { name: "Bpost", img: "tui-image.jpg" },
   { name: "Kruidvat", img: "meetmarcel.jpg" },
-  { name: "What’s Cooking", img: "concept-hero.jpg" },
   { name: "Lunch Garden", img: "mm-1.jpg" },
   { name: "Crelan", img: "tui-image.jpg" },
   { name: "Defensie", img: "meetmarcel.jpg" },
@@ -146,6 +146,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const paragraphLines = (data?.intro?.paragraphLines ?? [])
     .map((line) => line?.trim() ?? "")
     .filter((line) => line.length > 0);
+  const introExplainer = (data?.intro?.explainer ?? "").trim();
   const awardsItems = data?.awards?.items ?? [];
   const caseItems = data?.cases?.items ?? [];
   // ---- Intro: 0 = blurred + thick stroke · 1 = crisp full logo ----
@@ -183,7 +184,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     };
   }, [mobileOpen]);
   const NAV_TARGETS: Record<string, string> = {
-    Expertise: "/expertise",
+    Services: "/services",
     Work: "/work",
     About: "/about",
     Careers: "/careers",
@@ -750,7 +751,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                   onClick={() => {
                     if (item.label === "Careers") transitionTo("/careers");
                     else if (item.label === "About") transitionTo("/about");
-                    else if (item.label === "Expertise") transitionTo("/expertise");
+                    else if (item.label === "Services") transitionTo("/services");
                     else if (item.label === "Work") transitionTo("/work");
                     else if (item.label === "Contact") transitionTo("/contact");
                   }}
@@ -992,7 +993,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 className="whitespace-nowrap rounded-full border border-white/15 bg-brigada-black/50 px-4 py-2 text-[13px] uppercase tracking-[0.12em] text-white backdrop-blur-md"
                 style={{ fontFamily: SANS }}
               >
-                Watch case
+                Check it out
               </motion.div>
             )}
           </AnimatePresence>
@@ -1231,6 +1232,18 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         </div>
       </section>
 
+      {/* Tagline explainer — short paragraph unpacking "Sharp beats loud". */}
+      {introExplainer && (
+        <section className="relative z-10 px-[clamp(24px,5vw,72px)] pt-[clamp(60px,8vw,120px)] pb-[clamp(40px,5vw,80px)] text-white">
+          <p
+            style={{ fontFamily: SANS }}
+            className="mx-auto max-w-[42ch] text-center text-[clamp(16px,1.3vw,20px)] leading-[1.5] tracking-[-0.005em] opacity-80"
+          >
+            {introExplainer}
+          </p>
+        </section>
+      )}
+
       {/* Cases — narrow meta label on the left, large landscape media on the
           right, over each case's background (Figma node 299-1977). Pulled up
           under the hero via videoPull so the reveal stays seamless. */}
@@ -1242,7 +1255,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         {caseItems.map((c) => {
           const name = c.work?.name ?? "";
           const client = c.work?.client ?? "";
-          const tags = (c.work?.expertises ?? [])
+          const tags = (c.work?.services ?? [])
             .map((e) => e?.name)
             .filter(Boolean)
             .join(", ");

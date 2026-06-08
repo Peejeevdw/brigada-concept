@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  EXPERTISE_SLIDE_MS,
-  useExpertiseTransition,
-} from "@/lib/expertiseTransition";
+  SERVICES_SLIDE_MS,
+  useServicesTransition,
+} from "@/lib/servicesTransition";
 
-const ExpertiseTransitionOverlay = () => {
-  const t = useExpertiseTransition();
+const ServicesTransitionOverlay = () => {
+  const t = useServicesTransition();
   const [slidIn, setSlidIn] = useState(false);
 
   useEffect(() => {
@@ -67,16 +67,16 @@ const ExpertiseTransitionOverlay = () => {
       <div
         style={{
           transform: slidIn ? "translateY(0)" : "translateY(-100%)",
-          transition: `transform ${EXPERTISE_SLIDE_MS}ms ${ease}`,
+          transition: `transform ${SERVICES_SLIDE_MS}ms ${ease}`,
           willChange: "transform",
           backgroundColor: "#f3f2ef",
         }}
       >
-        {/* HERO, mirrors ExpertiseDetail */}
+        {/* HERO, mirrors ServiceDetail */}
         <section className="px-6 md:px-10 xl:px-24 2xl:px-48 min-[1800px]:px-72 min-[2400px]:px-96 pt-6 md:pt-10">
           <div className="relative w-full aspect-[8/3] flex flex-col items-center justify-center text-center">
             <p className="font-nav" style={{ color: "#2D2928" }}>
-              Expertise
+              Services
             </p>
             <h2 className="font-hero mt-3 md:mt-4" style={{ color: "#2D2928" }}>
               {pillar} services
@@ -99,4 +99,4 @@ const ExpertiseTransitionOverlay = () => {
   );
 };
 
-export default ExpertiseTransitionOverlay;
+export default ServicesTransitionOverlay;

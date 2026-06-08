@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import ScrollToTop from "@/components/ScrollToTop";
 import WorkTransitionOverlay from "@/components/WorkTransitionOverlay";
-import ExpertiseTransitionOverlay from "@/components/ExpertiseTransitionOverlay";
+import ServicesTransitionOverlay from "@/components/ServicesTransitionOverlay";
 import SiteGridOverlay from "@/components/SiteGridOverlay";
 import ReviewComments from "@/components/review/ReviewComments";
 import PageTransitionProvider from "@/components/PageTransition";
@@ -20,7 +20,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <TooltipProvider>
         <ScrollToTop />
         <WorkTransitionOverlay />
-        <ExpertiseTransitionOverlay />
+        <ServicesTransitionOverlay />
         <SiteGridOverlay />
         <ReviewComments />
         <PageTransitionProvider>{children}</PageTransitionProvider>

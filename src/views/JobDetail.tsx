@@ -53,7 +53,7 @@ export interface JobData {
   jobDescription?: PortableTextBlock[] | null;
   profile?: PortableTextBlock[] | null;
   offer?: PortableTextBlock[] | null;
-  expertise?: { _id?: string; name?: string | null; slug?: string | null } | null;
+  service?: { _id?: string; name?: string | null; slug?: string | null } | null;
   location?: { _id?: string; title?: string | null; city?: string | null } | null;
   contact?: {
     _id?: string;
@@ -382,12 +382,12 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
                     <p className="mt-1">{city}</p>
                   </div>
                 )}
-                {job.expertise?.name && (
+                {job.service?.name && (
                   <div className="mt-6 border-t pt-3" style={{ borderColor: INK }}>
                     <p className="text-[clamp(11px,0.9vw,13px)] uppercase tracking-[0.12em] opacity-60">
                       Team
                     </p>
-                    <p className="mt-1">{job.expertise.name}</p>
+                    <p className="mt-1">{job.service.name}</p>
                   </div>
                 )}
                 <a

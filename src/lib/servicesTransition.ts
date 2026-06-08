@@ -1,31 +1,31 @@
 import { useSyncExternalStore } from "react";
 import type { Pillar } from "@/components/wireframe/WorkThumb";
 
-export type ExpertiseTransitionPhase =
+export type ServicesTransitionPhase =
   | "idle"
   | "sliding"
   | "fading"
   | "settling";
 
-export interface ExpertiseTransitionState {
-  phase: ExpertiseTransitionPhase;
+export interface ServicesTransitionState {
+  phase: ServicesTransitionPhase;
   pillar: Pillar | null;
   slug: string | null;
   intro: string | null;
 }
 
-const initial: ExpertiseTransitionState = {
+const initial: ServicesTransitionState = {
   phase: "idle",
   pillar: null,
   slug: null,
   intro: null,
 };
 
-let state: ExpertiseTransitionState = initial;
+let state: ServicesTransitionState = initial;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
-export const expertiseTransition = {
+export const servicesTransition = {
   get: () => state,
   subscribe: (fn: () => void) => {
     listeners.add(fn);
@@ -40,7 +40,7 @@ export const expertiseTransition = {
     };
     emit();
   },
-  setPhase: (phase: ExpertiseTransitionPhase) => {
+  setPhase: (phase: ServicesTransitionPhase) => {
     state = { ...state, phase };
     emit();
   },
@@ -50,13 +50,13 @@ export const expertiseTransition = {
   },
 };
 
-export const useExpertiseTransition = () =>
+export const useServicesTransition = () =>
   useSyncExternalStore(
-    expertiseTransition.subscribe,
-    expertiseTransition.get,
-    expertiseTransition.get,
+    servicesTransition.subscribe,
+    servicesTransition.get,
+    servicesTransition.get,
   );
 
 // Timing constants (ms)
-export const EXPERTISE_SLIDE_MS = 600;
-export const EXPERTISE_FADE_MS = 320;
+export const SERVICES_SLIDE_MS = 600;
+export const SERVICES_FADE_MS = 320;

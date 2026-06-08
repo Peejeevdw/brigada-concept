@@ -49,7 +49,7 @@ export interface CareersData {
     slug?: string | null;
     name?: string | null;
     introIndex?: string | null;
-    expertise?: string | null;
+    service?: string | null;
   }> | null;
 }
 

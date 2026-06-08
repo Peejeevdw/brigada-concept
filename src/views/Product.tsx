@@ -11,23 +11,23 @@ import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import type { PillarViewProps } from "./pillar-types";
 
-// Product page — the Product expertise detail, built on the shared site
+// Product page — the Product service detail, built on the shared site
 // foundation (SiteNav, Reveal, SectionLabel, useLenis, .font-* roles, tokens)
 // with the same section rhythm as /brand: intro → services → contact → orbit
-// → parallax footer. All content read from the matching `expertise` doc.
+// → parallax footer. All content read from the matching `service` doc.
 
-const Product = ({ expertise }: PillarViewProps) => {
-  const lead = expertise?.lead;
+const Product = ({ service }: PillarViewProps) => {
+  const lead = service?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
   const position = lead?.position ?? "";
   const phone = lead?.phone ?? "";
   const email = lead?.email ?? "";
-  const leadInText = (expertise?.leadIn ?? "").replace("{name}", firstName);
-  const brioPalette = expertise?.brioPaletteId ?? undefined;
-  const pillarName = expertise?.name ?? "Product";
-  const intro = expertise?.intro ?? "";
-  const services = expertise?.services ?? [];
+  const leadInText = (service?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = service?.brioPaletteId ?? undefined;
+  const pillarName = service?.name ?? "Product";
+  const intro = service?.intro ?? "";
+  const services = service?.services ?? [];
 
   // Scroll-driven background — warms from white to a soft blue-green tint across
   // the content block, reaching full tint as the dark orbit slides over.

@@ -11,15 +11,15 @@ import SectionLabel from "@/components/site/SectionLabel";
 import BrandFooter from "@/components/BrandFooter";
 import { EASE_OUT, GUTTER, INK } from "@/lib/siteTokens";
 
-export interface ExpertiseOverviewData {
+export interface ServicesOverviewData {
   page?: {
     hero?: { eyebrow?: string | null; title?: string | null } | null;
-    pillars?: ExpertiseOverviewPillar[] | null;
+    pillars?: ServicesOverviewPillar[] | null;
   } | null;
-  pillars?: ExpertiseOverviewPillar[] | null;
+  pillars?: ServicesOverviewPillar[] | null;
 }
 
-export interface ExpertiseOverviewPillar {
+export interface ServicesOverviewPillar {
   _id?: string;
   name?: string | null;
   slug?: string | null;
@@ -27,12 +27,12 @@ export interface ExpertiseOverviewPillar {
   brioPaletteId?: string | null;
 }
 
-// Expertise overview — the four domains (Brand / Product / People / Marketing)
+// Services overview — the four domains (Brand / Product / People / Marketing)
 // under one roof, built in the /brand idiom on the shared site foundation
 // (SiteNav, Reveal, SectionLabel, useLenis, the .font-* roles + tokens). Hero
-// + pillar order all come from the expertiseIndexPage Sanity doc.
+// + pillar order all come from the serviceIndexPage Sanity doc.
 
-const ExpertiseV2 = ({ data }: { data?: ExpertiseOverviewData | null } = {}) => {
+const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
   const transitionTo = usePageTransition();
   const eyebrow = data?.page?.hero?.eyebrow ?? "";
   const intro = data?.page?.hero?.title ?? "";
@@ -135,4 +135,4 @@ const ExpertiseV2 = ({ data }: { data?: ExpertiseOverviewData | null } = {}) => 
   );
 };
 
-export default ExpertiseV2;
+export default Services;

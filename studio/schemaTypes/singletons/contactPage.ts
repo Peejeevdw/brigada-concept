@@ -3,9 +3,9 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {localeField} from '../helpers'
 
 /**
- * Contact page (/contact). Hero + form + expertise contacts + locations +
+ * Contact page (/contact). Hero + form + service contacts + locations +
  * optional gallery. Practice leads / general contact come from siteSettings
- * + per-expertise refs, so we don't duplicate them here.
+ * + per-service refs, so we don't duplicate them here.
  */
 export const contactPage = defineType({
   name: 'contactPage',
@@ -172,17 +172,17 @@ export const contactPage = defineType({
         }),
       ],
     }),
-    // ---- Expertise contacts ----
+    // ---- Service contacts ----
     defineField({
-      name: 'expertiseContacts',
-      title: 'Expertise contacts',
+      name: 'serviceContacts',
+      title: 'Service contacts',
       type: 'array',
       group: 'contacts',
       description: 'Per-pillar leads shown below the form. Override or add entries here.',
       of: [
         defineArrayMember({
           type: 'object',
-          name: 'expertiseContact',
+          name: 'serviceContact',
           fields: [
             defineField({
               name: 'label',
@@ -192,26 +192,26 @@ export const contactPage = defineType({
               validation: (Rule) => Rule.required(),
             }),
             defineField({
-              name: 'expertise',
-              title: 'Expertise (optional)',
+              name: 'service',
+              title: 'Service (optional)',
               type: 'reference',
-              to: [{type: 'expertise'}],
-              description: 'If set, the person can be auto-resolved from `expertise.lead`.',
+              to: [{type: 'service'}],
+              description: 'If set, the person can be auto-resolved from `service.lead`.',
             }),
             defineField({
               name: 'person',
               title: 'Person',
               type: 'reference',
               to: [{type: 'person'}],
-              description: 'Direct override. If empty and an expertise is set, we fall back to its lead.',
+              description: 'Direct override. If empty and a service is set, we fall back to its lead.',
             }),
           ],
           preview: {
-            select: {label: 'label', personName: 'person.name', expertiseName: 'expertise.name'},
-            prepare({label, personName, expertiseName}) {
+            select: {label: 'label', personName: 'person.name', serviceName: 'service.name'},
+            prepare({label, personName, serviceName}) {
               return {
-                title: label || expertiseName || 'Contact',
-                subtitle: personName || (expertiseName ? `lead of ${expertiseName}` : ''),
+                title: label || serviceName || 'Contact',
+                subtitle: personName || (serviceName ? `lead of ${serviceName}` : ''),
               }
             },
           },

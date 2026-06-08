@@ -10,9 +10,9 @@ const BRIO_PALETTES = [
   {title: 'Brio 06 (brand accent)', value: 'brio-06'},
 ] as const
 
-export const expertise = defineType({
-  name: 'expertise',
-  title: 'Expertise',
+export const service = defineType({
+  name: 'service',
+  title: 'Service',
   type: 'document',
   icon: StarIcon,
   description:
@@ -37,7 +37,7 @@ export const expertise = defineType({
     slugField({
       group: 'general',
       source: 'name',
-      docType: 'expertise',
+      docType: 'service',
       scopeField: 'locale',
       description:
         'Used in the URL (/<slug>, e.g. /brand). Click Generate to derive it from the name.',
@@ -231,7 +231,7 @@ export const expertise = defineType({
       type: 'string',
       group: 'settings',
       description:
-        'Recruitee department ID. Set this to link an offer’s department to this expertise during the jobs sync.',
+        'Recruitee department ID. Set this to link an offer’s department to this service during the jobs sync.',
     }),
     defineField({
       name: 'links',
@@ -264,7 +264,7 @@ export const expertise = defineType({
     select: {title: 'name', subtitle: 'intro', locale: 'locale', media: 'image'},
     prepare({title, subtitle, locale, media}) {
       return {
-        title: title || 'Untitled expertise',
+        title: title || 'Untitled service',
         subtitle: languageVersionSubtitle(
           locale,
           subtitle ? subtitle.slice(0, 80) : 'No intro yet',

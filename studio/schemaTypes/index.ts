@@ -18,7 +18,7 @@ import {statBlock} from './objects/blocks/statBlock'
 
 // Documents
 import {locale} from './documents/locale'
-import {expertise} from './documents/expertise'
+import {service} from './documents/service'
 import {job} from './documents/job'
 import {person} from './documents/person'
 import {work} from './documents/work'
@@ -35,7 +35,7 @@ import {contactPage} from './singletons/contactPage'
 import {privacyPage} from './singletons/privacyPage'
 import {siteSettings} from './singletons/siteSettings'
 import {workIndexPage} from './singletons/workIndexPage'
-import {expertiseIndexPage} from './singletons/expertiseIndexPage'
+import {serviceIndexPage} from './singletons/serviceIndexPage'
 
 export const schemaTypes = [
   // Objects
@@ -59,7 +59,7 @@ export const schemaTypes = [
 
   // Documents
   locale,
-  expertise,
+  service,
   job,
   person,
   work,
@@ -76,5 +76,5 @@ export const schemaTypes = [
   privacyPage,
   siteSettings,
   workIndexPage,
-  expertiseIndexPage,
+  serviceIndexPage,
 ]

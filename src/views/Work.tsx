@@ -20,7 +20,7 @@ export interface WorkIndexData {
     slug?: string | null;
     intro?: string | null;
     image?: unknown;
-    expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
+    services?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
   }> | null;
 }
 
@@ -41,7 +41,7 @@ const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
       if (!img) return null;
       return {
         client: w.client || w.name || "",
-        tags: (w.expertises ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
+        tags: (w.services ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
         img,
         slug: w.slug ?? undefined,
       };

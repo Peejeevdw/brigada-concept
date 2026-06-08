@@ -89,7 +89,7 @@ export interface WorkDocData {
   intro?: string | null;
   year?: number | null;
   code?: string | null;
-  expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
+  services?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
   body?: CaseBlock[] | null;
   gallery?: unknown[] | null;
   related?: Array<RelatedWork> | null;
@@ -103,7 +103,7 @@ interface RelatedWork {
   intro?: string | null;
   year?: number | null;
   featured?: boolean | null;
-  expertises?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
+  services?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
 }
 
 const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
@@ -116,7 +116,7 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
     title: work?.name || "",
     tagline: work?.intro ?? undefined,
     year: work?.year ?? null,
-    pillars: (work?.expertises ?? []).map((e) => e?.name).filter(Boolean) as string[],
+    pillars: (work?.services ?? []).map((e) => e?.name).filter(Boolean) as string[],
   };
   const body: CaseBlock[] = (work?.body ?? []) as CaseBlock[];
 
@@ -346,7 +346,7 @@ const WorkDetail = ({ work }: { work?: WorkDocData | null } = {}) => {
             title: r.name ?? "",
             client: r.client ?? r.name ?? "",
             year: r.year ?? new Date().getFullYear(),
-            pillars: ((r.expertises ?? [])
+            pillars: ((r.services ?? [])
               .map((e) => e?.name)
               .filter(Boolean) as string[]) as Pillar[],
             clickable: true,
@@ -429,7 +429,7 @@ const MoreWorkCard = ({ project: p, index, transitionActive }: MoreWorkCardProps
   const imageRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const navigate = (to: string) => router.push(to);
-  const expertise = p.pillars.join(", ");
+  const service = p.pillars.join(", ");
   const num = `Brgd.${String(index + 1).padStart(3, "0")}`;
 
   const handleClick = (e: MouseEvent) => {
@@ -491,7 +491,7 @@ const MoreWorkCard = ({ project: p, index, transitionActive }: MoreWorkCardProps
             className="inline-block translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out font-nav"
             style={{ transitionDelay: "180ms" }}
           >
-            {expertise}
+            {service}
           </span>
         </span>
       </figcaption>

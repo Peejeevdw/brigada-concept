@@ -18,7 +18,7 @@ gsap.registerPlugin(ScrollTrigger);
 const SANS = '"Antarctica", system-ui, sans-serif';
 
 const COLUMNS = [
-  { label: "Pages", links: ["Work", "Expertise", "About", "Careers", "Contact"] },
+  { label: "Pages", links: ["Work", "Services", "About", "Careers", "Contact"] },
   { label: "Socials", links: ["LinkedIn", "Instagram"] },
   { label: "Contact", links: ["hello@brigada.be"] },
 ];
@@ -26,7 +26,7 @@ const COLUMNS = [
 // Internal routes for the "Pages" column (new-style destinations).
 const PAGE_ROUTES: Record<string, string> = {
   Work: "/work",
-  Expertise: "/expertise",
+  Services: "/services",
   About: "/about",
   Careers: "/careers",
   Contact: "/contact",

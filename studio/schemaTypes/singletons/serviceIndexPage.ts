@@ -3,15 +3,15 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {localeField} from '../helpers'
 
 /**
- * The /expertise landing page. Hero + curated list of pillar references shown
- * in the grid. Each linked expertise has its own pillar page (e.g. /brand).
+ * The /services landing page. Hero + curated list of pillar references shown
+ * in the grid. Each linked service has its own pillar page (e.g. /brand).
  */
-export const expertiseIndexPage = defineType({
-  name: 'expertiseIndexPage',
-  title: 'Expertise — index',
+export const serviceIndexPage = defineType({
+  name: 'serviceIndexPage',
+  title: 'Services — index',
   type: 'document',
   icon: StarIcon,
-  description: 'Intro and pillar grid on /expertise. Each language has its own version.',
+  description: 'Intro and pillar grid on /services. Each language has its own version.',
   groups: [
     {name: 'general', title: 'General', default: true},
     {name: 'hero', title: 'Hero'},
@@ -25,7 +25,7 @@ export const expertiseIndexPage = defineType({
       title: 'Internal label',
       type: 'string',
       group: 'general',
-      initialValue: 'Expertise index',
+      initialValue: 'Services index',
     }),
     defineField({
       name: 'hero',
@@ -43,8 +43,8 @@ export const expertiseIndexPage = defineType({
       type: 'array',
       group: 'pillars',
       description:
-        'The four pillars shown on the overview, in display order. Each references an Expertise document (which holds the pillar page content).',
-      of: [defineArrayMember({type: 'reference', to: [{type: 'expertise'}]})],
+        'The four pillars shown on the overview, in display order. Each references a Service document (which holds the pillar page content).',
+      of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
       validation: (Rule) =>
         Rule.min(1).error('Add at least one pillar.').max(8).warning('More than eight starts to feel cluttered.'),
     }),
@@ -58,7 +58,7 @@ export const expertiseIndexPage = defineType({
   preview: {
     select: {title: 'title', locale: 'locale'},
     prepare({title, locale}) {
-      return {title: title || 'Expertise — index', subtitle: locale ? `/${locale}/expertise` : '/expertise'}
+      return {title: title || 'Services — index', subtitle: locale ? `/${locale}/services` : '/services'}
     },
   },
 })

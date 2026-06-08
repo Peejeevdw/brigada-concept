@@ -105,7 +105,7 @@ const I18N_STRING = `coalesce(
 const INTERNAL_URL = `select(
   internal->_type == "homePage" => "/",
   internal->_type == "workIndexPage" => "/work",
-  internal->_type == "expertiseIndexPage" => "/expertise",
+  internal->_type == "serviceIndexPage" => "/services",
   internal->_type == "aboutPage" => "/about",
   internal->_type == "careersPage" => "/careers",
   internal->_type == "contactPage" => "/contact",
@@ -114,7 +114,7 @@ const INTERNAL_URL = `select(
   internal->_type == "legalPage" && internal->kind == "terms" => "/terms",
   internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",
   internal->_type == "work" => "/work/" + internal->slug.current,
-  internal->_type == "expertise" => "/" + internal->slug.current,
+  internal->_type == "service" => "/" + internal->slug.current,
   internal->_type == "job" => "/careers/jobs/" + internal->slug.current
 )`;
 
@@ -169,13 +169,13 @@ const WORK_LIST_PROJECTION = `{
   "slug": slug.current,
   image,
   "lqip": image.asset->metadata.lqip,
-  "expertises": expertises[]->{_id, name, "slug": slug.current}
+  "services": services[]->{_id, name, "slug": slug.current}
 }`;
 
 const WORK_FULL_PROJECTION = `{
   ...,
   "slug": slug.current,
-  "expertises": expertises[]->{_id, name, "slug": slug.current},
+  "services": services[]->{_id, name, "slug": slug.current},
   "related": related[]->${WORK_LIST_PROJECTION},
   // Every other case that has a thumbnail — feeds the "Related cases" slider on
   // the case detail. Excludes the current case (all locale variants by slug).
@@ -195,7 +195,7 @@ const WORK_FULL_PROJECTION = `{
   "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
 }`;
 
-const EXPERTISE_PROJECTION = `{
+const SERVICE_PROJECTION = `{
   _id,
   name,
   "slug": slug.current,
@@ -361,28 +361,28 @@ export function getWorkLayout(locale: string = DEFAULT_SANITY_LOCALE) {
   );
 }
 
-export function getExpertiseIndex(locale: string = DEFAULT_SANITY_LOCALE) {
+export function getServicesIndex(locale: string = DEFAULT_SANITY_LOCALE) {
   return fetch(
     groq`{
-      "page": *[_type == "expertiseIndexPage" && (locale == $locale || locale == null)] | order(locale desc)[0]{
+      "page": *[_type == "serviceIndexPage" && (locale == $locale || locale == null)] | order(locale desc)[0]{
         ...,
-        "pillars": pillars[]->${EXPERTISE_PROJECTION}
+        "pillars": pillars[]->${SERVICE_PROJECTION}
       },
-      "pillars": *[_type == "expertise" && (locale == $locale || locale == null)] | order(order asc)${EXPERTISE_PROJECTION}
+      "pillars": *[_type == "service" && (locale == $locale || locale == null)] | order(order asc)${SERVICE_PROJECTION}
     }`,
     { locale },
-    ["expertiseIndexPage", "expertise"],
+    ["serviceIndexPage", "service"],
   );
 }
 
-export function getExpertise(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
+export function getService(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
   return fetch(
     groq`{
-      "expertise": *[_type == "expertise" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]${EXPERTISE_PROJECTION},
-      "cases": *[_type == "work" && $slug in expertises[]->slug.current && (locale == $locale || locale == null)] | order(featured desc, year desc)[0...12]${WORK_LIST_PROJECTION}
+      "service": *[_type == "service" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]${SERVICE_PROJECTION},
+      "cases": *[_type == "work" && $slug in services[]->slug.current && (locale == $locale || locale == null)] | order(featured desc, year desc)[0...12]${WORK_LIST_PROJECTION}
     }`,
     { slug, locale },
-    [`expertise:${slug}`, "expertise", "work"],
+    [`service:${slug}`, "service", "work"],
   );
 }
 
@@ -396,7 +396,7 @@ export function getAboutPage(locale: string = DEFAULT_SANITY_LOCALE) {
 
 const JOB_LIST_PROJECTION = `{
   _id, "slug": slug.current, name, introIndex,
-  "expertise": expertise->name,
+  "service": service->name,
   "location": location->${LOCATION_PROJECTION},
   type
 }`;
@@ -431,7 +431,7 @@ export interface JobListItem {
   slug: string;
   name?: string | null;
   introIndex?: string | null;
-  expertise?: string | null;
+  service?: string | null;
   location?: { _id?: string; title?: string | null; city?: string | null } | null;
   type?: string | null;
 }
@@ -441,7 +441,7 @@ export function getJob(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
     groq`*[_type == "job" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]{
       ...,
       "slug": slug.current,
-      "expertise": expertise->{_id, name, "slug": slug.current},
+      "service": service->{_id, name, "slug": slug.current},
       "location": location->${LOCATION_PROJECTION},
       "contact": contact->${PERSON_PROJECTION}
     }`,
@@ -454,15 +454,15 @@ export function getContactPage(locale: string = DEFAULT_SANITY_LOCALE) {
   return fetch(
     groq`*[_type == "contactPage" && (locale == $locale || locale == null)] | order(locale desc)[0]{
       ...,
-      "expertiseContacts": expertiseContacts[]{
+      "serviceContacts": serviceContacts[]{
         _key, label,
-        "expertise": expertise->{_id, name, "slug": slug.current},
-        "person": coalesce(person->${PERSON_PROJECTION}, expertise->lead->${PERSON_PROJECTION})
+        "service": service->{_id, name, "slug": slug.current},
+        "person": coalesce(person->${PERSON_PROJECTION}, service->lead->${PERSON_PROJECTION})
       },
       "locations": *[_type == "location"] | order(_createdAt asc)${LOCATION_PROJECTION}
     }`,
     { locale },
-    ["contactPage", "expertise", "person", "location"],
+    ["contactPage", "service", "person", "location"],
   );
 }
 

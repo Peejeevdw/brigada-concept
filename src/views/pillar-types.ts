@@ -3,10 +3,10 @@
  * components into the four pillar view components.
  *
  * Optional fields — every pillar view falls back to its hardcoded contact +
- * brio palette when Sanity is unconfigured or has no expertise doc for the
+ * brio palette when Sanity is unconfigured or has no service doc for the
  * slug yet.
  */
-export interface PillarExpertise {
+export interface PillarService {
   _id?: string;
   name?: string | null;
   slug?: string | null;
@@ -27,5 +27,5 @@ export interface PillarExpertise {
 }
 
 export interface PillarViewProps {
-  expertise?: PillarExpertise | null;
+  service?: PillarService | null;
 }

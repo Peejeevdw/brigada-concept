@@ -63,6 +63,14 @@ export const homePage = defineType({
           validation: (Rule) =>
             Rule.min(1).error('Add at least one line.').max(4).warning('More than four feels heavy.'),
         }),
+        defineField({
+          name: 'explainer',
+          title: 'Tagline explainer',
+          type: 'text',
+          rows: 3,
+          description:
+            'Optional supporting paragraph shown alongside the tagline (e.g. unpacking "Sharp beats loud"). Wraps naturally.',
+        }),
       ],
     }),
     // ---- Reel ----

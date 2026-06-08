@@ -11,22 +11,22 @@ import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import type { PillarViewProps } from "./pillar-types";
 
-// Marketing page — the Marketing expertise detail, built on the shared site
+// Marketing page — the Marketing service detail, built on the shared site
 // foundation with the same section rhythm as /product and /people: intro →
 // services → contact → cases → parallax footer. All content from Sanity.
 
-const Marketing = ({ expertise }: PillarViewProps) => {
-  const lead = expertise?.lead;
+const Marketing = ({ service }: PillarViewProps) => {
+  const lead = service?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
   const position = lead?.position ?? "";
   const phone = lead?.phone ?? "";
   const email = lead?.email ?? "";
-  const leadInText = (expertise?.leadIn ?? "").replace("{name}", firstName);
-  const brioPalette = expertise?.brioPaletteId ?? undefined;
-  const pillarName = expertise?.name ?? "Marketing";
-  const intro = expertise?.intro ?? "";
-  const services = expertise?.services ?? [];
+  const leadInText = (service?.leadIn ?? "").replace("{name}", firstName);
+  const brioPalette = service?.brioPaletteId ?? undefined;
+  const pillarName = service?.name ?? "Marketing";
+  const intro = service?.intro ?? "";
+  const services = service?.services ?? [];
   // Scroll-driven background — warms from white to a soft yellow-green tint
   // across the content block, reaching full tint as the dark cases slide over.
   const contentRef = useRef<HTMLDivElement>(null);

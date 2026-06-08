@@ -15,6 +15,50 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type JobReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "job";
+};
+
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
+export type FormSubmission = {
+  _id: string;
+  _type: "formSubmission";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  kind: "contact" | "job-application";
+  submittedAt: string;
+  job?: JobReference;
+  entries?: Array<{
+    name?: string;
+    label?: string;
+    value?: string;
+    _type: "submissionEntry";
+    _key: string;
+  }>;
+  attachments?: Array<{
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "submissionFile";
+    _key: string;
+  }>;
+  meta?: {
+    ip?: string;
+    userAgent?: string;
+    referer?: string;
+    turnstileVerdict?: string;
+  };
+};
+
 export type Menu = {
   _id: string;
   _type: "menu";
@@ -30,36 +74,6 @@ export type Menu = {
   >;
 };
 
-export type TranslationNamespace = {
-  _id: string;
-  _type: "translationNamespace";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  orderRank?: string;
-  title: string;
-  slug: Slug;
-  keys?: Array<{
-    key: string;
-    description?: string;
-    translations?: InternationalizedArrayString;
-    _type: "translationKey";
-    _key: string;
-  }>;
-};
-
-export type InternationalizedArrayString = Array<
-  {
-    _key: string;
-  } & InternationalizedArrayStringValue
->;
-
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
-};
-
 export type Locale = {
   _id: string;
   _type: "locale";
@@ -70,6 +84,12 @@ export type Locale = {
   title: InternationalizedArrayString;
   localeId: string;
 };
+
+export type InternationalizedArrayString = Array<
+  {
+    _key: string;
+  } & InternationalizedArrayStringValue
+>;
 
 export type StatBlock = {
   _type: "statBlock";
@@ -87,13 +107,6 @@ export type Quote = {
   text: string;
   author?: string;
   role?: string;
-};
-
-export type SanityFileAssetReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
 };
 
 export type SanityImageAssetReference = {
@@ -121,6 +134,37 @@ export type VideoEmbed = {
   };
   aspect?: "16/9" | "21/9" | "4/5" | "1/1";
   autoplay?: boolean;
+  mobileEnabled?: boolean;
+  mobileHlsUrl?: string;
+  mobileFile?: {
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
+  mobilePoster?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
 };
 
 export type ImageGrid = {
@@ -158,6 +202,35 @@ export type RichText = {
   width?: "narrow" | "medium" | "wide";
 };
 
+export type BlockContent = Array<
+  | {
+      children?: Array<{
+        marks?: Array<string>;
+        text?: string;
+        _type: "span";
+        _key: string;
+      }>;
+      style?: "normal" | "h2" | "h3" | "blockquote";
+      listItem?: "bullet" | "number";
+      markDefs?: Array<{
+        href?: string;
+        _type: "link";
+        _key: string;
+      }>;
+      level?: number;
+      _type: "block";
+      _key: string;
+    }
+  | {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+      _key: string;
+    }
+>;
+
 export type GalleryRow = {
   _type: "galleryRow";
   items?: Array<
@@ -165,6 +238,41 @@ export type GalleryRow = {
       _key: string;
     } & CaseMedia
   >;
+  fullBleed?: boolean;
+};
+
+export type CaseHeroMedia = {
+  _type: "caseHeroMedia";
+  kind: "image" | "video";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  vimeoId?: string;
+  hlsUrl?: string;
+  poster?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  showControls?: boolean;
+  mobileEnabled?: boolean;
+  mobileVimeoId?: string;
+  mobileHlsUrl?: string;
+  mobilePoster?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
 };
 
 export type CaseMedia = {
@@ -178,17 +286,25 @@ export type CaseMedia = {
     alt?: string;
     _type: "image";
   };
+  vimeoId?: string;
   hlsUrl?: string;
-  file?: {
-    asset?: SanityFileAssetReference;
-    media?: unknown;
-    _type: "file";
-  };
   poster?: {
     asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
+    _type: "image";
+  };
+  showControls?: boolean;
+  mobileEnabled?: boolean;
+  mobileVimeoId?: string;
+  mobileHlsUrl?: string;
+  mobilePoster?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
     _type: "image";
   };
 };
@@ -207,11 +323,11 @@ export type WorkIndexPageReference = {
   [internalGroqTypeReferenceTo]?: "workIndexPage";
 };
 
-export type ExpertiseIndexPageReference = {
+export type ServiceIndexPageReference = {
   _ref: string;
   _type: "reference";
   _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "expertiseIndexPage";
+  [internalGroqTypeReferenceTo]?: "serviceIndexPage";
 };
 
 export type AboutPageReference = {
@@ -249,18 +365,11 @@ export type WorkReference = {
   [internalGroqTypeReferenceTo]?: "work";
 };
 
-export type ExpertiseReference = {
+export type ServiceReference = {
   _ref: string;
   _type: "reference";
   _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "expertise";
-};
-
-export type JobReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "job";
+  [internalGroqTypeReferenceTo]?: "service";
 };
 
 export type SubmenuItem = {
@@ -270,13 +379,13 @@ export type SubmenuItem = {
   internal?:
     | HomePageReference
     | WorkIndexPageReference
-    | ExpertiseIndexPageReference
+    | ServiceIndexPageReference
     | AboutPageReference
     | CareersPageReference
     | ContactPageReference
     | LegalPageReference
     | WorkReference
-    | ExpertiseReference
+    | ServiceReference
     | JobReference;
   url?: string;
   anchor?: string;
@@ -290,13 +399,13 @@ export type Link = {
   internal?:
     | HomePageReference
     | WorkIndexPageReference
-    | ExpertiseIndexPageReference
+    | ServiceIndexPageReference
     | AboutPageReference
     | CareersPageReference
     | ContactPageReference
     | LegalPageReference
     | WorkReference
-    | ExpertiseReference
+    | ServiceReference
     | JobReference;
   url?: string;
   email?: string;
@@ -337,38 +446,9 @@ export type Seo = {
   };
 };
 
-export type BlockContent = Array<
-  | {
-      children?: Array<{
-        marks?: Array<string>;
-        text?: string;
-        _type: "span";
-        _key: string;
-      }>;
-      style?: "normal" | "h2" | "h3" | "blockquote";
-      listItem?: "bullet" | "number";
-      markDefs?: Array<{
-        href?: string;
-        _type: "link";
-        _key: string;
-      }>;
-      level?: number;
-      _type: "block";
-      _key: string;
-    }
-  | {
-      asset?: SanityImageAssetReference;
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      _type: "image";
-      _key: string;
-    }
->;
-
-export type ExpertiseIndexPage = {
+export type ServiceIndexPage = {
   _id: string;
-  _type: "expertiseIndexPage";
+  _type: "serviceIndexPage";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
@@ -381,7 +461,7 @@ export type ExpertiseIndexPage = {
   pillars?: Array<
     {
       _key: string;
-    } & ExpertiseReference
+    } & ServiceReference
   >;
   seo?: Seo;
 };
@@ -471,6 +551,12 @@ export type InternationalizedArraySlug = Array<
   } & InternationalizedArraySlugValue
 >;
 
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
+};
+
 export type InternationalizedArrayBlockContentTextOnly = Array<
   {
     _key: string;
@@ -536,7 +622,7 @@ export type InternationalizedArrayReferenceValue = {
     | PrivacyPageReference
     | SiteSettingsReference
     | WorkReference
-    | ExpertiseReference
+    | ServiceReference
     | PersonReference
     | JobReference;
   language: string;
@@ -567,7 +653,7 @@ export type Job = {
   };
   type?: "full-time" | "part-time" | "internship" | "freelance";
   location?: LocationReference;
-  expertise?: ExpertiseReference;
+  service?: ServiceReference;
   publishDate?: string;
   recruiteeId?: string;
   introIndex?: string;
@@ -664,22 +750,6 @@ export type Location = {
   phone?: string;
 };
 
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
-};
-
 export type SiteSettings = {
   _id: string;
   _type: "siteSettings";
@@ -757,11 +827,11 @@ export type ContactPage = {
       _key: string;
     }>;
   };
-  expertiseContacts?: Array<{
+  serviceContacts?: Array<{
     label: string;
-    expertise?: ExpertiseReference;
+    service?: ServiceReference;
     person?: PersonReference;
-    _type: "expertiseContact";
+    _type: "serviceContact";
     _key: string;
   }>;
   locations?: {
@@ -782,6 +852,78 @@ export type ContactPage = {
     _key: string;
   }>;
   seo?: Seo;
+};
+
+export type Service = {
+  _id: string;
+  _type: "service";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  locale?: string;
+  name: string;
+  slug: Slug;
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  eyebrow?: string;
+  tagline?: string;
+  intro?: string;
+  body?: BlockContent;
+  servicesIntro?: string;
+  services?: Array<{
+    title: string;
+    description?: string;
+    _type: "service";
+    _key: string;
+  }>;
+  cases?: {
+    mode?: "curated" | "recent" | "all" | "hidden";
+    title?: string;
+    curated?: Array<
+      {
+        _key: string;
+      } & WorkReference
+    >;
+    limit?: number;
+  };
+  brioPaletteId?: "brio-02" | "brio-03" | "brio-04" | "brio-05" | "brio-06";
+  lead?: PersonReference;
+  leadIn?: string;
+  order?: number;
+  recruiteeId?: string;
+  links?: Array<
+    {
+      _key: string;
+    } & Link
+  >;
+  seo?: Seo;
+};
+
+export type Person = {
+  _id: string;
+  _type: "person";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  locale?: string;
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  name: string;
+  position?: string;
+  intro?: string;
+  phone?: string;
+  email?: string;
 };
 
 export type CareersPage = {
@@ -900,6 +1042,7 @@ export type HomePage = {
     eyebrow?: string;
     taglines?: Array<string>;
     paragraphLines?: Array<string>;
+    explainer?: string;
   };
   reel?: {
     poster?: {
@@ -912,6 +1055,17 @@ export type HomePage = {
     };
     hlsUrl?: string;
     loopVideoUrl?: string;
+    mobileEnabled?: boolean;
+    mobileHlsUrl?: string;
+    mobileLoopVideoUrl?: string;
+    mobilePoster?: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      alt?: string;
+      _type: "image";
+    };
   };
   cases?: {
     title?: string;
@@ -973,22 +1127,16 @@ export type Work = {
     _type: "image";
   };
   intro?: string;
-  expertises?: Array<
+  services?: Array<
     {
       _key: string;
-    } & ExpertiseReference
+    } & ServiceReference
   >;
   year?: number;
   code?: string;
-  gradient?: string;
   featured?: boolean;
-  services?: Array<{
-    pillar: ExpertiseReference;
-    title: string;
-    _type: "service";
-    _key: string;
-  }>;
-  hero?: CaseMedia;
+  darkMode?: boolean;
+  hero?: CaseHeroMedia;
   projectInfo?: {
     sections?: Array<{
       heading: string;
@@ -1003,114 +1151,12 @@ export type Work = {
       _key: string;
     } & GalleryRow
   >;
-  body?: Array<
-    | ({
-        _key: string;
-      } & RichText)
-    | ({
-        _key: string;
-      } & SectionImage)
-    | ({
-        _key: string;
-      } & ImageGrid)
-    | ({
-        _key: string;
-      } & VideoEmbed)
-    | ({
-        _key: string;
-      } & Quote)
-    | ({
-        _key: string;
-      } & StatBlock)
-  >;
-  gallery?: Array<{
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    caption?: string;
-    _type: "image";
-    _key: string;
-  }>;
   related?: Array<
     {
       _key: string;
     } & WorkReference
   >;
   seo?: Seo;
-};
-
-export type Expertise = {
-  _id: string;
-  _type: "expertise";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  locale?: string;
-  name: string;
-  slug: Slug;
-  image?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
-  eyebrow?: string;
-  tagline?: string;
-  intro?: string;
-  body?: BlockContent;
-  servicesIntro?: string;
-  services?: Array<{
-    title: string;
-    description?: string;
-    _type: "service";
-    _key: string;
-  }>;
-  cases?: {
-    mode?: "curated" | "recent" | "all" | "hidden";
-    title?: string;
-    curated?: Array<
-      {
-        _key: string;
-      } & WorkReference
-    >;
-    limit?: number;
-  };
-  brioPaletteId?: "brio-02" | "brio-03" | "brio-04" | "brio-05" | "brio-06";
-  lead?: PersonReference;
-  leadIn?: string;
-  order?: number;
-  recruiteeId?: string;
-  links?: Array<
-    {
-      _key: string;
-    } & Link
-  >;
-  seo?: Seo;
-};
-
-export type Person = {
-  _id: string;
-  _type: "person";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  locale?: string;
-  image?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    _type: "image";
-  };
-  name: string;
-  position?: string;
-  intro?: string;
-  phone?: string;
-  email?: string;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -1211,37 +1257,39 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | JobReference
+  | SanityFileAssetReference
+  | FormSubmission
   | Menu
-  | TranslationNamespace
-  | InternationalizedArrayString
-  | Slug
   | Locale
+  | InternationalizedArrayString
   | StatBlock
   | Quote
-  | SanityFileAssetReference
   | SanityImageAssetReference
   | VideoEmbed
+  | SanityImageCrop
+  | SanityImageHotspot
   | ImageGrid
   | SectionImage
   | RichText
+  | BlockContent
   | GalleryRow
+  | CaseHeroMedia
   | CaseMedia
   | HomePageReference
   | WorkIndexPageReference
-  | ExpertiseIndexPageReference
+  | ServiceIndexPageReference
   | AboutPageReference
   | CareersPageReference
   | ContactPageReference
   | LegalPageReference
   | WorkReference
-  | ExpertiseReference
-  | JobReference
+  | ServiceReference
   | SubmenuItem
   | Link
   | LegalPage
   | Seo
-  | BlockContent
-  | ExpertiseIndexPage
+  | ServiceIndexPage
   | WorkIndexPage
   | SocialLink
   | BlockContentTextOnly
@@ -1251,6 +1299,7 @@ export type AllSanitySchemaTypes =
   | InternationalizedArrayTextValue
   | InternationalizedArrayStringValue
   | InternationalizedArraySlug
+  | Slug
   | InternationalizedArrayBlockContentTextOnly
   | InternationalizedArrayBlockContent
   | InternationalizedArrayText
@@ -1263,17 +1312,15 @@ export type AllSanitySchemaTypes =
   | LocationReference
   | Job
   | Location
-  | SanityImageCrop
-  | SanityImageHotspot
   | SiteSettings
   | PrivacyPage
   | ContactPage
+  | Service
+  | Person
   | CareersPage
   | AboutPage
   | HomePage
   | Work
-  | Expertise
-  | Person
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
@@ -1285,7 +1332,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../src/lib/sanity-fetch.ts
 // Variable: settingsAndChromeQuery
-// Query: {  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{    title, tagline, email, phone, ogImage,    "socials": socials[]{platform, url, label},    "legalLinks": legalLinks[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "expertiseIndexPage" => "/expertise",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "expertise" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}  },  "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "expertiseIndexPage" => "/expertise",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "expertise" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "expertiseIndexPage" => "/expertise",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "expertise" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "locations": *[_type == "location"] | order(_createdAt asc){  _id,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value, title[0].value),  "street": coalesce(street[_key == $locale][0].value, street[_key == "en"][0].value, street[0].value),  number,  postalCode,  "city": coalesce(city[_key == $locale][0].value, city[_key == "en"][0].value, city[0].value),  "country": coalesce(country[_key == $locale][0].value, country[_key == "en"][0].value, country[0].value),  email,  phone}}
+// Query: {  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{    title, tagline, email, phone, ogImage,    "socials": socials[]{platform, url, label},    "legalLinks": legalLinks[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "service" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}  },  "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "service" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]{  _key,  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),  "url": select(    target == "internal" => select(  internal->_type == "homePage" => "/",  internal->_type == "workIndexPage" => "/work",  internal->_type == "serviceIndexPage" => "/services",  internal->_type == "aboutPage" => "/about",  internal->_type == "careersPage" => "/careers",  internal->_type == "contactPage" => "/contact",  internal->_type == "legalPage" && internal->kind == "privacy" => "/privacy",  internal->_type == "legalPage" && internal->kind == "cookies" => "/cookies",  internal->_type == "legalPage" && internal->kind == "terms" => "/terms",  internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",  internal->_type == "work" => "/work/" + internal->slug.current,  internal->_type == "service" => "/" + internal->slug.current,  internal->_type == "job" => "/careers/jobs/" + internal->slug.current),    target == "external" => url,    target == "email" => "mailto:" + email,    target == "phone" => "tel:" + phone,    target == "anchor" => "#" + anchor,    null  ),  openInNewTab}},  "locations": *[_type == "location"] | order(_createdAt asc){  _id,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value, title[0].value),  "street": coalesce(street[_key == $locale][0].value, street[_key == "en"][0].value, street[0].value),  number,  postalCode,  "city": coalesce(city[_key == $locale][0].value, city[_key == "en"][0].value, city[0].value),  "country": coalesce(country[_key == $locale][0].value, country[_key == "en"][0].value, country[0].value),  email,  phone}}
 export type SettingsAndChromeQueryResult = {
   settings: {
     title: string;
@@ -1324,9 +1371,9 @@ export type SettingsAndChromeQueryResult = {
         | "/careers"
         | "/contact"
         | "/cookies"
-        | "/expertise"
         | "/imprint"
         | "/privacy"
+        | "/services"
         | "/terms"
         | "/work";
       openInNewTab: boolean | null;
@@ -1344,9 +1391,9 @@ export type SettingsAndChromeQueryResult = {
         | "/careers"
         | "/contact"
         | "/cookies"
-        | "/expertise"
         | "/imprint"
         | "/privacy"
+        | "/services"
         | "/terms"
         | "/work";
       openInNewTab: boolean | null;
@@ -1364,9 +1411,9 @@ export type SettingsAndChromeQueryResult = {
         | "/careers"
         | "/contact"
         | "/cookies"
-        | "/expertise"
         | "/imprint"
         | "/privacy"
+        | "/services"
         | "/terms"
         | "/work";
       openInNewTab: boolean | null;

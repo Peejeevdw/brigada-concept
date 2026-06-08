@@ -36,7 +36,7 @@ export interface ContactData {
       placeholder?: string | null;
     }> | null;
   } | null;
-  expertiseContacts?: Array<{
+  serviceContacts?: Array<{
     _key?: string;
     label?: string | null;
     person?: { name?: string | null; email?: string | null; phone?: string | null } | null;
@@ -62,7 +62,7 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
   const submitLabel = data?.form?.submitLabel ?? "Send";
   const successMessage = data?.form?.successMessage ?? "";
   const fields = data?.form?.fields ?? [];
-  const expertiseContacts = data?.expertiseContacts ?? [];
+  const serviceContacts = data?.serviceContacts ?? [];
   const offices = (data?.locations ?? []).map((l) => ({
     city: `BRIGADA ${(l.city ?? l.title ?? "").toUpperCase()}`.trim(),
     address: [l.street, l.number].filter(Boolean).join(" "),
@@ -202,7 +202,7 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
                 {/* Left column — people + office addresses. */}
                 <div className="flex w-full flex-col gap-[clamp(28px,3vw,40px)] md:w-[42%]">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-[clamp(20px,2vw,32px)] gap-y-[clamp(18px,2vw,26px)]">
-                  {expertiseContacts.map((c) => {
+                  {serviceContacts.map((c) => {
                     const name = c.person?.name ?? "";
                     const phone = c.person?.phone ?? "";
                     const email = c.person?.email ?? "";

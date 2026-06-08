@@ -8,7 +8,7 @@ export const person = defineType({
   type: 'document',
   icon: UserIcon,
   description:
-    'A contact person for an expertise or page. Each language has its own document version when the role or intro needs translating.',
+    'A contact person for a service or page. Each language has its own document version when the role or intro needs translating.',
   groups: [
     {name: 'general', title: 'General', default: true},
     {name: 'contact', title: 'Contact'},

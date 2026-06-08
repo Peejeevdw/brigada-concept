@@ -13,13 +13,13 @@ interface NavItem {
 
 const items: NavItem[] = [
   {
-    to: "/expertise",
-    label: "Expertise",
+    to: "/services",
+    label: "Services",
     children: [
-      { to: "/expertise/brand", label: "Brand" },
-      { to: "/expertise/product", label: "Product" },
-      { to: "/expertise/people", label: "People" },
-      { to: "/expertise/marketing", label: "Marketing" },
+      { to: "/brand", label: "Brand" },
+      { to: "/marketing", label: "Marketing" },
+      { to: "/people", label: "People" },
+      { to: "/product", label: "Product" },
     ],
   },
   { to: "/work", label: "Work" },

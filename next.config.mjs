@@ -21,6 +21,7 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/concept", destination: "/", permanent: true },
+      { source: "/expertise", destination: "/services", permanent: true },
     ];
   },
   async headers() {

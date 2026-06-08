@@ -71,9 +71,9 @@ export default defineConfig({
             select: {title: 'title'},
             resolve: () => ({locations: [{title: 'Work', href: '/work'}]}),
           }),
-          expertiseIndexPage: defineLocations({
+          serviceIndexPage: defineLocations({
             select: {title: 'title'},
-            resolve: () => ({locations: [{title: 'Expertise', href: '/expertise'}]}),
+            resolve: () => ({locations: [{title: 'Services', href: '/services'}]}),
           }),
           aboutPage: defineLocations({
             select: {title: 'title'},
@@ -101,7 +101,7 @@ export default defineConfig({
                 ? {locations: [{title: doc.name ?? doc.slug, href: `/work/${doc.slug}`}]}
                 : null,
           }),
-          expertise: defineLocations({
+          service: defineLocations({
             select: {name: 'name', slug: 'slug.current'},
             resolve: (doc) =>
               doc?.slug

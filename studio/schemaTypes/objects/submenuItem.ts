@@ -8,13 +8,13 @@ import {defineField, defineType} from 'sanity'
 const LINKABLE_TYPES = [
   'homePage',
   'workIndexPage',
-  'expertiseIndexPage',
+  'serviceIndexPage',
   'aboutPage',
   'careersPage',
   'contactPage',
   'legalPage',
   'work',
-  'expertise',
+  'service',
   'job',
 ] as const
 

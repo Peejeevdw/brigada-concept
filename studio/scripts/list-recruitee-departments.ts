@@ -1,12 +1,12 @@
 /**
- * Lists Recruitee departments alongside the current Sanity expertise docs,
- * so an editor can fill in `expertise.recruiteeId` and have the jobs sync
+ * Lists Recruitee departments alongside the current Sanity service docs,
+ * so an editor can fill in `service.recruiteeId` and have the jobs sync
  * wire each job to the right pillar.
  *
  *   pnpm tsx scripts/list-recruitee-departments.ts
  *
  * Output is a table: Recruitee dept id + name + offers in that dept,
- * paired with the currently-mapped Sanity expertise (if any).
+ * paired with the currently-mapped Sanity service (if any).
  */
 import {createClient} from '@sanity/client'
 import {config as loadEnv} from 'dotenv'
@@ -25,7 +25,7 @@ function required(name: string): string {
 
 type Department = {id: number; name: string}
 type OfferSummary = {id: number; title: string; department_id: number | null; lang_code: string}
-type ExpertiseRow = {_id: string; name: string; locale: string | null; recruiteeId: string | null}
+type ServiceRow = {_id: string; name: string; locale: string | null; recruiteeId: string | null}
 
 async function fetchDepartments(config: RecruiteeConfig): Promise<Department[]> {
   const base = config.baseUrl.endsWith('/') ? config.baseUrl : `${config.baseUrl}/`
@@ -75,11 +75,11 @@ async function main() {
     perspective: 'raw',
   })
 
-  const [departments, offers, expertises] = await Promise.all([
+  const [departments, offers, services] = await Promise.all([
     fetchDepartments(recruiteeConfig),
     fetchAllOffers(recruiteeConfig),
-    client.fetch<ExpertiseRow[]>(
-      `*[_type == "expertise"]{_id, "name": coalesce(name[_key == "en"][0].value, name[0].value, _id), locale, recruiteeId} | order(name asc)`,
+    client.fetch<ServiceRow[]>(
+      `*[_type == "service"]{_id, "name": coalesce(name[_key == "en"][0].value, name[0].value, _id), locale, recruiteeId} | order(name asc)`,
     ),
   ])
 
@@ -91,24 +91,24 @@ async function main() {
     offersByDept.set(o.department_id, list)
   }
 
-  const expertiseByRecruiteeId = new Map<string, ExpertiseRow[]>()
-  for (const e of expertises) {
+  const serviceByRecruiteeId = new Map<string, ServiceRow[]>()
+  for (const e of services) {
     if (!e.recruiteeId) continue
-    const list = expertiseByRecruiteeId.get(e.recruiteeId) ?? []
+    const list = serviceByRecruiteeId.get(e.recruiteeId) ?? []
     list.push(e)
-    expertiseByRecruiteeId.set(e.recruiteeId, list)
+    serviceByRecruiteeId.set(e.recruiteeId, list)
   }
 
   console.log('\n== Recruitee departments ==\n')
   for (const dept of departments) {
     const deptOffers = offersByDept.get(dept.id) ?? []
-    const mapped = expertiseByRecruiteeId.get(String(dept.id)) ?? []
+    const mapped = serviceByRecruiteeId.get(String(dept.id)) ?? []
     const mappedLabel =
       mapped.length > 0
         ? mapped.map((m) => `${m.name}${m.locale ? ` [${m.locale}]` : ''}`).join(', ')
-        : '— (no Sanity expertise mapped)'
+        : '— (no Sanity service mapped)'
     console.log(`#${dept.id}  ${dept.name}`)
-    console.log(`    sanity expertise: ${mappedLabel}`)
+    console.log(`    sanity service: ${mappedLabel}`)
     if (deptOffers.length === 0) {
       console.log(`    offers: —`)
     } else {
@@ -119,23 +119,23 @@ async function main() {
     console.log()
   }
 
-  console.log('== Sanity expertise docs ==\n')
-  for (const e of expertises) {
+  console.log('== Sanity service docs ==\n')
+  for (const e of services) {
     const tag = e.locale ? ` [${e.locale}]` : ''
     const rid = e.recruiteeId ? ` → Recruitee dept ${e.recruiteeId}` : ' → (no recruiteeId set)'
     console.log(`${e._id}${tag}  ${e.name}${rid}`)
   }
   console.log()
 
-  const unmapped = departments.filter((d) => !expertiseByRecruiteeId.has(String(d.id)))
+  const unmapped = departments.filter((d) => !serviceByRecruiteeId.has(String(d.id)))
   if (unmapped.length > 0) {
-    console.log(`Heads up: ${unmapped.length} Recruitee department(s) have no Sanity expertise mapped:`)
+    console.log(`Heads up: ${unmapped.length} Recruitee department(s) have no Sanity service mapped:`)
     for (const d of unmapped) console.log(`  - #${d.id} ${d.name}`)
     console.log(
-      '\nFill `Recruitee department ID` on the matching expertise doc in Studio, then re-run pnpm sync:jobs.',
+      '\nFill `Recruitee department ID` on the matching service doc in Studio, then re-run pnpm sync:jobs.',
     )
   } else {
-    console.log('All Recruitee departments are mapped to an expertise.')
+    console.log('All Recruitee departments are mapped to a service.')
   }
 }
 

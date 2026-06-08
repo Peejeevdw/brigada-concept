@@ -1,8 +1,8 @@
 import Marketing from "@/views/Marketing";
-import { getExpertise } from "@/lib/sanity-fetch";
-import type { PillarExpertise } from "@/views/pillar-types";
+import { getService } from "@/lib/sanity-fetch";
+import type { PillarService } from "@/views/pillar-types";
 
 export default async function MarketingPage() {
-  const data = await getExpertise("marketing");
-  return <Marketing expertise={(data?.expertise as PillarExpertise | null) ?? null} />;
+  const data = await getService("marketing");
+  return <Marketing service={(data?.service as PillarService | null) ?? null} />;
 }

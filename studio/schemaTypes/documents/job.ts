@@ -91,12 +91,12 @@ export const job = defineType({
       to: [{type: 'location'}],
     }),
     defineField({
-      name: 'expertise',
-      title: 'Expertise / team',
+      name: 'service',
+      title: 'Service / team',
       type: 'reference',
       group: 'general',
-      description: 'Which expertise this role sits under (Brand, Product, Marketing, etc.).',
-      to: [{type: 'expertise'}],
+      description: 'Which service this role sits under (Brand, Product, Marketing, etc.).',
+      to: [{type: 'service'}],
     }),
     defineField({
       name: 'publishDate',

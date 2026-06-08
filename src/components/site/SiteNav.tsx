@@ -18,7 +18,7 @@ import { useSiteChrome } from "@/lib/site-chrome";
 type NavItemDef = { label: string; items: string[] };
 
 const NAV_LEFT: NavItemDef[] = [
-  { label: "Expertise", items: ["Brand", "Marketing", "People", "Product"] },
+  { label: "Services", items: ["Brand", "Marketing", "People", "Product"] },
   { label: "Work", items: [] },
   { label: "About", items: [] },
 ];
@@ -30,7 +30,7 @@ const NAV_RIGHT: NavItemDef[] = [
 // Where each label / sub-item navigates. Only the new-style destinations are
 // wired; unknown labels are no-ops (placeholders) until their page exists.
 const DEFAULT_NAV_TARGETS: Record<string, string> = {
-  Expertise: "/expertise",
+  Services: "/services",
   Work: "/work",
   Brand: "/brand",
   Product: "/product",

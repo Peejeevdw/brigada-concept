@@ -4,20 +4,20 @@ import {defineField, defineType} from 'sanity'
 /**
  * Unified link object. Replaces the old `linkItem`, `menuItem`, and `legalLink`
  * objects: one shape with a `target` discriminator. Use the `submenu` field to
- * nest items (e.g. the Expertise dropdown in the main nav).
+ * nest items (e.g. the Services dropdown in the main nav).
  *
  * Document types that can be linked. Extend as new linkable pages land.
  */
 const LINKABLE_TYPES = [
   'homePage',
   'workIndexPage',
-  'expertiseIndexPage',
+  'serviceIndexPage',
   'aboutPage',
   'careersPage',
   'contactPage',
   'legalPage',
   'work',
-  'expertise',
+  'service',
   'job',
 ] as const
 
@@ -130,7 +130,7 @@ export const link = defineType({
       name: 'submenu',
       title: 'Submenu items',
       type: 'array',
-      description: 'Optional nested items (e.g. Expertise → Brand / Product / People / Marketing).',
+      description: 'Optional nested items (e.g. Services → Brand / Marketing / People / Product).',
       of: [{type: 'submenuItem'}],
     }),
   ],

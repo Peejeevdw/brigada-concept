@@ -23,7 +23,7 @@ const FOOTER_HLS_SRC =
   "https://vz-329506f6-bc3.b-cdn.net/64a5b788-c206-4941-8d10-5ff5cd49ab5f/playlist.m3u8";
 
 const COLUMNS = [
-  { label: "Pages", links: ["Work", "Expertise", "About", "Careers", "Contact"] },
+  { label: "Pages", links: ["Work", "Services", "About", "Careers", "Contact"] },
   { label: "Socials", links: ["LinkedIn", "Instagram"] },
   { label: "Contact", links: ["hello@brigada.be"] },
 ];
@@ -31,7 +31,7 @@ const COLUMNS = [
 // Internal routes for the "Pages" column (new-style destinations).
 const PAGE_ROUTES: Record<string, string> = {
   Work: "/work",
-  Expertise: "/expertise",
+  Services: "/services",
   About: "/about",
   Careers: "/careers",
   Contact: "/contact",
