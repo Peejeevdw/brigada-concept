@@ -218,7 +218,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   // The whole choreography completes by this point, so it stays coherent.
   const [cutAt, setCutAt] = useState(0.24);
   // How far the video section is pulled up under the hero (vh) — higher = revealed sooner.
-  const [videoPull, setVideoPull] = useState(35);
+  const [videoPull, setVideoPull] = useState(52);
   // Dev-only multiplier on the auto-fitted paragraph size (1 = exactly fills width).
   const [paraScale, setParaScale] = useState(0.58);
   // Dev-only vertical nudge of the paragraph (px) — negative pulls it up, closer
@@ -522,10 +522,24 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const logoOpacity = useTransform(p, [0.56, 0.78], [1, 0]);
   // Extra lead so the logo scrolls up a bit faster than the rest of the group.
   const logoLead = useTransform(p, [0, 1], ["0vh", "-26vh"]);
-  // Per-line clip-up reveal, staggered.
-  const line0Y = useTransform(p, [0.22, 0.5], ["115%", "0%"]);
-  const line1Y = useTransform(p, [0.4, 0.68], ["115%", "0%"]);
-  const lineYs = [line0Y, line1Y];
+  // Per-line clip-up reveal, staggered. Editors set the paragraph line breaks
+  // in Sanity, so the count isn't fixed — derive a transform per line instead
+  // of hard-wiring two. Fixed 0.18 stagger / 0.28 span keeps the original
+  // 2-line cadence (0.22→0.5, 0.4→0.68) and still completes within p≤1 for up
+  // to four lines. Hooks must run unconditionally, so we always create the
+  // pool and slice to the actual line count below.
+  const lineReveal = (i: number): [number, number] => {
+    const start = 0.22 + i * 0.15;
+    return [start, Math.min(1, start + 0.2)];
+  };
+  const line0Y = useTransform(p, lineReveal(0), ["115%", "0%"]);
+  const line1Y = useTransform(p, lineReveal(1), ["115%", "0%"]);
+  const line2Y = useTransform(p, lineReveal(2), ["115%", "0%"]);
+  const line3Y = useTransform(p, lineReveal(3), ["115%", "0%"]);
+  const lineYs = [line0Y, line1Y, line2Y, line3Y].slice(
+    0,
+    Math.max(1, paragraphLines.length),
+  );
 
   // Baseline (SHARP/BEATS/LOUD) grows from baseStart→baseEnd as it scrolls up.
   const baselineSize = useMotionValue("36px");
@@ -578,20 +592,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cutAt, taglineGap, baseStart, baseEnd]);
 
-  // Paragraph: each line gets its OWN font size so it fills the full width
-  // independently. With the old "Sharp Beats Loud" copy every line was roughly
-  // equal length, so a single shared size worked. The new copy mixes long and
-  // short lines ("Being sharper does." is much shorter than the lead-in), and
-  // a shared size left the short line marooned in negative space. Per-line
-  // sizing restores the headline cadence the design was after.
+  // Paragraph: all lines share ONE font size, fitted so the longest line
+  // exactly fills the width. Shorter lines stay centred and don't fill the
+  // gutter — this keeps the block visually even, instead of blowing a short
+  // tail line ("Being sharper does.") up larger than its neighbours.
   const paraRef = useRef<HTMLDivElement>(null);
   const [paraSizes, setParaSizes] = useState<number[]>(() =>
     paragraphLines.map(() => 90),
   );
-  // Cap how big any single line can get, expressed as a multiple of the
-  // smallest fitted size. Without this, a single-word line ("does.") would
-  // blow up dramatically and break the visual rhythm with its neighbours.
-  const MAX_LINE_SIZE_RATIO = 1.6;
   useLayoutEffect(() => {
     const fit = () => {
       const root = paraRef.current;
@@ -612,11 +620,11 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         const natural = range.getBoundingClientRect().width;
         raw.push(natural > 0 ? (current * avail) / natural : current);
       });
-      // Clamp the largest computed size so the short tail line doesn't tower
-      // over the rest. The smallest line stays at its natural fit; longer
-      // ones (capped at MAX_LINE_SIZE_RATIO× the min) get reduced.
+      // One shared size = the smallest per-line fit (the longest line). Larger
+      // sizes would overflow that line; this fills it exactly and applies the
+      // same size to every line so the block reads as one even paragraph.
       const minSize = Math.min(...raw);
-      const next = raw.map((s) => Math.min(s, minSize * MAX_LINE_SIZE_RATIO));
+      const next = raw.map(() => minSize);
       setParaSizes(next);
     };
     fit();
@@ -1248,11 +1256,17 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
               // paragraph re-runs the fit — keeps lines roughly stable on
               // re-renders.
               const size = paraSizes[i] ?? paraSizes[0] ?? 90;
+              const px = size * paraScale;
               return (
-                <div key={`${line}-${i}`} className="overflow-hidden">
+                <div
+                  key={`${line}-${i}`}
+                  className="overflow-hidden"
+                  // Proportional gap between lines (scales with the line size).
+                  style={{ marginTop: i === 0 ? 0 : px * 0.32 }}
+                >
                   <motion.span
                     data-line
-                    style={{ y: lineYs[i], fontFamily: SANS, fontSize: `${size * paraScale}px` }}
+                    style={{ y: lineYs[i], fontFamily: SANS, fontSize: `${px}px` }}
                     className="block whitespace-nowrap pb-[0.06em] text-center font-light leading-[1.0] tracking-[-0.02em]"
                   >
                     {line}
