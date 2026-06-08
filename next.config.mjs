@@ -33,9 +33,14 @@ const nextConfig = {
         source: "/:path*",
         headers: [
           {
+            // Allow Sanity Studio's Presentation tool to embed the site in an
+            // iframe so editors can click through stega-encoded text directly
+            // to its Studio field. Sanity's new Dashboard wraps the deployed
+            // Studio in another iframe under sanity.io, so every ancestor in
+            // the chain must be listed.
             key: "Content-Security-Policy",
             value:
-              "frame-ancestors 'self' https://brigada.sanity.studio https://*.sanity.studio https://brigada.be",
+              "frame-ancestors 'self' https://brigada.sanity.studio https://*.sanity.studio https://sanity.io https://*.sanity.io https://brigada.be",
           },
         ],
       },
