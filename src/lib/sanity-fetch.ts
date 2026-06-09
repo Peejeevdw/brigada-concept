@@ -219,8 +219,14 @@ const SERVICE_CATEGORY_PROJECTION = `{
 
 // ---------- Public fetch helpers ----------
 
+// `siteSettings-en` lost its `locale` value at some point, so two docs end up
+// matching on `locale == null`. Tie-break by content richness: pick the doc
+// that actually has socials over the empty one, then fall back to whichever
+// was created last. Without this the chrome fetch was non-deterministic and
+// the Socials footer column was rendering empty in production.
 const settingsAndChromeQuery = groq`{
-  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)] | order(locale desc)[0]{
+  "settings": *[_type == "siteSettings" && (locale == $locale || locale == null)]
+    | order(coalesce(count(socials), 0) desc, _createdAt desc)[0]{
     title, tagline, email, phone, ogImage,
     "socials": socials[]{platform, url, label},
     "legalLinks": legalLinks[]${LINK_PROJECTION}
