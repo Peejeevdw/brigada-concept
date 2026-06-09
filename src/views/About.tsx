@@ -204,7 +204,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
         <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
           <video
             className="relative z-10 aspect-[560/240] w-[min(780px,60vw)] object-contain mix-blend-screen"
-            src={`/Website-Baseline-Cropped.mp4`}
+            src={`/Website-Baseline-Cropped-XL.mp4`}
             autoPlay
             muted
             loop
