@@ -25,7 +25,7 @@ const FOOTER_HLS_SRC =
 
 const COLUMNS = [
   { label: "Pages", links: ["Work", "Services", "About", "Careers", "Contact"] },
-  { label: "Socials", links: ["LinkedIn", "Instagram"] },
+  { label: "Socials", links: [] as string[] },
   { label: "Contact", links: ["hello@brigada.be"] },
 ];
 
@@ -36,6 +36,20 @@ const PAGE_ROUTES: Record<string, string> = {
   About: "/about",
   Careers: "/careers",
   Contact: "/contact",
+};
+
+// Display labels for the socials column — keyed by the `platform` enum on
+// the Sanity socialLink object. Order in the footer follows the order set
+// in Studio (siteSettings.socials).
+const SOCIAL_DISPLAY: Record<string, string> = {
+  linkedin: "LinkedIn",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  x: "X",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  github: "GitHub",
+  other: "Link",
 };
 
 // goo-1 "WAVE" reveal values (codrops), tuned on /wave-test.
@@ -59,6 +73,8 @@ const BrandFooter = ({
 }: { videoSrc?: string; gooReveal?: boolean; brioPaletteId?: string; brioSrc?: string; dark?: boolean; light?: boolean; lightText?: boolean } = {}) => {
   const transitionTo = usePageTransition();
   const chrome = useSiteChrome();
+  /** Socials — pulled from siteSettings.socials. Order follows Studio. */
+  const SOCIALS = chrome?.settings?.socials ?? [];
   /** Office cards — Sanity-driven when available, otherwise the hardcoded set. */
   const LOCATIONS = useMemo<{ city: string; address: string; zip: string; phone: string }[]>(() => {
     const sanityLocations = chrome?.locations ?? [];
@@ -253,6 +269,36 @@ const BrandFooter = ({
         {/* Link columns — Pages · Socials · Locations · Contact (over the video) */}
         <div className="relative z-10 flex flex-col gap-12 md:flex-row md:gap-10 md:pr-[clamp(48px,6vw,104px)]">
           {COLUMNS.map((col) => {
+            // Socials column is driven from Sanity (siteSettings.socials) so
+            // editors can change platforms + URLs without a redeploy. Falls
+            // through to nothing when no socials are set in Studio.
+            if (col.label === "Socials") {
+              if (SOCIALS.length === 0) return <Fragment key={col.label} />;
+              return (
+                <Fragment key={col.label}>
+                  <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
+                    <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
+                      {col.label}
+                    </p>
+                    <div className="flex flex-col items-start gap-3">
+                      {SOCIALS.map((s) => (
+                        <a
+                          key={s.url}
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={s.label || SOCIAL_DISPLAY[s.platform] || "Social link"}
+                          data-underline-link
+                          className="text-[clamp(30px,4.8vw,46px)] leading-none"
+                        >
+                          {SOCIAL_DISPLAY[s.platform] || s.platform}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </Fragment>
+              );
+            }
             const column = (
               <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
                 <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
