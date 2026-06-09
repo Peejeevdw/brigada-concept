@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { BrioEffect } from "@/brio-effect";
+import NewsletterSignup from "@/components/NewsletterSignup";
 import { usePageTransition } from "@/components/PageTransition";
 import { officeLocations as FALLBACK_LOCATIONS } from "@/data/officeLocations";
 import { useSiteChrome } from "@/lib/site-chrome";
@@ -292,6 +293,14 @@ const BrandFooter = ({
                     );
                   })}
                 </div>
+                {/* Newsletter signup — slotted into the Contact column so it
+                    follows the same column rhythm. Posts to Mailcoach via
+                    /api/newsletter/subscribe. */}
+                {col.label === "Contact" && (
+                  <div className="mt-[clamp(20px,2.5vw,32px)]">
+                    <NewsletterSignup lightText={dark || lightText} />
+                  </div>
+                )}
               </div>
             );
 
@@ -360,7 +369,10 @@ const BrandFooter = ({
           style={{ top: legalTop, writingMode: "vertical-rl" }}
           className="absolute right-[clamp(12px,2vw,20px)] z-10 flex items-center gap-3 text-[clamp(11px,0.9vw,13px)] tracking-[0.06em] opacity-50"
         >
-          <button type="button" onClick={() => transitionTo("/cookies")} data-underline-vert>
+          {/* Cookie-Script auto-wires elements with id="csconsentlink" so a
+              click re-opens the consent banner. No onClick needed — the
+              banner script (loaded in app/layout.tsx) handles it. */}
+          <button type="button" id="csconsentlink" data-underline-vert>
             Cookies
           </button>
           <span aria-hidden>|</span>

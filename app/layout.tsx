@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { DraftModeBanner } from "@/components/DraftModeBanner";
 import Preloader from "@/components/Preloader";
 import SmallScreenNotice from "@/components/SmallScreenNotice";
+import UserbackWidget from "@/components/UserbackWidget";
 import { SiteChromeProvider } from "@/lib/site-chrome";
 import { getChrome } from "@/lib/sanity-fetch";
 import "@/index.css";
@@ -69,6 +70,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','${GTM_ID}');`}
         </Script>
+        {/* Cookie-Script consent banner. Auto-shows on first visit until
+            consent is recorded; auto-wires any element with id="csconsentlink"
+            (like the "Cookies" link in the footer) to re-open the banner. */}
+        <Script
+          id="cookie-script"
+          src="https://cdn.cookie-script.com/s/15b92958166470230dd3c72185b67909.js"
+          strategy="afterInteractive"
+        />
       </head>
       <body>
         {/* Google Tag Manager (noscript) — keeps GTM functional for users
@@ -88,6 +97,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         {/* Production only — keeps visitors gated below 1240px while mobile is
             still in progress, but doesn't block local mobile development. */}
         {process.env.NODE_ENV === "production" && <SmallScreenNotice />}
+        {/* Feedback widget — only loads when a visitor opens any page with
+            `?feedback=on` (the flag persists for the session). Stays invisible
+            for normal visitors so it doesn't need to be removed at launch. */}
+        <UserbackWidget />
         {isDraft && <DraftModeBanner />}
       </body>
     </html>

@@ -49,6 +49,9 @@ Two independent `.env` files: one at the repo root for the Next.js frontend, one
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Public site key for the Cloudflare Turnstile widget on the contact + job apply forms. When unset, the widget is skipped (dev convenience) and the API trusts the request — never leave unset in production. |
 | `TURNSTILE_SECRET_KEY` | Secret used by the API routes to verify the Turnstile token via `challenges.cloudflare.com/turnstile/v0/siteverify`. Pair with the site key above. |
 | `RESEND_API_KEY` | Optional. When set together with `RESEND_FROM_EMAIL` + `CONTACT_EMAIL_TO`, the API routes send a notification email via Resend after a successful submission. Failed sends never block the Sanity backup. |
+| `MAILCOACH_API_URL` | Mailcoach API base, e.g. `https://brigada.mailcoach.app/api`. Used by `/api/newsletter/subscribe` to add visitors to the newsletter list. |
+| `MAILCOACH_API_TOKEN` | Bearer token issued in Mailcoach → Settings → API tokens. |
+| `MAILCOACH_LIST_UUID` | UUID of the target list (e.g. `Brigada-Newsletter-External`). Find it in the Mailcoach admin URL when you open the list. |
 | `RESEND_FROM_EMAIL` | `From:` address for the notification email. Must be on a verified Resend domain (e.g. `noreply@brigada.be`). |
 | `CONTACT_EMAIL_TO` | Recipient for the notification email (e.g. `hello@brigada.be`). |
 
