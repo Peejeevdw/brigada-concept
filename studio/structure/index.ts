@@ -1,4 +1,4 @@
-import {CogIcon, EnvelopeIcon, UserIcon} from '@sanity/icons'
+import {CogIcon, DocumentIcon, EnvelopeIcon, UserIcon} from '@sanity/icons'
 import type {StructureBuilder, StructureResolver} from 'sanity/structure'
 import {SubmissionSummary} from '../components/SubmissionSummary'
 import {createDocumentsSection} from './documentsSection'
@@ -35,6 +35,18 @@ export const structure: StructureResolver = (S) => {
       S.divider(),
 
       ...createDocumentsSection(S),
+
+      S.divider(),
+
+      S.listItem()
+        .id('landingPages')
+        .title('Landing pages')
+        .icon(DocumentIcon)
+        .child(
+          S.documentTypeList('landingPage')
+            .title('Landing pages')
+            .defaultOrdering([{field: 'slug.current', direction: 'asc'}]),
+        ),
 
       S.divider(),
 

@@ -478,6 +478,36 @@ export function getLegalPage(kind: string, locale: string = DEFAULT_SANITY_LOCAL
   );
 }
 
+/**
+ * Resolve a landing page by its full URL path (e.g. "press/launch"). Returns
+ * null when no document matches. The catch-all route at app/[...path] uses
+ * this to decide whether to render or fall through to 404.
+ */
+export function getLandingPage(path: string) {
+  return fetch(
+    groq`*[_type == "landingPage" && slug.current == $path][0]{
+      _id,
+      title,
+      noindex,
+      "slug": slug.current,
+      hero{
+        eyebrow,
+        title,
+        intro,
+        image{alt, asset->{_id, url, metadata{dimensions, lqip}}}
+      },
+      body,
+      seo{
+        title,
+        description,
+        image{alt, asset->{_id, url, metadata{dimensions}}}
+      }
+    }`,
+    { path },
+    [`landingPage:${path}`],
+  );
+}
+
 // ---------- Result types (loose; types are best-effort) ----------
 
 export type SocialPlatform =

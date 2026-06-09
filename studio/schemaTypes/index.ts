@@ -25,6 +25,7 @@ import {work} from './documents/work'
 import {location} from './documents/location'
 import {menu} from './documents/menu'
 import {legalPage} from './documents/legalPage'
+import {landingPage} from './documents/landingPage'
 import {formSubmission} from './documents/formSubmission'
 
 // Singletons
@@ -66,6 +67,7 @@ export const schemaTypes = [
   location,
   menu,
   legalPage,
+  landingPage,
   formSubmission,
 
   // Singletons
