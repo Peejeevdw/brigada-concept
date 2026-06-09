@@ -170,6 +170,7 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gdpr, setGdpr] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // Smooth scroll — same Lenis setup as /concept + /careers, reduced-motion
@@ -223,6 +224,10 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
     e.preventDefault();
     if (submitting) return;
     if (!job?._id) return;
+    if (!gdpr) {
+      setError("Please accept the privacy policy before sending.");
+      return;
+    }
     if (TURNSTILE_SITE_KEY && !turnstileToken) {
       setError("Please complete the challenge before sending.");
       return;
@@ -546,7 +551,29 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
                             </div>
                           );
                         })}
-                        {TURNSTILE_SITE_KEY && (
+                        {/* GDPR consent — required, gates the Turnstile widget
+                            so the challenge only mounts once the visitor
+                            explicitly accepts the privacy policy. */}
+                        <label className="sm:col-span-2 flex items-start gap-2 text-[clamp(13px,1vw,15px)] leading-[1.4]">
+                          <input
+                            type="checkbox"
+                            checked={gdpr}
+                            onChange={(e) => {
+                              setGdpr(e.target.checked);
+                              if (!e.target.checked) setTurnstileToken(null);
+                            }}
+                            className="mt-[3px] accent-current"
+                            required
+                          />
+                          <span>
+                            I agree to the{" "}
+                            <a href="/privacy" className="underline underline-offset-2">
+                              privacy policy
+                            </a>
+                            .
+                          </span>
+                        </label>
+                        {gdpr && TURNSTILE_SITE_KEY && (
                           <div className="sm:col-span-2">
                             <TurnstileWidget
                               siteKey={TURNSTILE_SITE_KEY}
