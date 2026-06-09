@@ -1450,22 +1450,32 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             The best thing about our line of work? It’s working with the best.
           </h2>
 
-          {/* Right — recognition paragraph (awards copy from Sanity). */}
+          {/* Right — recognition paragraphs (awards copy from Sanity). Editors
+              separate paragraphs with a blank line; we split on it so each
+              paragraph renders as its own block instead of collapsing into
+              one with a regular space. */}
           {data?.awards?.recognition && (
-            <motion.p
-              className="leading-[1.35] text-brigada-black"
+            <motion.div
+              className="flex flex-col gap-[clamp(14px,1.4vw,22px)] text-brigada-black"
               style={{
                 fontFamily: SANS,
                 fontSize: "clamp(18px, 1.7vw, 26px)",
                 fontWeight: 400,
+                lineHeight: 1.35,
               }}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "0px 0px -10% 0px" }}
               transition={{ duration: 0.8, ease: EASE_OUT }}
             >
-              {data.awards.recognition}
-            </motion.p>
+              {data.awards.recognition
+                .split(/\n{2,}/)
+                .map((p) => p.trim())
+                .filter(Boolean)
+                .map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+            </motion.div>
           )}
         </div>
       </section>
