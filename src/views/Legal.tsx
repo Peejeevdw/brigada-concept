@@ -59,12 +59,23 @@ const Legal = ({ kind, data }: { kind: LegalKind; data?: LegalData }) => {
             <p className="font-eyebrow text-brigada-black">Legal</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">{title}</h1>
+            <h1
+              className="w-full text-brigada-black"
+              style={{
+                fontFamily: '"Antarctica", system-ui, sans-serif',
+                fontSize: "clamp(28px, 3.8vw, 44px)",
+                fontWeight: 500,
+                lineHeight: 1.1,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {title}
+            </h1>
           </Reveal>
-          <div className="mt-[clamp(40px,5vw,72px)] flex flex-col gap-6 md:w-[60%]">
+          <div className="mt-[clamp(32px,4vw,56px)] flex flex-col gap-6 md:w-[72%]">
             {body && body.length > 0 && (
               <Reveal>
-                <div className="font-body text-brigada-black [&_p]:mb-6 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:mb-3 [&_h2]:mt-8 [&_h3]:font-body [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-6 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline">
+                <div className="text-brigada-black text-[clamp(15px,1.1vw,17px)] leading-[1.55] [&_p]:mb-4 [&_h2]:text-[clamp(18px,1.4vw,22px)] [&_h2]:font-medium [&_h2]:leading-[1.25] [&_h2]:mt-10 [&_h2]:mb-2 [&_h3]:text-[clamp(15px,1.1vw,17px)] [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline" style={{ fontFamily: '"Antarctica", system-ui, sans-serif' }}>
                   <PortableText value={body} />
                 </div>
               </Reveal>
@@ -73,7 +84,8 @@ const Legal = ({ kind, data }: { kind: LegalKind; data?: LegalData }) => {
               <Reveal>
                 <div
                   ref={cookieTableRef}
-                  className="mt-[clamp(24px,3vw,48px)] font-body text-brigada-black [&_table]:w-full [&_table]:border-collapse [&_th]:text-left [&_th]:font-semibold [&_th]:py-2 [&_th]:pr-4 [&_th]:border-b [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:align-top [&_a]:underline"
+                  className="mt-[clamp(24px,3vw,48px)] text-brigada-black text-[clamp(14px,1vw,16px)] leading-[1.5] [&_h2]:text-[clamp(18px,1.4vw,22px)] [&_h2]:font-medium [&_h2]:leading-[1.25] [&_h2]:mt-10 [&_h2]:mb-2 [&_h3]:text-[clamp(15px,1.1vw,17px)] [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-1 [&_p]:mb-4 [&_table]:w-full [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:py-2 [&_th]:pr-4 [&_th]:border-b [&_th]:text-[clamp(13px,0.95vw,15px)] [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:align-top [&_a]:underline"
+                  style={{ fontFamily: '"Antarctica", system-ui, sans-serif' }}
                 />
               </Reveal>
             )}
