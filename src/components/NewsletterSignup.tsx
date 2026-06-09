@@ -110,7 +110,14 @@ export default function NewsletterSignup({lightText = false}: {lightText?: boole
             <input
               type="checkbox"
               checked={gdpr}
-              onChange={(e) => setGdpr(e.target.checked)}
+              onChange={(e) => {
+                setGdpr(e.target.checked);
+                // The Turnstile widget only mounts after the GDPR box is
+                // ticked, so any previously issued token is stale if the
+                // box flips back off. Reset it so we don't submit with a
+                // dangling token.
+                if (!e.target.checked) setTurnstileToken(null);
+              }}
               className="mt-[3px] accent-current"
               required
             />
@@ -122,7 +129,10 @@ export default function NewsletterSignup({lightText = false}: {lightText?: boole
               .
             </span>
           </label>
-          {TURNSTILE_SITE_KEY && (
+          {/* Turnstile only mounts once the visitor has accepted the privacy
+              policy — keeps the Cloudflare challenge widget hidden on first
+              view so it doesn't dominate the footer. */}
+          {gdpr && TURNSTILE_SITE_KEY && (
             <TurnstileWidget
               siteKey={TURNSTILE_SITE_KEY}
               action="newsletter-subscribe"
