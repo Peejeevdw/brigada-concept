@@ -26,8 +26,15 @@ const FOOTER_HLS_SRC =
 const COLUMNS = [
   { label: "Pages", links: ["Work", "Services", "About", "Careers", "Contact"] },
   { label: "Socials", links: [] as string[] },
+  // Contact's single entry is replaced at render time with the email from
+  // siteSettings.email (with the value below kept as the SSR/fallback).
   { label: "Contact", links: ["hello@brigada.be"] },
 ];
+
+/** Build a Google Maps search URL that pre-fills the directions query. */
+function buildMapsUrl(query: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
 
 // Internal routes for the "Pages" column (new-style destinations).
 const PAGE_ROUTES: Record<string, string> = {
@@ -75,21 +82,36 @@ const BrandFooter = ({
   const chrome = useSiteChrome();
   /** Socials — pulled from siteSettings.socials. Order follows Studio. */
   const SOCIALS = chrome?.settings?.socials ?? [];
-  /** Office cards — Sanity-driven when available, otherwise the hardcoded set. */
-  const LOCATIONS = useMemo<{ city: string; address: string; zip: string; phone: string }[]>(() => {
+  /** Office cards — Sanity-driven when available, otherwise the hardcoded set.
+   *  `mapsUrl` is precomputed so the city link can open Google Maps directly. */
+  const LOCATIONS = useMemo<
+    { city: string; address: string; zip: string; phone: string; mapsUrl: string }[]
+  >(() => {
     const sanityLocations = chrome?.locations ?? [];
     const offices =
       sanityLocations.length === 0
-        ? FALLBACK_LOCATIONS
-        : sanityLocations.map((loc) => ({
-            city: loc.city ?? loc.title ?? "",
-            address: [loc.street, loc.number].filter(Boolean).join(" "),
-            zip: [loc.postalCode, loc.city].filter(Boolean).join(" "),
-            phone: loc.phone ?? "",
-          }));
+        ? FALLBACK_LOCATIONS.map((loc) => ({
+            ...loc,
+            mapsUrl: buildMapsUrl(`${loc.address}, ${loc.zip}, Belgium`),
+          }))
+        : sanityLocations.map((loc) => {
+            const address = [loc.street, loc.number].filter(Boolean).join(" ");
+            const zip = [loc.postalCode, loc.city].filter(Boolean).join(" ");
+            return {
+              city: loc.city ?? loc.title ?? "",
+              address,
+              zip,
+              phone: loc.phone ?? "",
+              mapsUrl: buildMapsUrl(
+                [address, zip, loc.country || "Belgium"].filter(Boolean).join(", "),
+              ),
+            };
+          });
     // Always show offices alphabetically by city, regardless of data source.
     return [...offices].sort((a, b) => a.city.localeCompare(b.city));
   }, [chrome?.locations]);
+  /** Contact email — sourced from siteSettings so it can be changed without a redeploy. */
+  const CONTACT_EMAIL = chrome?.settings?.email ?? "hello@brigada.be";
   const footerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
@@ -101,10 +123,11 @@ const BrandFooter = ({
   const emailRef = useRef<HTMLAnchorElement>(null);
   const [legalTop, setLegalTop] = useState(0);
 
-  // Office locations — reveal address + phone on hover, or click/tap to pin one.
+  // Office locations — reveal address + phone on hover. (Click on the city
+  // name now opens Google Maps in a new tab; touch devices always have the
+  // address visible via CSS so they don't depend on hover.)
   const [hoverCity, setHoverCity] = useState<string | null>(null);
-  const [pinnedCity, setPinnedCity] = useState<string | null>(null);
-  const activeCity = hoverCity ?? pinnedCity;
+  const activeCity = hoverCity;
   // 4 columns: Pages · Socials · Locations · Contact.
   const colWidth = "md:w-1/4";
   useEffect(() => {
@@ -305,7 +328,14 @@ const BrandFooter = ({
                   {col.label}
                 </p>
                 <div className="flex flex-col items-start gap-3">
-                  {col.links.map((l) => {
+                  {col.links.map((rawLink) => {
+                    // Contact column reads the email from Sanity at render
+                    // time — falls back to the hardcoded value in COLUMNS
+                    // only when chrome data hasn't hydrated yet.
+                    const l =
+                      col.label === "Contact" && rawLink.includes("@")
+                        ? CONTACT_EMAIL
+                        : rawLink;
                     const route = PAGE_ROUTES[l];
                     const cls = "text-[clamp(30px,4.8vw,46px)] leading-none";
                     if (route) {
@@ -370,17 +400,20 @@ const BrandFooter = ({
                             onMouseEnter={() => setHoverCity(loc.city)}
                             onMouseLeave={() => setHoverCity(null)}
                           >
-                            <button
-                              type="button"
-                              aria-expanded={open}
-                              onClick={() => setPinnedCity((p) => (p === loc.city ? null : loc.city))}
+                            <a
+                              href={loc.mapsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`Open ${loc.city} office on Google Maps`}
                               className="text-[clamp(30px,4.8vw,46px)] leading-none text-left"
                             >
                               {loc.city}
-                            </button>
-                            {/* Address + phone reveal (grid-rows 0fr→1fr). */}
+                            </a>
+                            {/* Address + phone reveal — collapsed by default on
+                                hover-capable screens, always open on touch
+                                devices (where there's no hover to trigger it). */}
                             <div
-                              className={`grid overflow-hidden transition-[grid-template-rows] duration-500 ease-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                              className={`grid overflow-hidden transition-[grid-template-rows] duration-500 ease-out [@media(hover:none)]:!grid-rows-[1fr] ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
                             >
                               <div className="overflow-hidden">
                                 <div className="pb-1 pt-2 text-[clamp(13px,1vw,15px)] leading-snug opacity-60">
