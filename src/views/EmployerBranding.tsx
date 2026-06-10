@@ -6,7 +6,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SiteNav from "@/components/site/SiteNav";
-import CareersFooter from "@/components/CareersFooter";
+import BrandFooter from "@/components/BrandFooter";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
 
@@ -228,7 +228,7 @@ const EmployerBranding = () => {
       </div>
 
       {/* Footer — zwarte variant: zwarte achtergrond, witte tekst + wit wordmark */}
-      <CareersFooter />
+      <BrandFooter dark />
     </motion.main>
   );
 };

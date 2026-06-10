@@ -8,7 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { pushFormSubmission } from "@/lib/dataLayer";
 import { PortableText, type PortableTextBlock } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
-import CareersFooter from "@/components/CareersFooter";
+import BrandFooter from "@/components/BrandFooter";
 import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { usePageTransition } from "@/components/PageTransition";
 
@@ -17,7 +17,7 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 gsap.registerPlugin(ScrollTrigger);
 
 // Job detail (v2) — rebuilt in the /employer-branding idiom: self-contained
-// (framer-motion, Antarctica, SiteNav + CareersFooter), full-bleed gutters,
+// (framer-motion, Antarctica, SiteNav + BrandFooter), full-bleed gutters,
 // bordered SectionLabel sections, Lenis smooth scroll, a slow near-white
 // background drift. Content comes from the Sanity `job` document; the apply
 // form at the bottom is driven by `job.form`.
@@ -215,7 +215,7 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
             ← All open jobs
           </button>
         </div>
-        <CareersFooter />
+        <BrandFooter dark />
       </main>
     );
   }
@@ -610,7 +610,7 @@ const JobDetail = ({ job }: { job: JobData | null }) => {
         )}
       </div>
 
-      <CareersFooter />
+      <BrandFooter dark />
     </motion.main>
   );
 };

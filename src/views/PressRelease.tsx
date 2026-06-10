@@ -11,7 +11,7 @@ import {
   type PortableTextComponents,
 } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
-import CareersFooter from "@/components/CareersFooter";
+import BrandFooter from "@/components/BrandFooter";
 import { BRIGADA_BLACK } from "@/lib/colors";
 import { urlFor } from "@/lib/sanity";
 
@@ -333,7 +333,7 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
         )}
       </div>
 
-      <CareersFooter />
+      <BrandFooter dark />
     </motion.main>
   );
 };

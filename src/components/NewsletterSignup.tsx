@@ -21,9 +21,21 @@ export default function NewsletterSignup({lightText = false}: {lightText?: boole
   const [status, setStatus] = useState<"idle" | "ok" | "already" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const inputBorder = lightText ? "border-white/30" : "border-brigada-black/30";
-  const placeholder = lightText ? "placeholder:text-white/40" : "placeholder:text-brigada-black/40";
   const muted = lightText ? "text-white/60" : "text-brigada-black/60";
+  // The signup pill is always a white surface with a black "subscribe" button —
+  // on both the dark footer and the coloured (brio) footers.
+  const pillBg = "bg-white";
+  const pillText = "text-brigada-black";
+  const pillPlaceholder = "placeholder:text-brigada-black/40";
+  const btnBg = "bg-brigada-black";
+  const btnText = "text-white";
+  // The round consent checkbox sits directly on the footer background, so its
+  // border + checked fill follow that background: white on the dark footer,
+  // black on the coloured footers.
+  const checkboxBorder = lightText ? "border-white/40" : "border-brigada-black/40";
+  const checkboxChecked = lightText
+    ? "checked:border-white checked:bg-white"
+    : "checked:border-brigada-black checked:bg-brigada-black";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -85,27 +97,29 @@ export default function NewsletterSignup({lightText = false}: {lightText?: boole
         </p>
       ) : (
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
-          <div className={`flex items-center gap-2 border-b pb-1 ${inputBorder}`}>
+          <div
+            className={`flex max-w-[clamp(320px,28vw,400px)] items-center gap-1.5 rounded-full p-[3px] pl-[clamp(14px,1.4vw,18px)] ${pillBg}`}
+          >
             <input
               type="email"
               required
               autoComplete="email"
-              placeholder="Email address"
+              placeholder="your email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`min-w-0 flex-1 bg-transparent text-[clamp(13px,1vw,15px)] outline-none ${placeholder}`}
+              className={`min-w-0 flex-1 bg-transparent text-[clamp(12px,0.85vw,13px)] outline-none ${pillText} ${pillPlaceholder}`}
             />
             <button
               type="submit"
               disabled={submitting}
               aria-label="Sign up for the newsletter"
-              className="shrink-0 text-[clamp(13px,1vw,15px)] transition-opacity hover:opacity-60 disabled:opacity-40"
+              className={`shrink-0 rounded-full px-[clamp(14px,1.4vw,18px)] py-[clamp(6px,0.7vw,9px)] text-[clamp(12px,0.85vw,13px)] leading-none transition-opacity hover:opacity-80 disabled:opacity-50 ${btnBg} ${btnText}`}
             >
-              {submitting ? "…" : "→"}
+              {submitting ? "…" : "subscribe"}
             </button>
           </div>
           <label
-            className={`flex items-start gap-2 text-[clamp(11px,0.85vw,13px)] leading-[1.4] ${muted}`}
+            className={`flex items-center gap-2 text-[clamp(11px,0.8vw,12px)] leading-none ${muted}`}
           >
             <input
               type="checkbox"
@@ -118,13 +132,13 @@ export default function NewsletterSignup({lightText = false}: {lightText?: boole
                 // dangling token.
                 if (!e.target.checked) setTurnstileToken(null);
               }}
-              className="mt-[3px] accent-current"
+              className={`h-3 w-3 shrink-0 appearance-none rounded-full border bg-transparent transition-colors ${checkboxBorder} ${checkboxChecked}`}
               required
             />
             <span>
-              I agree to the{" "}
+              I accept the{" "}
               <a href="/privacy" className="underline underline-offset-2">
-                privacy policy
+                terms &amp; privacy policy
               </a>
               .
             </span>

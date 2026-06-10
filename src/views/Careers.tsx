@@ -7,7 +7,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SiteNav from "@/components/site/SiteNav";
 import CareersCarousel, { type CarouselSlide } from "@/components/CareersCarousel";
-import CareersFooter from "@/components/CareersFooter";
+import BrandFooter from "@/components/BrandFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import { BrioEffect } from "@/brio-effect";
 import { usePageTransition } from "@/components/PageTransition";
@@ -248,7 +248,7 @@ const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
       <CareersCarousel slides={CAROUSEL_SLIDES} />
 
       {/* Footer — parallax reveal, white background + black wordmark */}
-      <CareersFooter />
+      <BrandFooter dark />
     </main>
   );
 };
