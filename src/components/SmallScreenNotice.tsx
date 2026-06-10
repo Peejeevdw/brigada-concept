@@ -1,10 +1,21 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
 // Full-screen notice shown on viewports narrower than 1240px. The mobile
 // layout is still being fine-tuned, so below the breakpoint we cover the site
 // entirely and ask visitors to switch to a larger screen.
 //
-// Pure CSS (Tailwind `max-[…]` variant): hidden by default, flex below 1240px.
-// No JS / media-query hook → no hydration flicker, works during SSR.
+// Pages that are already mobile-ready opt out (see EXEMPT_PREFIXES). The
+// show/hide is still pure CSS (Tailwind `max-[…]` variant); usePathname is
+// SSR-consistent in the app router, so no hydration flicker.
+const EXEMPT_PREFIXES = ["/press"];
+
 export default function SmallScreenNotice() {
+  const pathname = usePathname();
+  if (pathname && EXEMPT_PREFIXES.some((p) => pathname.startsWith(p))) {
+    return null;
+  }
   return (
     <div
       className="fixed inset-0 z-[9999] hidden flex-col items-center justify-center gap-6 bg-brigada-black px-8 text-center text-white max-[1239.98px]:flex"
