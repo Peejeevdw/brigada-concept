@@ -26,6 +26,7 @@ import {location} from './documents/location'
 import {menu} from './documents/menu'
 import {legalPage} from './documents/legalPage'
 import {landingPage} from './documents/landingPage'
+import {pressRelease} from './documents/pressRelease'
 import {formSubmission} from './documents/formSubmission'
 
 // Singletons
@@ -68,6 +69,7 @@ export const schemaTypes = [
   menu,
   legalPage,
   landingPage,
+  pressRelease,
   formSubmission,
 
   // Singletons

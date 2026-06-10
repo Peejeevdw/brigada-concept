@@ -1,0 +1,43 @@
+{
+  "_id": "pressRelease-launch",
+  "_type": "pressRelease",
+  "title": "Press launch — Brigada",
+  "slug": {"_type": "slug", "current": "launch"},
+  "publishDate": "2026-06-16",
+  "noindex": true,
+  "heroTitle": "Mortierbrigade and five sister agencies launch Brigada",
+  "heroImage": {
+    "_type": "image",
+    "alt": "The Brigada team — Brussels, May 2026",
+    "asset": {"_type": "reference", "_ref": "image-a3f841715e6c4064b29df2dc0e37a24d5c2d7fc1-1376x768-jpg"}
+  },
+  "body": [
+    {"_type": "block", "_key": "b1", "style": "normal", "markDefs": [], "children": [{"_type": "span", "_key": "b1s", "marks": [], "text": "Brussels, 16 June 2026 — Twenty years after mortierbrigade launched to shake up the Belgian agency landscape, the agency and its five sister agencies are entering a new chapter. Today, it launches under a new name: Brigada."}]},
+    {"_type": "block", "_key": "b2", "style": "normal", "markDefs": [], "children": [{"_type": "span", "_key": "b2s", "marks": [], "text": "The move brings together mortierbrigade, Today, Who Owns The Zebra, Onlyhumans, Fantastic and the B2B activities of meetmarcel under one brand. While the agencies have collaborated for years as part of the 62MILES group, led by CEO Arjan Pomper, Brigada marks a new phase in their evolution, with one leadership team and one way of working."}]},
+    {"_type": "quote", "_key": "q1", "text": "Two decades ago, we challenged the conventions of our industry. Today's challenges require us to do it again: with the same entrepreneurial and rebellious spirit.", "author": "Jens Mortier", "role": "Founder of mortierbrigade · Creative Chairman, Brigada"},
+    {"_type": "block", "_key": "b3", "style": "normal", "markDefs": [], "children": [{"_type": "span", "_key": "b3s", "marks": [], "text": "Built for a market that demands a new kind of agency, Brigada believes expertise should move around the client, not the other way around."}]},
+    {"_type": "quote", "_key": "q2", "text": "The challenges clients bring us are increasingly complex and fluid. A brand challenge may have its roots in product. A product challenge may stem from culture. A marketing challenge may reveal a bigger business opportunity. Our job is to connect those dots sooner and bring together the right people, perspectives and disciplines to a challenge from day one.", "author": "Arjan Pomper", "role": "CEO, Brigada"},
+    {"_type": "block", "_key": "b4", "style": "normal", "markDefs": [], "children": [{"_type": "span", "_key": "b4s", "marks": [], "text": "To help lead that transformation, Brigada has appointed Senta Slingerland as Chief Strategy Officer. Slingerland brings international experience in strategy, innovation and transformation, having worked with organisations including Coca-Cola, Accenture Song, Google and Amazon."}]},
+    {"_type": "block", "_key": "b5", "style": "normal", "markDefs": [], "children": [{"_type": "span", "_key": "b5s", "marks": [], "text": "Brigada offers four interconnected services — Brand, Marketing, Product and People — and combines the depth of six specialist businesses with the flexibility of a single team of more than 150 experts. The result is a genuinely multidisciplinary agency, built to solve problems rather than sell disciplines."}]},
+    {"_type": "quote", "_key": "q3", "text": "What is quite unique about Brigada, is that it's genuinely made up of leading experts in branding, design, advertising, digital products, growth, experiential, people and culture, and that as a result, we are discipline-agnostic. What matters is finding the right solution, not pushing a particular capability.", "author": "Senta Slingerland", "role": "Chief Strategy Officer, Brigada"},
+    {"_type": "block", "_key": "b6", "style": "normal", "markDefs": [], "children": [{"_type": "span", "_key": "b6s", "marks": [], "text": "The agency launches with a simple belief: Sharp Beats Loud."}]},
+    {"_type": "quote", "_key": "q4", "text": "As complexity grows, organisations often respond by adding. Another campaign. Another platform. Another agency. Before long, everyone is busy, but no one is moving forward.", "author": "Senta Slingerland", "role": "Chief Strategy Officer, Brigada"},
+    {"_type": "block", "_key": "b7", "style": "normal", "markDefs": [], "children": [{"_type": "span", "_key": "b7s", "marks": [], "text": "Brigada exists to change that."}]}
+  ],
+  "portrait": {
+    "_type": "image",
+    "alt": "Jens Mortier, founder of mortierbrigade and Creative Chairman of Brigada",
+    "asset": {"_type": "reference", "_ref": "image-f7944ad85c1ea1da760c735475ba0ddd75e7bbcc-2000x3000-jpg"}
+  },
+  "portraitCaption": "Jens Mortier, Creative Chairman of Brigada",
+  "pressKit": [
+    {"_type": "download", "_key": "dl-logo", "label": "Logo package", "meta": "SVG · PNG · EPS"},
+    {"_type": "download", "_key": "dl-video", "label": "Launch video", "meta": "MP4 · 1080p"},
+    {"_type": "download", "_key": "dl-images", "label": "Press images", "meta": "ZIP · high-res JPG"}
+  ],
+  "seo": {
+    "_type": "seo",
+    "title": "Brigada launches — June 16 2026 press release",
+    "description": "Mortierbrigade and five sister agencies unite under a new brand, Brigada, with Senta Slingerland appointed Chief Strategy Officer."
+  }
+}

@@ -514,6 +514,48 @@ export function getLandingPage(path: string) {
   );
 }
 
+/** All published press-release slugs — used to prerender /press/[slug]. */
+export const getPressReleaseSlugs = () => publishedSlugs("pressRelease", "pressRelease");
+
+/**
+ * Resolve a press release by its slug (the segment after /press/). Returns
+ * null when none matches; the route then falls back to a landingPage at
+ * `press/<slug>` so legacy press landing pages keep working.
+ */
+export function getPressRelease(slug: string) {
+  return fetch(
+    groq`*[_type == "pressRelease" && slug.current == $slug][0]{
+      _id,
+      title,
+      noindex,
+      "slug": slug.current,
+      publishDate,
+      heroTitle,
+      heroImage{alt, asset->{_id, url, metadata{dimensions, lqip}}},
+      body[]{
+        ...,
+        _type == "image" => {..., asset->{_id, url, metadata{dimensions, lqip}}}
+      },
+      portrait{alt, asset->{_id, url, metadata{dimensions, lqip}}},
+      portraitCaption,
+      pressKit[]{
+        _key,
+        label,
+        meta,
+        url,
+        "fileUrl": file.asset->url
+      },
+      seo{
+        title,
+        description,
+        image{alt, asset->{_id, url, metadata{dimensions}}}
+      }
+    }`,
+    { slug },
+    [`pressRelease:${slug}`],
+  );
+}
+
 // ---------- Result types (loose; types are best-effort) ----------
 
 export type SocialPlatform =
