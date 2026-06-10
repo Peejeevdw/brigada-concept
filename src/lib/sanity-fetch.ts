@@ -522,8 +522,8 @@ export const getPressReleaseSlugs = () => publishedSlugs("pressRelease", "pressR
  * null when none matches; the route then falls back to a landingPage at
  * `press/<slug>` so legacy press landing pages keep working.
  */
-export function getPressRelease(slug: string) {
-  return fetch(
+export async function getPressRelease(slug: string) {
+  const doc = await fetch<{ heroMedia?: unknown } | null>(
     groq`*[_type == "pressRelease" && slug.current == $slug][0]{
       _id,
       title,
@@ -531,6 +531,8 @@ export function getPressRelease(slug: string) {
       "slug": slug.current,
       publishDate,
       heroTitle,
+      heroSound,
+      heroMedia{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
       heroImage{alt, asset->{_id, url, metadata{dimensions, lqip}}},
       body[]{
         ...,
@@ -538,6 +540,7 @@ export function getPressRelease(slug: string) {
       },
       portrait{alt, asset->{_id, url, metadata{dimensions, lqip}}},
       portraitCaption,
+      sidebarQuote{text, author, role},
       pressKit[]{
         _key,
         label,
@@ -554,6 +557,9 @@ export function getPressRelease(slug: string) {
     { slug },
     [`pressRelease:${slug}`],
   );
+  // Resolve Vimeo aspect/thumbnail for the hero video (same as the case hero).
+  if (doc?.heroMedia) await attachVimeoMeta({ hero: doc.heroMedia });
+  return doc;
 }
 
 // ---------- Result types (loose; types are best-effort) ----------

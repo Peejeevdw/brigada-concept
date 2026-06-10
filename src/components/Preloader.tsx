@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
+import { PRELOADER_DISMISS_EVENT } from "@/lib/preloader-gate";
 
 // Site-wide intro preloader: a full-screen black overlay that plays the same
 // goo "WAVE" reveal of the Brigada wordmark as the homepage hero, then fades
@@ -95,6 +96,17 @@ export default function Preloader() {
       window.clearTimeout(dismissTimer);
     };
   }, []);
+
+  // Tell hero media the curtain is lifting, the moment it begins to dismiss
+  // (both the once-per-session early-out and the normal reveal path flip
+  // `show` to false). Hero videos snap back to frame 0 on this, so a direct
+  // load doesn't lose the opening seconds behind the overlay.
+  const dismissedRef = useRef(false);
+  useEffect(() => {
+    if (show || dismissedRef.current) return;
+    dismissedRef.current = true;
+    window.dispatchEvent(new Event(PRELOADER_DISMISS_EVENT));
+  }, [show]);
 
   // Lock body scroll only while the overlay is visible, and release it the
   // instant it dismisses (setShow(false)) — not on unmount, which never happens

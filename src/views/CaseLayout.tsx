@@ -1,13 +1,18 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useMemo, useState, type CSSProperties } from "react";
 import { Drawer } from "vaul";
-import Player from "@vimeo/player";
 import SiteNav from "@/components/site/SiteNav";
-import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
 import CascadingSlider, { type CascadingSlide } from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
-import BlurImage from "@/components/BlurImage";
+import {
+  type Media,
+  type SanityMedia,
+  toMedia,
+  resolveMedia,
+  MediaFill,
+  HeroMedia,
+} from "@/components/case-media";
 import { SANS } from "@/lib/siteTokens";
 import { urlFor } from "@/lib/sanity";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,17 +28,6 @@ import {
 // Normalised shape the layout renders. Both Sanity data and the mock map onto
 // this, so the components below stay source-agnostic.
 // ---------------------------------------------------------------------------
-type Media = {
-  type: "image" | "video";
-  src: string;
-  aspect?: string;
-  controls?: boolean;
-  lqip?: string; // base64 blur-up placeholder (image's own, or a video's poster)
-  poster?: string; // resolved poster image URL, videos only
-  // Optional mobile overrides (videos only). Each field falls back to the
-  // desktop value when blank; resolveMedia() merges them under the breakpoint.
-  mobile?: { src?: string; poster?: string; lqip?: string; aspect?: string };
-};
 type GalleryRow = { items: Media[]; fullBleed: boolean }; // 1–3 visuals, optionally edge to edge
 type Section = { id: string; title: string; body: string[] };
 type ProjectInfo = { sections: Section[]; services: string[] };
@@ -48,25 +42,6 @@ export type CaseData = {
 // ---------------------------------------------------------------------------
 // Sanity shape (from getWorkLayout / WORK_FULL_PROJECTION) + mapping.
 // ---------------------------------------------------------------------------
-type SanityMedia = {
-  kind?: string | null;
-  image?: unknown;
-  lqip?: string | null; // image's LQIP blur-up
-  vimeoAspect?: string | null; // "w / h" resolved server-side from Vimeo oEmbed
-  vimeoId?: string | null;
-  vimeoThumb?: string | null; // Vimeo oEmbed thumbnail, reused as a video poster
-  videoUrl?: string | null;
-  poster?: unknown;
-  posterLqip?: string | null; // poster image's LQIP blur-up
-  showControls?: boolean | null;
-  // Optional mobile overrides (resolved server-side like their desktop twins).
-  mobileVimeoId?: string | null;
-  mobileVimeoAspect?: string | null;
-  mobileVimeoThumb?: string | null;
-  mobileVideoUrl?: string | null;
-  mobilePoster?: unknown;
-  mobilePosterLqip?: string | null;
-};
 export type WorkLayoutData = {
   name?: string | null;
   client?: string | null;
@@ -80,92 +55,6 @@ export type WorkLayoutData = {
   // Other cases with a thumbnail, for the "Related cases" slider (WORK_LIST_PROJECTION).
   relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown; lqip?: string | null } | null)[] | null;
 };
-
-function toMedia(
-  sm?: SanityMedia | null,
-  width = 1600,
-  opts: {forceNoControls?: boolean} = {},
-): Media | null {
-  if (!sm) return null;
-  if (sm.kind === "video") {
-    // A Vimeo ID wins over a Bunny/MP4 source; both render as a muted autoplay
-    // loop. We resolve the ID to a player URL here so CaseVideo just sees a
-    // vimeo.com src and renders the iframe. `aspect` (Vimeo's real ratio) lets
-    // the gallery size the video to its own shape instead of cropping it.
-    //
-    // `forceNoControls` overrides any `showControls=true` on the doc — used by
-    // the case hero, which always plays as a silent background loop.
-    const controls = opts.forceNoControls ? false : !!sm.showControls;
-    const src = (sm.vimeoId && vimeoEmbedSrc(sm.vimeoId, controls)) || sm.videoUrl;
-    if (!src) return null;
-    // A poster fills the box while the player loads / repaints. Prefer the
-    // editor's poster (it carries a blur-up); otherwise fall back to Vimeo's
-    // own thumbnail so every Vimeo video is covered without extra setup.
-    const poster =
-      (sm.poster
-        ? urlFor(sm.poster)?.width(width).fit("max").quality(72).auto("format").url()
-        : undefined) ??
-      sm.vimeoThumb ??
-      undefined;
-    // Optional mobile overrides — a mobile-specific source and/or poster.
-    // Anything left blank stays undefined and falls back to desktop at render.
-    const mobileSrc =
-      (sm.mobileVimeoId && vimeoEmbedSrc(sm.mobileVimeoId, controls)) || sm.mobileVideoUrl || undefined;
-    const mobilePoster =
-      (sm.mobilePoster
-        ? urlFor(sm.mobilePoster)?.width(width).fit("max").quality(72).auto("format").url()
-        : undefined) ??
-      sm.mobileVimeoThumb ??
-      undefined;
-    const mobile =
-      mobileSrc || mobilePoster || sm.mobilePosterLqip || sm.mobileVimeoAspect
-        ? {
-            src: mobileSrc,
-            poster: mobilePoster,
-            lqip: sm.mobilePosterLqip ?? undefined,
-            aspect: sm.mobileVimeoAspect ?? undefined,
-          }
-        : undefined;
-    return {
-      type: "video",
-      src,
-      aspect: sm.vimeoAspect ?? undefined,
-      controls,
-      poster,
-      lqip: sm.posterLqip ?? undefined,
-      mobile,
-    };
-  }
-  if (sm.image) {
-    // An image object can carry alt + crop + hotspot metadata while its
-    // `asset` ref is still empty (editor started filling in fields without
-    // uploading a file). `urlFor` throws on that shape, which used to break
-    // the whole page — bail out cleanly so the placeholder shows instead.
-    const hasAsset = !!(sm.image as { asset?: unknown }).asset;
-    if (!hasAsset) return null;
-    // Size per slot (fit:max never upscales past the source) and let Sanity
-    // pick webp/avif via auto:format, so we don't ship 2000px images into a
-    // small gallery cell.
-    const url = urlFor(sm.image)?.width(width).fit("max").quality(72).auto("format").url();
-    if (url) return { type: "image", src: url, lqip: sm.lqip ?? undefined };
-  }
-  return null;
-}
-
-// Merge a media's mobile overrides over its desktop values when on a small
-// screen. Each mobile field falls back to desktop when blank, so an editor can
-// override just the poster, just the source, or both.
-function resolveMedia(media: Media, isMobile: boolean): Media {
-  const m = media.mobile;
-  if (!isMobile || !m) return media;
-  return {
-    ...media,
-    src: m.src ?? media.src,
-    poster: m.poster ?? media.poster,
-    lqip: m.lqip ?? media.lqip,
-    aspect: m.aspect ?? media.aspect,
-  };
-}
 
 export function fromSanity(data: WorkLayoutData | null): CaseData | null {
   if (!data) return null;
@@ -236,194 +125,6 @@ const THEME: Record<"light" | "dark", Theme> = {
   light: { bg: PAGE_BG, fg: INK, line: "rgba(0,0,0,0.1)", placeholder: "#e7e6e1" },
   dark: { bg: "#000000", fg: "#ffffff", line: "rgba(255,255,255,0.18)", placeholder: "#191919" },
 };
-
-// Turn a Vimeo ID into a player embed URL. Accepts a bare ID ("123456789"), an
-// unlisted "ID/HASH", or a full Vimeo URL pasted in.
-//
-// Default (controls=false): `background=1` — autoplay, muted, looped, no chrome,
-// and Vimeo cover-fills its own iframe, so the embed behaves exactly like the
-// muted <video> elements next to it.
-//
-// controls=true: drop background mode and show Vimeo's controls. We keep
-// autoplay + muted + loop so it still plays on load, but the visitor can pause,
-// scrub and unmute. (`background=1` and `controls` are mutually exclusive.)
-function vimeoEmbedSrc(input: string, controls = false): string | null {
-  const m = input.trim().match(/(\d{6,})(?:\/([0-9a-z]+))?/i);
-  if (!m) return null;
-  const [, id, hash] = m;
-  const params = new URLSearchParams(
-    controls
-      ? {autoplay: "1", muted: "1", loop: "1", autopause: "0", controls: "1"}
-      : {background: "1", autoplay: "1", muted: "1", loop: "1", autopause: "0"},
-  );
-  if (hash) params.set("h", hash);
-  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
-}
-
-// ---------------------------------------------------------------------------
-// Video — a Vimeo background embed, an HLS (.m3u8) playlist via hls.js /
-// native, or a direct file. All three run as a muted autoplay loop.
-// ---------------------------------------------------------------------------
-function CaseVideo({
-  src,
-  className,
-  controls = false,
-  onPlaying,
-}: {
-  src: string;
-  className: string;
-  controls?: boolean;
-  // Fires once a real frame is painted, so a poster overlay can fade without a
-  // black flash. Vimeo reports it via the player API; <video>/HLS via the
-  // element's first `timeupdate`.
-  onPlaying?: () => void;
-}) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const isVimeo = src.includes("player.vimeo.com");
-
-  // Attach the Vimeo player API to the existing iframe and fade the poster on
-  // the first `timeupdate` (= playback actually advanced → a frame is up).
-  useEffect(() => {
-    if (!isVimeo || !onPlaying) return;
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    const player = new Player(iframe);
-    let fired = false;
-    const onFirstFrame = () => {
-      if (fired) return;
-      fired = true;
-      onPlaying();
-    };
-    player.on("timeupdate", onFirstFrame);
-    return () => {
-      // Don't destroy(): React owns this iframe and destroy() would rip it out
-      // of the DOM. Just drop our listener.
-      player.off("timeupdate", onFirstFrame);
-    };
-  }, [isVimeo, onPlaying, src]);
-
-  if (isVimeo) {
-    return (
-      <iframe
-        ref={iframeRef}
-        src={src}
-        className={className}
-        title=""
-        allow="autoplay; fullscreen; picture-in-picture"
-        // Background mode: ignore clicks so overlays/links win. With controls
-        // on, let pointer events through so the visitor can use the player.
-        style={{ border: 0, pointerEvents: controls ? "auto" : "none" }}
-      />
-    );
-  }
-  const isHls = /\.m3u8(\?|#|$)/i.test(src);
-  if (isHls) return <HlsBackgroundVideo src={src} className={className} onPlaying={onPlaying} />;
-  return (
-    <video
-      src={src}
-      autoPlay
-      muted
-      loop
-      playsInline
-      className={className}
-      onTimeUpdate={onPlaying ? () => onPlaying() : undefined}
-    />
-  );
-}
-
-// ---------------------------------------------------------------------------
-// PosteredVideo — a video with a poster overlay covering the player on first
-// load, fading once the box is in view and the player has had a beat to paint.
-// (Reveals once and never re-covers — the scroll-back blank-frame issue is still
-// open; see the project memory note.)
-// ---------------------------------------------------------------------------
-function PosteredVideo({ media, eager = false }: { media: Media; eager?: boolean }) {
-  const hasPoster = !!(media.poster || media.lqip);
-  const ref = useRef<HTMLDivElement>(null);
-  const [covered, setCovered] = useState(true);
-  const reveal = useCallback(() => setCovered(false), []);
-
-  // Keep the poster up until the player paints a real frame (onPlaying from
-  // CaseVideo), so it never crossfades to a black mid-buffer iframe. A vangnet
-  // timeout — armed only once the box scrolls into view — still reveals if the
-  // playback events never arrive (e.g. autoplay blocked), so the poster can't
-  // get stuck on screen.
-  useEffect(() => {
-    if (!hasPoster) return;
-    const el = ref.current;
-    if (!el) return;
-    let fallback: number | undefined;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          fallback = window.setTimeout(reveal, 4000);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.05 },
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      window.clearTimeout(fallback);
-    };
-  }, [hasPoster, reveal]);
-
-  return (
-    <div ref={ref} className="absolute inset-0">
-      <CaseVideo
-        src={media.src}
-        controls={media.controls}
-        onPlaying={hasPoster ? reveal : undefined}
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-      {hasPoster && (
-        <div
-          aria-hidden
-          className={`absolute inset-0 transition-opacity duration-500 ease-out ${
-            covered ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
-        >
-          {media.poster ? (
-            <BlurImage src={media.poster} lqip={media.lqip} eager={eager} />
-          ) : (
-            <img
-              src={media.lqip}
-              alt=""
-              className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl"
-            />
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// MediaFill — fills a positioned media box. Images blur-up; videos get a
-// postered player (see PosteredVideo).
-// ---------------------------------------------------------------------------
-function MediaFill({ media, eager = false }: { media: Media; eager?: boolean }) {
-  if (media.type === "image") {
-    return <BlurImage src={media.src} lqip={media.lqip} eager={eager} />;
-  }
-  return <PosteredVideo media={media} eager={eager} />;
-}
-
-// ---------------------------------------------------------------------------
-// Hero — full-bleed image or video.
-// ---------------------------------------------------------------------------
-function CaseHero({ media }: { media: Media }) {
-  const isMobile = useIsMobile();
-  return (
-    <section
-      className="relative aspect-[16/9] w-full overflow-hidden"
-      style={{ background: "var(--media-placeholder)" }}
-    >
-      <MediaFill media={resolveMedia(media, isMobile)} eager />
-    </section>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Title bar — case title (left) · client (middle) · "Project info" (right).
@@ -684,7 +385,7 @@ export default function CaseLayout({
         shouldScaleBackground={false}
       >
         <SiteNav textClassName={data?.darkMode ? "text-white" : "text-brigada-black"} />
-        {c.hero && <CaseHero media={c.hero} />}
+        {c.hero && <HeroMedia media={c.hero} />}
         <CaseTitleBar
           title={c.title}
           client={c.client}

@@ -71,12 +71,29 @@ export const pressRelease = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'heroMedia',
+      title: 'Hero media',
+      type: 'caseHeroMedia',
+      group: 'hero',
+      description:
+        'Full-bleed hero — an image or a video (Vimeo / Bunny HLS), same options as the case detail pages. Plays as a muted background loop. Takes priority over the legacy hero image below.',
+    }),
+    defineField({
+      name: 'heroSound',
+      title: 'Allow sound',
+      type: 'boolean',
+      group: 'hero',
+      initialValue: false,
+      description:
+        'Only for a video hero. Adds a small mute/unmute button so visitors can turn the sound on. The video still starts muted (browser autoplay policy).',
+    }),
+    defineField({
       name: 'heroImage',
-      title: 'Hero image',
+      title: 'Hero image (legacy)',
       type: 'image',
       group: 'hero',
       options: {hotspot: true},
-      description: 'Full-bleed background photo for the hero.',
+      description: 'Fallback still image. Only used when no hero media (above) is set.',
       fields: [defineField({name: 'alt', title: 'Alt text', type: 'string'})],
     }),
 
@@ -122,6 +139,13 @@ export const pressRelease = defineType({
       title: 'Portrait caption',
       type: 'string',
       group: 'content',
+    }),
+    defineField({
+      name: 'sidebarQuote',
+      title: 'Sidebar quote',
+      type: 'quote',
+      group: 'content',
+      description: 'A featured pull-quote shown in the right column, above the portrait.',
     }),
 
     // ---- Press kit ----

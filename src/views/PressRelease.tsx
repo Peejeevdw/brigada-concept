@@ -12,16 +12,17 @@ import {
 } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
+import { HeroMedia, toMedia, type SanityMedia } from "@/components/case-media";
 import { BRIGADA_BLACK } from "@/lib/colors";
 import { urlFor } from "@/lib/sanity";
 
 gsap.registerPlugin(ScrollTrigger);
 
 // Press release page — data-driven twin of the /employer-branding idiom.
-// A full-bleed hero photo with the headline overlaid, a two-column body
-// (release copy + inline quotes left, portrait right) and a press-kit
-// download list. Content comes from the `pressRelease` Sanity document via
-// app/press/[slug]/page.tsx.
+// A full-bleed hero (image or video, same options as the case detail pages),
+// then the headline + a two-column body (release copy + inline quotes left,
+// portrait right) and a press-kit download list. Content comes from the
+// `pressRelease` Sanity document via app/press/[slug]/page.tsx.
 
 const SANS = '"Antarctica", system-ui, sans-serif';
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -40,10 +41,13 @@ export type PressReleaseData = {
   slug?: string | null;
   publishDate?: string | null;
   heroTitle?: string | null;
+  heroMedia?: SanityMedia | null;
+  heroSound?: boolean | null;
   heroImage?: SanityImage;
   body?: PortableTextBlock[] | null;
   portrait?: SanityImage;
   portraitCaption?: string | null;
+  sidebarQuote?: { text?: string | null; author?: string | null; role?: string | null } | null;
   pressKit?: Array<{
     _key: string;
     label?: string | null;
@@ -106,7 +110,13 @@ const bodyComponents: PortableTextComponents = {
   block: {
     normal: ({ children }) => <p>{children}</p>,
     h2: ({ children }) => (
-      <h2 className="text-[clamp(20px,1.8vw,26px)]" style={{ fontWeight: 500 }}>
+      <h2
+        className="text-[clamp(27px,2.5vw,32px)] leading-[1.15]"
+        // Negative margin cancels most of the body's flex gap so a heading
+        // hugs the paragraph directly under it (≈8px), while the full gap above
+        // still separates it from the previous section.
+        style={{ fontWeight: 500, marginBottom: "calc(8px - clamp(24px, 2.4vw, 36px))" }}
+      >
         {children}
       </h2>
     ),
@@ -136,17 +146,40 @@ const bodyComponents: PortableTextComponents = {
 };
 
 const PressRelease = ({ data }: { data: PressReleaseData }) => {
+  // Hero — prefer the video/image media (same pipeline as the case hero);
+  // fall back to the legacy still image. Hero always plays as a silent loop.
+  const heroMedia = data?.heroMedia
+    ? toMedia(data.heroMedia, 3840, {
+        forceNoControls: true,
+        soundToggle: !!data.heroSound,
+      })
+    : null;
   const heroSrc = imgSrc(data?.heroImage ?? null, 2400);
-  const portraitSrc = imgSrc(data?.portrait ?? null, 1400);
   const dateLabel = formatDate(data?.publishDate);
   const body = data?.body ?? [];
   const downloads = (data?.pressKit ?? []).filter((d) => d?.label);
+
+  // On mobile the Senta card drops into the body flow just before the
+  // "A new model" heading; on desktop it lives in the right column. Split the
+  // body there (falls back to "all before / nothing after" if not found).
+  const blockText = (b: PortableTextBlock): string =>
+    Array.isArray((b as { children?: { text?: string }[] }).children)
+      ? (b as { children?: { text?: string }[] }).children!.map((c) => c?.text ?? "").join("")
+      : "";
+  const splitIdx = body.findIndex(
+    (b) => (b as { style?: string }).style === "h2" && blockText(b) === "A new model",
+  );
+  const bodyBefore = splitIdx >= 0 ? body.slice(0, splitIdx) : body;
+  const bodyAfter = splitIdx >= 0 ? body.slice(splitIdx) : [];
 
   // Scroll-driven background — calm warm tint, same reading feel as the other
   // editorial pages.
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollP = useMotionValue(0);
-  const bgColor = useTransform(scrollP, [0, 1], ["#FFFFFF", "#F6F1EA"]);
+  // Stay on the warm end-tint from the top (no white→tint scroll fade) so the
+  // white quote card always has contrast — important on mobile, where the card
+  // sits high on the page.
+  const bgColor = useTransform(scrollP, [0, 1], ["#F6F1EA", "#F6F1EA"]);
 
   useEffect(() => {
     const updateProgress = () => {
@@ -183,37 +216,78 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
     };
   }, [scrollP]);
 
+  // The Senta card — rendered in two spots (mobile: inline before "A new
+  // model"; desktop: right column). Same markup, different wrapper.
+  const sentaCard = data?.sidebarQuote?.text ? (
+    <div className="rounded-[6px] bg-white p-[clamp(20px,2vw,36px)]">
+      <div className="flex flex-col-reverse gap-[clamp(20px,2.5vw,40px)] sm:flex-row sm:items-start">
+        <div className="w-full sm:w-[46%]">
+          {/* Mobile: cropped to 4:5 (less tall). Desktop (md+): natural ratio. */}
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2px] md:aspect-auto">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Senta_Slingerland.jpg"
+              alt="Senta Slingerland, Chief Strategy Officer of Brigada"
+              className="absolute inset-0 h-full w-full object-cover object-[center_22%] md:static md:h-auto"
+            />
+          </div>
+        </div>
+        <blockquote className="m-0 w-full sm:w-[44%]">
+          <p
+            className="text-[clamp(19px,1.3vw,21px)] leading-[1.5] text-brigada-black"
+            // Hanging punctuation: pull the opening quote into the margin so the
+            // text block stays optically aligned.
+            style={{ fontWeight: 400, textIndent: "-0.45em" }}
+          >
+            &ldquo;{data.sidebarQuote.text}&rdquo;
+          </p>
+          {(data.sidebarQuote.author || data.sidebarQuote.role) && (
+            <footer
+              className="mt-3 text-[clamp(12px,0.85vw,14px)]"
+              style={{ color: INK, opacity: 0.7 }}
+            >
+              {[data.sidebarQuote.author, data.sidebarQuote.role]
+                .filter(Boolean)
+                .join(" — ")}
+            </footer>
+          )}
+        </blockquote>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <motion.main
       className="min-h-screen w-full"
       style={{ fontFamily: SANS, backgroundColor: bgColor }}
     >
-      {/* White nav — sits over the dark hero photo. */}
-      <SiteNav homePath="/" textClassName="text-white" />
+      {/* Dark nav — light page; the progressive-blur backdrop keeps it legible
+          over the hero media too. Matches the case detail (light) convention. */}
+      <SiteNav homePath="/" textClassName="text-brigada-black" />
 
-      {/* Hero — full-bleed photo with the headline overlaid bottom-left. */}
-      <section className="relative h-[clamp(440px,90vh,920px)] w-full overflow-hidden">
-        {heroSrc && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={heroSrc}
-            alt={data?.heroImage?.alt ?? ""}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        )}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0) 55%)",
-          }}
-        />
-        <div
-          className={`absolute inset-x-0 bottom-0 ${GUTTER} pb-[clamp(40px,7vw,96px)]`}
-        >
+      {/* Hero — full-bleed video or image, always filling 90vh (same pipeline
+          as the case hero; the media object-covers the box). */}
+      {heroMedia ? (
+        <HeroMedia media={heroMedia} className="relative h-[90vh] w-full overflow-hidden" />
+      ) : (
+        heroSrc && (
+          <section className="relative h-[90vh] w-full overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroSrc}
+              alt={data?.heroImage?.alt ?? ""}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </section>
+        )
+      )}
+
+      <div ref={contentRef} className="w-full">
+        {/* Title — eyebrow + headline, above the release copy. */}
+        <section className={`${GUTTER} pt-[clamp(48px,7vw,110px)]`}>
           {dateLabel && (
             <Reveal>
-              <p className="text-[clamp(14px,1vw,16px)] text-white/80">
+              <p className="text-[clamp(14px,1vw,16px)] text-brigada-black">
                 Press release · {dateLabel}
               </p>
             </Reveal>
@@ -221,49 +295,38 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
           {data?.heroTitle && (
             <Reveal delay={0.06} className="mt-[clamp(16px,1.6vw,24px)]">
               <h1
-                className="w-full text-[clamp(34px,5vw,88px)] leading-[1.04] tracking-[-0.01em] text-white md:w-[72%]"
+                className="w-full text-[clamp(34px,5vw,88px)] leading-[1.04] tracking-[-0.01em] text-brigada-black md:w-[80%]"
                 style={{ fontWeight: 400 }}
               >
                 {data.heroTitle}
               </h1>
             </Reveal>
           )}
-        </div>
-      </section>
+        </section>
 
-      <div ref={contentRef} className="w-full">
         {/* Two-column body — release copy left, portrait right. */}
-        <section className={`${GUTTER} pt-[clamp(56px,8vw,120px)]`}>
+        <section className={`${GUTTER} pt-[clamp(40px,5vw,72px)]`}>
           <Reveal delay={0.12}>
             <div className="flex flex-col gap-12 md:flex-row md:justify-between">
               <div
-                className="flex w-full flex-col gap-[18px] text-[20px] md:w-[46%]"
+                className="flex w-full flex-col gap-[clamp(24px,2.4vw,36px)] text-[20px] md:w-[40%]"
                 style={{ lineHeight: "150%", color: BRIGADA_BLACK }}
               >
-                <PortableText value={body} components={bodyComponents} />
+                <PortableText value={bodyBefore} components={bodyComponents} />
+                {/* Mobile only: card drops in before the "A new model" heading. */}
+                {sentaCard && (
+                  <div className="my-[clamp(8px,1.5vw,20px)] md:hidden">{sentaCard}</div>
+                )}
+                {bodyAfter.length > 0 && (
+                  <PortableText value={bodyAfter} components={bodyComponents} />
+                )}
               </div>
 
-              {portraitSrc && (
-                <div className="w-full md:w-[46%]">
+              {/* Desktop only: card in the sticky right column. */}
+              {sentaCard && (
+                <div className="hidden md:block md:w-[46%]">
                   <div className="md:sticky md:top-[clamp(90px,12vh,140px)]">
-                    <figure className="m-0">
-                      <div className="relative w-full overflow-hidden rounded-[2px]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={portraitSrc}
-                          alt={data?.portrait?.alt ?? ""}
-                          className="block h-auto w-full"
-                        />
-                      </div>
-                      {data?.portraitCaption && (
-                        <figcaption
-                          className="mt-3 text-[clamp(13px,1vw,15px)]"
-                          style={{ color: INK, opacity: 0.7 }}
-                        >
-                          {data.portraitCaption}
-                        </figcaption>
-                      )}
-                    </figure>
+                    {sentaCard}
                   </div>
                 </div>
               )}
