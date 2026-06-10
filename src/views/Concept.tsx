@@ -50,7 +50,91 @@ const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const SHOW_TUNING_PANEL = false;
 
 // "Proud not loud" awards section — tijdelijk verborgen; zet op true om terug.
-const SHOW_AWARDS = false;
+const SHOW_AWARDS = true;
+// "Working with the best" recognition section — verborgen; zet op true om terug.
+const SHOW_WORKING_WITH_BEST = false;
+
+// Aggregate awards metrics for the "Proud not loud" list — DRAFT placeholder,
+// pending final copy/numbers from the team. Rendered when Sanity has no
+// awards.items yet. `count` is the metric, `label` the award, `note` an aside.
+type AwardMetric = { count: string; label: string; note?: string };
+const AWARDS_PLACEHOLDER: AwardMetric[] = [
+  { count: "15", label: "Effies" },
+  { count: "40", label: "Cannes Lions", note: "including the prestigious Titanium Lion" },
+  { count: "3", label: "Eurobest Grand Prix" },
+  { count: "Multiple", label: "Gold awards at BEA World" },
+  { count: "300+", label: "Creative Belgium Awards" },
+  { count: "3×", label: "Specialist Agency of the Year" },
+  { count: "Several", label: "Agency of the Year awards" },
+];
+
+// Staggered slide-up reveal for the awards rows as the list scrolls into view.
+const AWARDS_LIST_VARIANTS = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
+const AWARDS_ROW_VARIANTS = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_OUT } },
+};
+
+// Counts a metric up from 0 to its number the first time it scrolls into view.
+// Parses a leading integer + optional suffix ("300+", "3×"); non-numeric values
+// ("Multiple", "Several") render as-is. rAF-driven (an animated motion value
+// doesn't progress reliably here under Next 16 + React 19), cubic-out, and
+// honours prefers-reduced-motion by showing the final value straight away.
+const CountUp = ({
+  value,
+  className,
+  style,
+  duration = 1400,
+}: {
+  value: string;
+  className?: string;
+  style?: CSSProperties;
+  duration?: number;
+}) => {
+  const match = value.match(/^(\d+)(.*)$/);
+  const target = match ? parseInt(match[1], 10) : null;
+  const suffix = match ? match[2] : "";
+  const ref = useRef<HTMLSpanElement>(null);
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    if (target === null) return;
+    const el = ref.current;
+    if (!el) return;
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduce) {
+      setN(target);
+      return;
+    }
+    let raf = 0;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        const start = performance.now();
+        const step = (now: number) => {
+          const k = Math.min(1, (now - start) / duration);
+          setN(Math.round((1 - Math.pow(1 - k, 3)) * target));
+          if (k < 1) raf = requestAnimationFrame(step);
+        };
+        raf = requestAnimationFrame(step);
+      },
+      { threshold: 0.6 }
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [target, duration]);
+
+  return (
+    <span ref={ref} className={className} style={style}>
+      {target === null ? value : `${n}${suffix}`}
+    </span>
+  );
+};
 
 // goo-1 "WAVE" reveal values (codrops), shared with the brand footers.
 const GOO_BLUR_START = 46;
@@ -1394,11 +1478,11 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
       {/* Recognition — "Proud not loud" intro + awards list (Figma node 299-1904) */}
       {SHOW_AWARDS && (
       <section className="relative z-10 w-full bg-white text-brigada-black">
-        <div className="grid w-full grid-cols-1 gap-x-12 gap-y-12 px-[clamp(24px,5vw,72px)] py-[clamp(64px,12vh,160px)] md:grid-cols-2">
-          {/* Left — intro */}
-          <div className="max-w-[420px]">
+        <div className="grid w-full grid-cols-1 gap-x-12 gap-y-12 px-[clamp(24px,5vw,72px)] py-[clamp(112px,20vh,280px)] md:grid-cols-2">
+          {/* Left — intro (sticky; offset below the nav + its progressive blur) */}
+          <div className="max-w-[420px] sticky self-start top-[150px]">
             <h2
-              className="text-[clamp(40px,6vw,70px)] uppercase leading-[1.1] tracking-[-0.02em]"
+              className="text-[clamp(18px,2vw,26px)] uppercase leading-[1.1] tracking-[-0.02em]"
               style={{ fontFamily: SANS, fontStretch: "125%", fontWeight: 500 }}
             >
               Proud not loud
@@ -1407,39 +1491,54 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
               className="mt-4 text-[clamp(16px,1.4vw,20px)] leading-[1.7]"
               style={{ fontFamily: SANS }}
             >
-              When strategy, creativity, data and experience come together from
-              day one, great work happens.
+              The talent at our agency has created some of the industry’s most
+              awarded work, earning international recognition through:
             </p>
           </div>
 
-          {/* Right — awards / recognition list */}
-          <div className="flex flex-col" onPointerLeave={() => setHoverAward(null)}>
-            {awardsItems.map((a, i) => (
-              <div
-                key={a._key ?? i}
-                onPointerEnter={() => setHoverAward(i)}
-                className="flex cursor-pointer flex-col gap-[2px] border-b border-brigada-black/15 py-[22px] transition-opacity duration-200 first:pt-0"
-                style={{
-                  fontFamily: SANS,
-                  opacity: hoverAward !== null && hoverAward !== i ? 0.45 : 1,
-                }}
+          {/* Right — DRAFT aggregate-metrics list (count · award · note),
+              pending final copy from the team. (Replaces the old Sanity
+              awards.items demo list for now; that data was a different
+              year/organisation/title format.) */}
+          <motion.div
+            className="flex flex-col"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+            variants={AWARDS_LIST_VARIANTS}
+          >
+            {AWARDS_PLACEHOLDER.map((a) => (
+              <motion.div
+                key={a.label}
+                variants={AWARDS_ROW_VARIANTS}
+                className="flex items-center justify-between gap-[clamp(16px,2vw,32px)] border-b border-brigada-black/15 py-[22px] first:pt-0"
+                style={{ fontFamily: SANS }}
               >
-                <span className="text-[16px] tracking-[-0.015em] text-brigada-black/60">
-                  {a.year}
+                <span className="flex flex-col gap-[2px]">
+                  <span className="text-[clamp(18px,1.7vw,24px)] tracking-[-0.015em]">
+                    {a.label}
+                  </span>
+                  {a.note && (
+                    <span className="text-[14px] tracking-[-0.015em] text-brigada-black/60">
+                      {a.note}
+                    </span>
+                  )}
                 </span>
-                <span className="text-[16px] tracking-[-0.015em]">{a.organization}</span>
-                <span className="text-[clamp(18px,1.7vw,24px)] tracking-[-0.015em]">
-                  {a.title}
-                </span>
-              </div>
+                <CountUp
+                  value={a.count}
+                  className="shrink-0 tabular-nums text-[clamp(18px,1.7vw,24px)] leading-none tracking-[-0.02em]"
+                  style={{ fontWeight: 400 }}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
       )}
 
       {/* Recognition — "Working with the best": tagline left, awards paragraph right.
           Single paragraph fades in once; copy comes from homePage.awards.recognition. */}
+      {SHOW_WORKING_WITH_BEST && (
       <section className="relative z-10 w-full bg-white text-brigada-black">
         <div className="grid w-full grid-cols-1 gap-x-[clamp(48px,12vw,200px)] gap-y-12 px-[clamp(24px,5vw,72px)] py-[clamp(64px,12vh,160px)] md:grid-cols-2">
           {/* Left — intro (sticky; offset below the nav + its progressive blur) */}
@@ -1479,6 +1578,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
           )}
         </div>
       </section>
+      )}
 
       {/* Reel — full-bleed gradient with a centered showreel blended in (Figma node 307-1985) */}
       <section ref={reelRef} className="relative z-10 flex min-h-[70vh] w-full items-center justify-center overflow-hidden">
