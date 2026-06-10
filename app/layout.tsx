@@ -53,7 +53,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{if(sessionStorage.getItem('brigada-preloaded'))document.documentElement.classList.add('preloaded')}catch(e){}",
+              // Hide the intro overlay before first paint when the intro already
+              // played this session, OR when landing directly on an "X is now
+              // Brigada" agency page (e.g. /today) — there you must see the old
+              // logo first, not the Brigada wordmark. Agency routes intentionally
+              // do NOT set the session key, so the intro can still play elsewhere.
+              "try{var p=location.pathname.replace(/^\\/+|\\/+$/g,'');if(sessionStorage.getItem('brigada-preloaded')||['today'].indexOf(p)>-1)document.documentElement.classList.add('preloaded')}catch(e){}",
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

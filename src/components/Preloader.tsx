@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { PRELOADER_DISMISS_EVENT } from "@/lib/preloader-gate";
+import { getOldAgency } from "@/data/oldAgencies";
 
 // Site-wide intro preloader: a full-screen black overlay that plays the same
 // goo "WAVE" reveal of the Brigada wordmark as the homepage hero, then fades
@@ -47,6 +48,16 @@ export default function Preloader() {
   const isDark = themeForPath(usePathname()) === "dark";
 
   useEffect(() => {
+    // Skip entirely on an "X is now Brigada" agency page (e.g. /today): there
+    // the old logo must appear first, so the Brigada intro never plays. We
+    // deliberately don't touch the session key, so the intro can still play
+    // when the visitor later lands on a regular page.
+    const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+    if (getOldAgency(path)) {
+      setShow(false);
+      return;
+    }
+
     // Once per session — if we've already played it, drop it immediately.
     let alreadyShown = false;
     try {
