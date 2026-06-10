@@ -10,6 +10,8 @@ interface RevealTextProps {
   duration?: number;
   /** Trigger threshold (0-1) for IntersectionObserver. */
   threshold?: number;
+  /** Delay (ms) before the first line starts (added to every line). */
+  startDelay?: number;
 }
 
 /**
@@ -23,6 +25,7 @@ const RevealText = ({
   stagger = 90,
   duration = 700,
   threshold = 0.2,
+  startDelay = 0,
 }: RevealTextProps) => {
   const ref = useRef<HTMLElement | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -99,7 +102,7 @@ const RevealText = ({
                 display: "inline-block",
                 transform: revealed ? "translateY(0)" : "translateY(110%)",
                 transition: `transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`,
-                transitionDelay: `${lineIdx * stagger}ms`,
+                transitionDelay: `${startDelay + lineIdx * stagger}ms`,
                 willChange: "transform",
               }}
             >

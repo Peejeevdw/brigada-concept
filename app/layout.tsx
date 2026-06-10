@@ -58,7 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               // Brigada" agency page (e.g. /today) — there you must see the old
               // logo first, not the Brigada wordmark. Agency routes intentionally
               // do NOT set the session key, so the intro can still play elsewhere.
-              "try{var p=location.pathname.replace(/^\\/+|\\/+$/g,'');if(sessionStorage.getItem('brigada-preloaded')||['today'].indexOf(p)>-1)document.documentElement.classList.add('preloaded')}catch(e){}",
+              "try{var p=location.pathname.replace(/^\\/+|\\/+$/g,'').replace(/_\\d+$/,'');if(sessionStorage.getItem('brigada-preloaded')||['today'].indexOf(p)>-1)document.documentElement.classList.add('preloaded')}catch(e){}",
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
