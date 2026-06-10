@@ -48,6 +48,7 @@ export type PressReleaseData = {
   portrait?: SanityImage;
   portraitCaption?: string | null;
   sidebarQuote?: { text?: string | null; author?: string | null; role?: string | null } | null;
+  sidebarImage?: SanityImage;
   pressKit?: Array<{
     _key: string;
     label?: string | null;
@@ -224,10 +225,12 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
         <div className="w-full sm:w-[46%]">
           {/* Mobile: cropped to 4:5 (less tall). Desktop (md+): natural ratio. */}
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2px] md:aspect-auto">
+            {/* Served from the Sanity CDN (cdn.sanity.io) so it isn't gated by
+                brigada.be's Cloudflare Access; falls back to the public file. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/Senta_Slingerland.jpg"
-              alt="Senta Slingerland, Chief Strategy Officer of Brigada"
+              src={imgSrc(data?.sidebarImage ?? null, 1200) ?? "/Senta_Slingerland.jpg"}
+              alt={data?.sidebarImage?.alt ?? "Senta Slingerland, Chief Strategy Officer of Brigada"}
               className="absolute inset-0 h-full w-full object-cover object-[center_22%] md:static md:h-auto"
             />
           </div>

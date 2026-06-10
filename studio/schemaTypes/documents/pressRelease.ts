@@ -147,6 +147,15 @@ export const pressRelease = defineType({
       group: 'content',
       description: 'A featured pull-quote shown in the right column, above the portrait.',
     }),
+    defineField({
+      name: 'sidebarImage',
+      title: 'Sidebar image',
+      type: 'image',
+      group: 'content',
+      options: {hotspot: true},
+      description: 'Photo shown next to the sidebar quote (served from the Sanity CDN).',
+      fields: [defineField({name: 'alt', title: 'Alt text', type: 'string'})],
+    }),
 
     // ---- Press kit ----
     defineField({

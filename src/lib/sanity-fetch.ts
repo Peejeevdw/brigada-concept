@@ -541,6 +541,7 @@ export async function getPressRelease(slug: string) {
       portrait{alt, asset->{_id, url, metadata{dimensions, lqip}}},
       portraitCaption,
       sidebarQuote{text, author, role},
+      sidebarImage{alt, asset->{_id, url, metadata{lqip}}},
       pressKit[]{
         _key,
         label,
