@@ -9,7 +9,6 @@ import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
 import LogoWall from "@/components/LogoWall";
 import BrandFooter from "@/components/BrandFooter";
-import PillarWorkCTA from "@/components/PillarWorkCTA";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import type { PillarViewProps } from "./pillar-types";
 
@@ -96,12 +95,28 @@ const Product = ({ category }: PillarViewProps) => {
           </Reveal>
         </section>
 
-        {/* CTA: deep-link to the work index pre-filtered on this pillar. */}
-        <PillarWorkCTA pillarSlug="product" pillarName={pillarName} />
+        {/* Clients — cycling logo wall (Osmo) of the brands we work with on this
+            expertise. Placeholder logos for now. */}
+        <section
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`}
+          style={{ color: INK.dark }}
+        >
+          <Reveal>
+            <div className="border-t" style={{ borderColor: INK.dark }} />
+            <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+              <SectionLabel>Clients</SectionLabel>
+              {/* Same column width as the capabilities text above, so the logos
+                  line up with that text column. */}
+              <div className="w-full md:w-[49%]">
+                <LogoWall logos={CLIENT_LOGOS} />
+              </div>
+            </div>
+          </Reveal>
+        </section>
 
         {/* Product contact */}
         <section
-          className={`${GUTTER} pt-[clamp(40px,5vw,72px)] pb-[clamp(80px,12vw,180px)]`}
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(48px,7vw,96px)]`}
           style={{ color: INK.dark }}
         >
           <Reveal>
@@ -126,23 +141,6 @@ const Product = ({ category }: PillarViewProps) => {
           orbit section. Placeholder product cases for now. */}
       <section className="px-[clamp(24px,5vw,72px)] pt-[clamp(24px,4vw,64px)] pb-[clamp(80px,12vw,160px)]">
         <CascadingSlider />
-      </section>
-
-      {/* Clients — cycling logo wall (Osmo) of the brands we work with on this
-          expertise. Placeholder logos for now. */}
-      <section
-        className={`${GUTTER} pt-[clamp(24px,4vw,64px)] pb-[clamp(80px,12vw,160px)]`}
-        style={{ color: INK.dark }}
-      >
-        <Reveal>
-          <div className="border-t" style={{ borderColor: INK.dark }} />
-          <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-            <SectionLabel>Klanten</SectionLabel>
-            <div className="w-full md:w-[72%]">
-              <LogoWall logos={CLIENT_LOGOS} />
-            </div>
-          </div>
-        </Reveal>
       </section>
 
       {/* Parallax footer — brio "Green & Blue" (brio-03) backdrop + wordmark. */}
