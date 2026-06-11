@@ -19,6 +19,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrandFooter from "@/components/BrandFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
+import { MediaFill, thumbVideoMedia } from "@/components/case-media";
 import { useRouter } from "next/navigation";
 import { usePageTransition } from "@/components/PageTransition";
 import { BRIGADA_BLACK } from "@/lib/colors";
@@ -169,6 +170,9 @@ export interface ConceptData {
         client?: string | null;
         slug?: string | null;
         image?: unknown;
+        lqip?: string | null;
+        thumbVimeoId?: string | null;
+        thumbVideoUrl?: string | null;
         serviceCategories?: Array<{
           _id?: string;
           name?: string | null;
@@ -1357,6 +1361,8 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             ? urlFor(c.work.image)?.width(1342).height(813).fit("crop").auto("format").url()
             : null;
           const img = sanityImg ?? (assets.img ? `/${assets.img}` : "/placeholder.svg");
+          // Optional silent looping video thumbnail; the image is its poster.
+          const thumbVideo = c.work ? thumbVideoMedia(c.work, img) : null;
           const bgVideo = assets.bgVideo;
           // Sanity stega embeds invisible chars in every string when Draft
           // Mode is on; strip them before hex validation or the regex below
@@ -1446,12 +1452,21 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 onPointerEnter={() => setHoverCase(true)}
                 onPointerLeave={() => setHoverCase(false)}
               >
-                <img
-                  data-stacking-cards-img
-                  className="block aspect-[1342/813] w-full object-cover"
-                  src={img}
-                  alt={`${name} — ${tags}`}
-                />
+                {thumbVideo ? (
+                  <div
+                    data-stacking-cards-img
+                    className="relative aspect-[1342/813] w-full overflow-hidden"
+                  >
+                    <MediaFill media={thumbVideo} />
+                  </div>
+                ) : (
+                  <img
+                    data-stacking-cards-img
+                    className="block aspect-[1342/813] w-full object-cover"
+                    src={img}
+                    alt={`${name} — ${tags}`}
+                  />
+                )}
                 {/* Trail source set — hidden originals the script clones from.
                 <div data-trail-collection className="rotating-image-trail__collection" aria-hidden>
                   {(c.trail ?? [c.img]).map((src, ti) => (

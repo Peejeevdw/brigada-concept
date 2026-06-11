@@ -5,6 +5,7 @@ import { SANS, EASE_OUT } from "@/lib/siteTokens";
 import { useCoarsePointer } from "@/lib/useCoarsePointer";
 import { usePageTransition } from "@/components/PageTransition";
 import { caseImages } from "@/data/caseImages";
+import { MediaFill, type Media } from "@/components/case-media";
 const brandCrelan = "/assets/brand-case-crelan.png";
 const brandNanopixel = "/assets/brand-case-nanopixel.png";
 const marketingCrelan = "/assets/marketing-case-crelan.jpg";
@@ -21,7 +22,14 @@ const peopleLidl = "/assets/people-case-lidl.jpg";
 // [data-filter-*] hooks are unchanged. Markup is React; the show/hide transition
 // CSS lives in index.css (Osmo block); card styling matches the work mockup.
 
-export type WorkItem = { client: string; tags: string[]; img: string | null; slug?: string };
+export type WorkItem = {
+  client: string;
+  tags: string[];
+  img: string | null;
+  // Optional silent looping video thumbnail; falls back to `img` when absent.
+  video?: Media | null;
+  slug?: string;
+};
 
 const CATEGORIES = ["All", "Brand", "Marketing", "People", "Product"];
 
@@ -224,7 +232,9 @@ const WorkFilter = ({
               onPointerLeave={() => setHoverCase(null)}
             >
               <div className="work-card__visual">
-                {it.img ? (
+                {it.video ? (
+                  <MediaFill media={it.video} />
+                ) : it.img ? (
                   <img
                     src={it.img}
                     alt={it.client}

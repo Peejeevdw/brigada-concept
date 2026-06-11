@@ -169,6 +169,10 @@ const WORK_LIST_PROJECTION = `{
   "slug": slug.current,
   image,
   "lqip": image.asset->metadata.lqip,
+  // Optional video thumbnail (silent autoplay loop, no controls). Vimeo wins
+  // over HLS when both are set; the image above is the poster/fallback.
+  "thumbVimeoId": thumbnailVideo.vimeoId,
+  "thumbVideoUrl": thumbnailVideo.hlsUrl,
   "serviceCategories": serviceCategories[]->{
     _id, name, "slug": slug.current, image, brioPaletteId
   }

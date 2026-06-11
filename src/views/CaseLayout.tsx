@@ -12,6 +12,7 @@ import {
   resolveMedia,
   MediaFill,
   HeroMedia,
+  thumbVideoMedia,
 } from "@/components/case-media";
 import { SANS } from "@/lib/siteTokens";
 import { urlFor } from "@/lib/sanity";
@@ -53,7 +54,7 @@ export type WorkLayoutData = {
   } | null;
   mediaRows?: ({ items?: (SanityMedia | null)[] | null; fullBleed?: boolean | null } | null)[] | null;
   // Other cases with a thumbnail, for the "Related cases" slider (WORK_LIST_PROJECTION).
-  relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown; lqip?: string | null } | null)[] | null;
+  relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown; lqip?: string | null; thumbVimeoId?: string | null; thumbVideoUrl?: string | null } | null)[] | null;
 };
 
 export function fromSanity(data: WorkLayoutData | null): CaseData | null {
@@ -349,6 +350,8 @@ export default function CaseLayout({
             title: rc.name ?? "",
             href: rc.slug ? `/work/${rc.slug}` : undefined,
             lqip: rc.lqip ?? undefined,
+            // Optional silent looping video thumbnail; the image is its poster.
+            video: thumbVideoMedia(rc, img),
           };
         })
         .filter((s): s is CascadingSlide => s !== null),

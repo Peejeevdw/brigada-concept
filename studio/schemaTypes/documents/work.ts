@@ -63,6 +63,39 @@ export const work = defineType({
       ],
     }),
     defineField({
+      name: 'thumbnailVideo',
+      title: 'Thumbnail video (optional)',
+      type: 'object',
+      group: 'general',
+      description:
+        'Optional: make the thumbnail an autoplaying, silent, looping video instead of a still — shown everywhere the thumbnail appears (work grid, homepage cases, related slider). The image above is the poster/fallback, so keep it set. Give a Vimeo ID OR a Bunny HLS URL — never both. There are never controls or sound.',
+      options: {collapsible: true, collapsed: true},
+      fields: [
+        defineField({
+          name: 'vimeoId',
+          title: 'Video — Vimeo ID',
+          type: 'string',
+          description:
+            'Just the number from the Vimeo URL — e.g. 123456789 for vimeo.com/123456789. For unlisted videos add the hash: 123456789/abcdef12. Plays as a muted autoplay loop, no controls.',
+          validation: (Rule) =>
+            Rule.custom((value, ctx) => {
+              const parent = ctx.parent as {hlsUrl?: string} | undefined
+              if (value && parent?.hlsUrl) {
+                return 'Pick one source — either Vimeo or Bunny HLS. If both are set, the Vimeo video plays.'
+              }
+              return true
+            }).warning(),
+        }),
+        defineField({
+          name: 'hlsUrl',
+          title: 'Video — Bunny HLS URL',
+          type: 'url',
+          description:
+            'Bunny (or other) HLS playlist URL — the .m3u8 link from the video library. Plays as a muted autoplay loop, no controls. Pick this OR the Vimeo ID above, not both.',
+        }),
+      ],
+    }),
+    defineField({
       name: 'intro',
       title: 'Tagline',
       type: 'text',

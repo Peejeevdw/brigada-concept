@@ -131,6 +131,31 @@ export function toMedia(
   return null;
 }
 
+// Build a thumbnail Media from a work-list item's optional video thumbnail
+// fields (see WORK_LIST_PROJECTION). Returns a video Media — always a silent
+// autoplay loop with no controls — when a Vimeo ID or HLS URL is set, else null
+// so the caller falls back to its plain <img>. `posterUrl` is the work's own
+// thumbnail image, reused as the poster so the box is never empty while the
+// player loads (or where the slider clones a slide outside React).
+export function thumbVideoMedia(
+  item: { lqip?: string | null; thumbVimeoId?: string | null; thumbVideoUrl?: string | null },
+  posterUrl?: string | null,
+): Media | null {
+  const src =
+    (item.thumbVimeoId && vimeoEmbedSrc(item.thumbVimeoId, { controls: false, sound: false })) ||
+    item.thumbVideoUrl ||
+    null;
+  if (!src) return null;
+  return {
+    type: "video",
+    src,
+    controls: false,
+    soundToggle: false,
+    poster: posterUrl ?? undefined,
+    lqip: item.lqip ?? undefined,
+  };
+}
+
 // Merge a media's mobile overrides over its desktop values when on a small
 // screen. Each mobile field falls back to desktop when blank, so an editor can
 // override just the poster, just the source, or both.

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { usePageTransition } from "@/components/PageTransition";
+import { MediaFill, type Media } from "@/components/case-media";
 
 const productCase1 = "/assets/product-case-1.png";
 const productCase2 = "/assets/product-case-2.png";
@@ -15,7 +16,14 @@ const productCase5 = "/assets/product-case-5.png";
 // Slide markup is React; styling lives in index.css (Osmo block, heading font
 // swapped to Antarctica).
 
-export type CascadingSlide = { img: string; title: string; href?: string; lqip?: string };
+export type CascadingSlide = {
+  img: string;
+  title: string;
+  href?: string;
+  lqip?: string;
+  // Optional silent looping video thumbnail; falls back to `img` when absent.
+  video?: Media | null;
+};
 
 // Placeholder product cases — swap images/titles for real ones later (same
 // stand-in approach the orbit used).
@@ -310,24 +318,34 @@ const CascadingSlider = ({
             >
               <div className="cascading-slider__item-inner">
                 <div className="cascading-slider__item-bg">
-                  {s.lqip && (
-                    // LQIP blur-up — paints instantly so the slide is never empty.
-                    <img
-                      src={s.lqip}
-                      aria-hidden
-                      draggable={false}
-                      alt=""
-                      className="cascading-slider__img"
-                      style={{ filter: "blur(24px)", transform: "scale(1.1)" }}
-                    />
+                  {s.video ? (
+                    // Silent looping video thumbnail (poster = s.img). Note: the
+                    // slider clones slides outside React to pad the carousel —
+                    // an HLS clone can't re-attach hls.js so it just shows the
+                    // poster, while a Vimeo clone keeps playing.
+                    <MediaFill media={s.video} eager={i === 0} />
+                  ) : (
+                    <>
+                      {s.lqip && (
+                        // LQIP blur-up — paints instantly so the slide is never empty.
+                        <img
+                          src={s.lqip}
+                          aria-hidden
+                          draggable={false}
+                          alt=""
+                          className="cascading-slider__img"
+                          style={{ filter: "blur(24px)", transform: "scale(1.1)" }}
+                        />
+                      )}
+                      <img
+                        src={s.img}
+                        loading={i === 0 ? "eager" : "lazy"}
+                        draggable={false}
+                        alt={s.title}
+                        className="cascading-slider__img"
+                      />
+                    </>
                   )}
-                  <img
-                    src={s.img}
-                    loading={i === 0 ? "eager" : "lazy"}
-                    draggable={false}
-                    alt={s.title}
-                    className="cascading-slider__img"
-                  />
                 </div>
                 <div className="cascading-slider__item-content">
                   <h3 className="cascading-slider__h">{s.title}</h3>

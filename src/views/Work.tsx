@@ -10,6 +10,7 @@ import BrandFooter from "@/components/BrandFooter";
 import { GUTTER } from "@/lib/siteTokens";
 import { caseImages } from "@/data/caseImages";
 import { urlFor } from "@/lib/sanity";
+import { thumbVideoMedia } from "@/components/case-media";
 
 export interface WorkIndexData {
   page?: { hero?: { eyebrow?: string | null; title?: string | null } | null } | null;
@@ -20,6 +21,9 @@ export interface WorkIndexData {
     slug?: string | null;
     intro?: string | null;
     image?: unknown;
+    lqip?: string | null;
+    thumbVimeoId?: string | null;
+    thumbVideoUrl?: string | null;
     serviceCategories?: Array<{ _id?: string; name?: string | null; slug?: string | null }> | null;
   }> | null;
 }
@@ -39,10 +43,14 @@ const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
     // the per-pillar filter visibly populated while real thumbnails are
     // being uploaded.
     const img = sanityImg || (w.slug ? caseImages[w.slug] : null) || null;
+    // Optional video thumbnail (silent loop, no controls); the image is its
+    // poster. Falls back to the plain <img> when no video source is set.
+    const video = thumbVideoMedia(w, img);
     return {
       client: w.client || w.name || "",
       tags: (w.serviceCategories ?? []).map((e) => e?.name ?? "").filter(Boolean) as string[],
       img,
+      video,
       slug: w.slug ?? undefined,
     };
   });
