@@ -153,7 +153,7 @@ const AgencyPoster = ({ slug }: { slug: string }) => {
             "WAVE" reveal filter (blur → sharp), like the /concept hero. */}
         <motion.div {...fade(1.0)} className="shrink-0">
           <div className="will-change-[filter]" style={{ filter: "url(#poster-goo)" }}>
-            <BrigadaWordmark className="block h-auto w-[clamp(300px,42vw,720px)]" />
+            <BrigadaWordmark className="block h-auto w-[clamp(480px,78vw,1360px)]" />
           </div>
         </motion.div>
       </div>
