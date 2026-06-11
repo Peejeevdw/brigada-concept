@@ -170,6 +170,14 @@ export const homePage = defineType({
                       .warning('Brio only blends up to 7 stops; extras are ignored.'),
                 }),
                 defineField({
+                  name: 'brioImage',
+                  title: 'Brio backdrop image',
+                  type: 'image',
+                  options: {hotspot: true},
+                  description:
+                    'Optional: the image fed into the WebGL Brio gradient behind the case (graded with the colours above). Use the hotspot to frame it. Handy when the case has a video thumbnail or a still that is too plain/white. Falls back to the thumbnail image, then a site-wide default.',
+                }),
+                defineField({
                   name: 'fgColor',
                   title: 'Text colour',
                   type: 'string',

@@ -254,6 +254,7 @@ export function getHomePage(locale: string = DEFAULT_SANITY_LOCALE) {
           _key,
           fgColor,
           brioColors,
+          brioImage,
           trail,
           "work": work->${WORK_LIST_PROJECTION}
         }

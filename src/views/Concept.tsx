@@ -163,6 +163,7 @@ export interface ConceptData {
       _key?: string;
       fgColor?: string | null;
       brioColors?: string[] | null;
+      brioImage?: unknown;
       trail?: unknown[] | null;
       work?: {
         _id?: string;
@@ -1375,6 +1376,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             .map((s) => (typeof s === "string" ? stripStega(s) : ""))
             .filter((s) => /^#?[0-9a-f]{6}$/i.test(s));
           const fgColor = c.fgColor ? stripStega(c.fgColor) : "#181614";
+          // Brio backdrop texture: a per-case override if set, else the case
+          // still, else the site-wide default. We only mirror the shared
+          // default so it doesn't read as a copy of the footer's brio.
+          const brioOverride = c.brioImage
+            ? urlFor(c.brioImage)?.width(1342).height(813).fit("crop").auto("format").url()
+            : null;
+          const brioSrc = brioOverride ?? sanityImg ?? "/concept-hero.jpg";
+          const brioIsDefault = !brioOverride && !sanityImg;
           return (
           <section
             key={c._key ?? slug}
@@ -1395,12 +1404,21 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             }
             style={{ cursor: slug ? "pointer" : undefined, color: fgColor }}
           >
-            {/* Brio WebGL backdrop — colours from Sanity, source = the case
-                image so colour extraction has something coherent to chew on. */}
-            {brioStops.length >= 2 && sanityImg && (
-              <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
+            {/* Brio WebGL backdrop — colours from Sanity. Texture = the per-case
+                brio image override if set, else the case still, else the
+                site-wide default (same as the footer). The default keeps
+                video-only cases (whose still can be very sober, or absent)
+                from rendering an empty backdrop. */}
+            {brioStops.length >= 2 && (
+              <div
+                className="pointer-events-none absolute inset-0 z-0"
+                aria-hidden
+                // Mirror only the shared default so it doesn't read as a carbon
+                // copy of the footer's brio.
+                style={brioIsDefault ? { transform: "scaleX(-1)" } : undefined}
+              >
                 <BrioEffect
-                  src={sanityImg}
+                  src={brioSrc}
                   mode="custom"
                   colors={brioStops}
                   className="h-full w-full"
