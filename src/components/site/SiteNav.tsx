@@ -111,10 +111,15 @@ const SiteNav = ({
   textClassName = "text-brigada-black",
   homePath = "/concept",
   navTargets,
+  blend = true,
 }: {
   textClassName?: string;
   homePath?: string;
   navTargets?: Record<string, string>;
+  // When set (default), the nav renders white with mix-blend-mode: difference so
+  // it stays legible over any background (light/dark hero, photo, video). Set
+  // false to fall back to the explicit `textClassName` colour.
+  blend?: boolean;
 } = {}) => {
   const [openLabel, setOpenLabel] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -184,23 +189,40 @@ const SiteNav = ({
     (i) => i.label === openLabel && i.items.length > 0
   );
 
+  // Blend keeps the nav legible over any background, but we drop it while the
+  // full-screen mobile menu is open so the labels stay crisp white on black.
+  const useBlend = blend && !mobileOpen;
+
   return (
     <>
+    {/* Progressive-blur backdrop — its own fixed layer (z-40), kept OUT of the
+        nav so it never sits between the blended nav and the page content. */}
     <motion.div
-      className="fixed inset-x-0 top-0 z-50"
+      className="fixed inset-x-0 top-0 z-40 pointer-events-none"
+      aria-hidden
       initial={{ y: "-100%" }}
       animate={{ y: "0%" }}
       transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.1 }}
     >
-      <div className={`progressive-blur${blurOpen ? " is--open" : ""}`} aria-hidden>
+      <div className={`progressive-blur${blurOpen ? " is--open" : ""}`}>
         <div className="progressive-blur__layer is--1" />
         <div className="progressive-blur__layer is--2" />
         <div className="progressive-blur__layer is--3" />
         <div className="progressive-blur__layer is--4" />
         <div className="progressive-blur__layer is--5" />
       </div>
-      <nav
-        className={`relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] ${textClassName} ${mobileOpen ? "max-md:!text-white" : ""}`}
+    </motion.div>
+
+    {/* Nav — IS the fixed, blended element (no transformed/opacity wrapper in
+        between), so mix-blend-difference reaches the page content behind it. The
+        entrance slides via `top` rather than transform, so the blended element
+        itself carries no transform that could re-isolate it. */}
+    <motion.nav
+        className={`fixed inset-x-0 z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] ${useBlend ? "text-white" : textClassName} ${mobileOpen ? "max-md:!text-white" : ""}`}
+        style={useBlend ? { mixBlendMode: "difference" } : undefined}
+        initial={{ top: "-72px" }}
+        animate={{ top: "0px" }}
+        transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.1 }}
       >
         {/* Wordmark — first in-flow item so justify-between pins it to the left
             gutter and spreads the nav items evenly across the rest. Click
@@ -267,11 +289,10 @@ const SiteNav = ({
             />
           </span>
         </button>
-      </nav>
-    </motion.div>
+    </motion.nav>
 
-      {/* Full-screen mobile menu overlay — sibling of the (transformed) nav
-          wrapper so `fixed` resolves against the viewport, not the wrapper. */}
+      {/* Full-screen mobile menu overlay — sibling of the nav so `fixed`
+          resolves against the viewport. */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div

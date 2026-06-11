@@ -715,6 +715,11 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
   const whiteOpacity = useTransform(p, [cutAt, cutAt + 0.025], [0, 1]);
   const textColor = useTransform(p, [cutAt, cutAt + 0.025], ["#ffffff", BRIGADA_BLACK]);
 
+  // Nav uses white + mix-blend-difference so it stays legible over every section
+  // (replacing the old scroll-driven textColor switch); dropped while the
+  // full-screen mobile menu is open so the labels stay crisp white on black.
+  const navBlend = !mobileOpen;
+
   return (
     <main className="relative bg-brigada-black">
       <style>{`
@@ -820,23 +825,36 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
         */
       `}</style>
 
-      {/* Navigation — fixed so it persists across sections (doesn't scroll away) */}
+      {/* Navigation — fixed so it persists across sections (doesn't scroll away).
+          Blur and nav are SEPARATE fixed layers: a transformed/fixed wrapper
+          around the nav would create a stacking context that stops the nav's
+          mix-blend-difference from reaching the page behind it. */}
       <motion.div
-        className="fixed inset-x-0 top-0 z-50"
+        className="fixed inset-x-0 top-0 z-40 pointer-events-none"
+        aria-hidden
         initial={{ y: "-100%" }}
         animate={revealed ? { y: "0%" } : { y: "-100%" }}
         transition={{ duration: 0.6, ease: EASE_OUT, delay: revealed ? 0.45 : 0 }}
       >
-        <div className={`progressive-blur${openIdx !== null && NAV_ITEMS[openIdx].items.length > 0 ? " is--open" : ""}`} aria-hidden>
+        <div className={`progressive-blur${openIdx !== null && NAV_ITEMS[openIdx].items.length > 0 ? " is--open" : ""}`}>
           <div className="progressive-blur__layer is--1" />
           <div className="progressive-blur__layer is--2" />
           <div className="progressive-blur__layer is--3" />
           <div className="progressive-blur__layer is--4" />
           <div className="progressive-blur__layer is--5" />
         </div>
-        <motion.nav
-          style={{ color: textColor }}
-          className="relative z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)]"
+      </motion.div>
+
+      {/* Nav — IS the fixed, blended element. White + mix-blend-difference keeps
+          it legible over any section; the entrance slides via `top` (not
+          transform) so the blended element itself carries no isolating
+          transform. Blend drops while the mobile menu is open. */}
+      <motion.nav
+          style={navBlend ? { mixBlendMode: "difference" } : { color: textColor }}
+          className={`fixed inset-x-0 z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] ${navBlend ? "text-white" : ""}`}
+          initial={{ top: "-72px" }}
+          animate={revealed ? { top: "0px" } : { top: "-72px" }}
+          transition={{ duration: 0.6, ease: EASE_OUT, delay: revealed ? 0.45 : 0 }}
         >
           {/* Desktop nav — collapses into the hamburger below md.
               `md:contents` keeps the children spreading via justify-between. */}
@@ -931,10 +949,9 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
             </span>
           </button>
         </motion.nav>
-      </motion.div>
 
-      {/* Full-screen mobile menu overlay — sibling of the (transformed) nav
-          wrapper so `fixed` resolves against the viewport. */}
+      {/* Full-screen mobile menu overlay — sibling of the nav so `fixed`
+          resolves against the viewport. */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
