@@ -112,7 +112,7 @@ const bodyComponents: PortableTextComponents = {
     normal: ({ children }) => <p>{children}</p>,
     h2: ({ children }) => (
       <h2
-        className="text-[clamp(27px,2.5vw,32px)] leading-[1.15]"
+        className="text-[clamp(27px,2.5vw,32px)] leading-[1.15] md:mt-[clamp(16px,2vw,40px)]"
         // Negative margin cancels most of the body's flex gap so a heading
         // hugs the paragraph directly under it (≈8px), while the full gap above
         // still separates it from the previous section.
@@ -286,52 +286,45 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
       )}
 
       <div ref={contentRef} className="w-full">
-        {/* Title — eyebrow + headline, above the release copy. */}
+        {/* Title — eyebrow + headline, centred above the release copy. */}
         <section className={`${GUTTER} pt-[clamp(48px,7vw,110px)]`}>
-          {dateLabel && (
-            <Reveal>
-              <p className="text-[clamp(14px,1vw,16px)] text-brigada-black">
-                Press release · {dateLabel}
-              </p>
-            </Reveal>
-          )}
-          {data?.heroTitle && (
-            <Reveal delay={0.06} className="mt-[clamp(16px,1.6vw,24px)]">
-              <h1
-                className="w-full text-[clamp(34px,5vw,88px)] leading-[1.04] tracking-[-0.01em] text-brigada-black md:w-[80%]"
-                style={{ fontWeight: 400 }}
-              >
-                {data.heroTitle}
-              </h1>
-            </Reveal>
-          )}
+          <div className="mx-auto w-full max-w-[920px] text-left">
+            {dateLabel && (
+              <Reveal>
+                <p className="text-[clamp(14px,1vw,16px)] text-brigada-black">
+                  {dateLabel}
+                </p>
+              </Reveal>
+            )}
+            {data?.heroTitle && (
+              <Reveal delay={0.06} className="mt-[clamp(16px,1.6vw,24px)]">
+                <h1
+                  className="text-[clamp(34px,5vw,88px)] leading-[1.04] tracking-[-0.01em] text-brigada-black"
+                  style={{ fontWeight: 400 }}
+                >
+                  {data.heroTitle}
+                </h1>
+              </Reveal>
+            )}
+          </div>
         </section>
 
-        {/* Two-column body — release copy left, portrait right. */}
+        {/* Single centred reading column — release copy with the Senta quote
+            card inline between the sections (same approach as mobile, now on
+            desktop too). */}
         <section className={`${GUTTER} pt-[clamp(40px,5vw,72px)]`}>
           <Reveal delay={0.12}>
-            <div className="flex flex-col gap-12 md:flex-row md:justify-between">
-              <div
-                className="flex w-full flex-col gap-[clamp(24px,2.4vw,36px)] text-[20px] md:w-[40%]"
-                style={{ lineHeight: "150%", color: BRIGADA_BLACK }}
-              >
-                <PortableText value={bodyBefore} components={bodyComponents} />
-                {/* Mobile only: card drops in before the "A new model" heading. */}
-                {sentaCard && (
-                  <div className="my-[clamp(8px,1.5vw,20px)] md:hidden">{sentaCard}</div>
-                )}
-                {bodyAfter.length > 0 && (
-                  <PortableText value={bodyAfter} components={bodyComponents} />
-                )}
-              </div>
-
-              {/* Desktop only: card in the sticky right column. */}
+            <div
+              className="mx-auto flex w-full max-w-[920px] flex-col gap-[clamp(24px,2.4vw,36px)] text-[20px]"
+              style={{ lineHeight: "150%", color: BRIGADA_BLACK }}
+            >
+              <PortableText value={bodyBefore} components={bodyComponents} />
+              {/* Quote card drops into the body flow before "A new model". */}
               {sentaCard && (
-                <div className="hidden md:block md:w-[46%]">
-                  <div className="md:sticky md:top-[clamp(90px,12vh,140px)]">
-                    {sentaCard}
-                  </div>
-                </div>
+                <div className="my-[clamp(8px,1.5vw,20px)]">{sentaCard}</div>
+              )}
+              {bodyAfter.length > 0 && (
+                <PortableText value={bodyAfter} components={bodyComponents} />
               )}
             </div>
           </Reveal>
@@ -340,17 +333,18 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
         {/* Press kit — downloadable logo, video and images. */}
         {downloads.length > 0 && (
           <section
-            className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(80px,12vw,180px)]`}
+            className={`${GUTTER} pt-[clamp(48px,7vw,96px)] pb-[clamp(48px,7vw,96px)]`}
             style={{ color: INK }}
           >
             <Reveal>
+              <div className="mx-auto w-full max-w-[920px]">
               <div className="border-t" style={{ borderColor: INK }} />
               <div className="mt-[clamp(20px,2vw,26px)] flex flex-col gap-8 md:flex-row md:justify-between">
                 <h2
                   className="shrink-0 text-[clamp(18px,1.5vw,22px)] uppercase leading-none"
                   style={{ fontWeight: 500 }}
                 >
-                  Press kit
+                  Info kit
                 </h2>
                 <ul className="w-full md:w-[70%]">
                   {downloads.map((d) => {
@@ -393,6 +387,7 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
                     );
                   })}
                 </ul>
+              </div>
               </div>
             </Reveal>
           </section>
