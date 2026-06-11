@@ -1,7 +1,16 @@
 "use client";
 
-import { Fragment, useMemo, useState, type CSSProperties } from "react";
+import {
+  Fragment,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { Drawer } from "vaul";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
 import SiteNav from "@/components/site/SiteNav";
 import CascadingSlider, { type CascadingSlide } from "@/components/CascadingSlider";
 import BrandFooter from "@/components/BrandFooter";
@@ -133,11 +142,9 @@ const THEME: Record<"light" | "dark", Theme> = {
 function CaseTitleBar({
   title,
   client,
-  onOpenInfo,
 }: {
   title: string;
   client: string;
-  onOpenInfo: () => void;
 }) {
   return (
     <div
@@ -151,25 +158,12 @@ function CaseTitleBar({
         {title}
       </h2>
 
-      {/* Client — centered across the bar on desktop; in flow on mobile. */}
+      {/* Client — right-aligned on desktop, in flow on mobile. */}
       {client && (
-        <p className="font-nav text-sm md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+        <p className="font-nav text-sm md:text-right">
           <span className="opacity-50">Client</span>&nbsp;&nbsp;{client}
         </p>
       )}
-
-      <Drawer.Trigger asChild>
-        <button
-          type="button"
-          onClick={onOpenInfo}
-          className="font-nav inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-current px-5 py-2 text-sm transition-colors hover:bg-[var(--fg)] hover:text-[var(--bg)] md:self-auto"
-        >
-          Project info
-          <span aria-hidden className="text-xs leading-none opacity-70">
-            +
-          </span>
-        </button>
-      </Drawer.Trigger>
     </div>
   );
 }
@@ -232,6 +226,212 @@ function CaseGallery({ rows }: { rows: GalleryRow[] }) {
         );
       })}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Project info — inline variant. Same data as the drawer, but laid out as
+// spec tables near the bottom of the case so it's visible without opening the
+// panel. The drawer stays in place; this is additive.
+// ---------------------------------------------------------------------------
+function CaseInfoBlock({
+  info,
+  client,
+  theme,
+}: {
+  info: ProjectInfo;
+  client: string;
+  theme: Theme;
+}) {
+  if (info.sections.length === 0 && info.services.length === 0 && !client) {
+    return null;
+  }
+
+  // Each spec row: label (left) · value (right). A hairline divides rows so the
+  // block reads as a clean table in both light and dark mode.
+  const Row = ({
+    label,
+    children,
+  }: {
+    label: string;
+    children: ReactNode;
+  }) => (
+    <div
+      className="grid grid-cols-1 gap-2 border-t py-6 md:grid-cols-[minmax(160px,260px)_1fr] md:gap-10"
+      style={{ borderColor: theme.line }}
+    >
+      <dt className="font-nav text-xs uppercase tracking-wide opacity-50">
+        {label}
+      </dt>
+      <dd
+        className="text-[clamp(14px,1.1vw,16px)] leading-[1.6]"
+        style={{ fontFamily: SANS }}
+      >
+        {children}
+      </dd>
+    </div>
+  );
+
+  return (
+    <section className={`pb-24 ${GUTTER}`}>
+      <dl
+        className="border-b"
+        style={{ borderColor: theme.line }}
+      >
+        {client && <Row label="Client">{client}</Row>}
+
+        {info.sections.map((s) => (
+          <Row key={s.id} label={s.title}>
+            <div className="flex flex-col gap-4">
+              {s.body.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+          </Row>
+        ))}
+
+        {info.services.length > 0 && (
+          <Row label="Services">
+            <div className="flex flex-wrap items-center gap-3">
+              {info.services.map((s, i) => (
+                <Fragment key={s}>
+                  {i > 0 && (
+                    <span
+                      className="h-3 w-px"
+                      style={{ background: theme.line }}
+                      aria-hidden
+                    />
+                  )}
+                  <span>{s}</span>
+                </Fragment>
+              ))}
+            </div>
+          </Row>
+        )}
+      </dl>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Project info — tabs variant. Each section becomes a tab and its body shows in
+// a panel below; services get their own tab at the end. Sits right under the
+// title bar. Client lives in the title bar, so it's not repeated here.
+// ---------------------------------------------------------------------------
+const SERVICES_TAB = "__services";
+
+function CaseInfoTabs({ info, theme }: { info: ProjectInfo; theme: Theme }) {
+  const hasServices = info.services.length > 0;
+
+  // One flat list of tabs (sections + an optional services tab) so the bar and
+  // the indicator math stay simple.
+  const tabs = useMemo(
+    () => [
+      ...info.sections.map((s) => ({ id: s.id, label: s.title })),
+      ...(hasServices ? [{ id: SERVICES_TAB, label: "Services" }] : []),
+    ],
+    [info.sections, hasServices],
+  );
+
+  const [active, setActive] = useState(tabs[0]?.id ?? SERVICES_TAB);
+  const listRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  // The sliding underline: position + width measured from the active trigger,
+  // then animated via a CSS transition on the span below.
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  // Measure the active trigger relative to the (scrolling) list, so the
+  // indicator lines up and scrolls along with the tabs. Re-run on resize and
+  // whenever the active tab or the tab set changes.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = triggerRefs.current[active];
+      if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [active, tabs]);
+
+  if (tabs.length === 0) return null;
+
+  return (
+    <section className={`pb-24 ${GUTTER}`}>
+      <TabsPrimitive.Root value={active} onValueChange={setActive}>
+        {/* Tab bar — single row, horizontally scrollable on narrow screens
+            (scrollbar hidden). The indicator lives inside so it scrolls along. */}
+        <TabsPrimitive.List
+          ref={listRef}
+          className="relative flex flex-nowrap gap-x-8 overflow-x-auto border-b [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={{ borderColor: theme.line }}
+        >
+          {tabs.map((t) => (
+            <TabsPrimitive.Trigger
+              key={t.id}
+              value={t.id}
+              ref={(el) => {
+                triggerRefs.current[t.id] = el;
+              }}
+              className="font-nav shrink-0 whitespace-nowrap py-3 text-xs uppercase tracking-wide opacity-50 transition-opacity hover:opacity-100 data-[state=active]:opacity-100"
+            >
+              {t.label}
+            </TabsPrimitive.Trigger>
+          ))}
+
+          {/* The single sliding underline. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-0 left-0 h-0.5 bg-current transition-[transform,width] duration-300 ease-out motion-reduce:transition-none"
+            style={{
+              width: indicator.width,
+              transform: `translateX(${indicator.left}px)`,
+            }}
+          />
+        </TabsPrimitive.List>
+
+        {info.sections.map((s) => (
+          <TabsPrimitive.Content
+            key={s.id}
+            value={s.id}
+            className="pt-8 focus-visible:outline-none"
+          >
+            <div
+              className="flex max-w-[68ch] flex-col gap-4 text-[clamp(14px,1.1vw,16px)] leading-[1.6]"
+              style={{ fontFamily: SANS }}
+            >
+              {s.body.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+          </TabsPrimitive.Content>
+        ))}
+
+        {hasServices && (
+          <TabsPrimitive.Content
+            value={SERVICES_TAB}
+            className="pt-8 focus-visible:outline-none"
+          >
+            <div
+              className="flex flex-wrap items-center gap-3 text-[clamp(14px,1.1vw,16px)]"
+              style={{ fontFamily: SANS }}
+            >
+              {info.services.map((s, i) => (
+                <Fragment key={s}>
+                  {i > 0 && (
+                    <span
+                      className="h-3 w-px"
+                      style={{ background: theme.line }}
+                      aria-hidden
+                    />
+                  )}
+                  <span>{s}</span>
+                </Fragment>
+              ))}
+            </div>
+          </TabsPrimitive.Content>
+        )}
+      </TabsPrimitive.Root>
+    </section>
   );
 }
 
@@ -391,11 +591,8 @@ export default function CaseLayout({
       >
         <SiteNav textClassName={data?.darkMode ? "text-white" : "text-brigada-black"} />
         {c.hero && <HeroMedia media={c.hero} />}
-        <CaseTitleBar
-          title={c.title}
-          client={c.client}
-          onOpenInfo={() => setInfoOpen(true)}
-        />
+        <CaseTitleBar title={c.title} client={c.client} />
+        <CaseInfoTabs info={c.projectInfo} theme={theme} />
         {c.gallery.length > 0 && <CaseGallery rows={c.gallery} />}
 
         {relatedSlides.length > 0 && (
