@@ -15,6 +15,12 @@ import { onPreloaderReveal } from "@/lib/preloader-gate";
  * `soundToggle`: opt-in — renders a discreet mute/unmute button so a visitor
  * can turn the sound on (used on the press hero). The video still starts muted
  * to satisfy autoplay policy.
+ *
+ * `controls`: opt-in — show the browser's native player chrome (play/pause/
+ * scrub/volume/fullscreen). The clip still starts as a muted autoplay loop, so
+ * a visitor can pause or unmute it. Mirrors the Vimeo `controls` path; when on,
+ * the element is interactive (no `aria-hidden`) and the custom mute button is
+ * skipped since the native controls already carry volume.
  */
 const HlsBackgroundVideo = ({
   src,
@@ -22,6 +28,7 @@ const HlsBackgroundVideo = ({
   poster,
   onPlaying,
   soundToggle = false,
+  controls = false,
 }: {
   src: string;
   className?: string;
@@ -30,6 +37,7 @@ const HlsBackgroundVideo = ({
   // so an overlaying poster can fade away without exposing a black gap.
   onPlaying?: () => void;
   soundToggle?: boolean;
+  controls?: boolean;
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
@@ -148,9 +156,12 @@ const HlsBackgroundVideo = ({
         autoPlay
         playsInline
         poster={poster}
-        aria-hidden
+        controls={controls}
+        // When the native controls are on the video is interactive, so it
+        // shouldn't be hidden from assistive tech; otherwise it's decorative.
+        aria-hidden={controls ? undefined : true}
       />
-      {soundToggle && <SoundCursorOverlay muted={muted} onClick={toggleMute} />}
+      {soundToggle && !controls && <SoundCursorOverlay muted={muted} onClick={toggleMute} />}
     </>
   );
 };

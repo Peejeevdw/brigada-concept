@@ -299,6 +299,7 @@ function CaseVideo({
       <HlsBackgroundVideo
         src={src}
         className={className}
+        controls={controls}
         onPlaying={onPlaying}
         soundToggle={soundToggle}
       />

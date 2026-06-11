@@ -109,7 +109,7 @@ function caseMediaFields(notes: MediaNotes = {}): FieldDefinition[] {
             type: 'boolean',
             initialValue: false,
             description:
-              'Off (default): plays as a silent, looping background clip with no chrome, like the other case videos. On: keeps autoplay + muted but shows the Vimeo controls, so visitors can pause, scrub and unmute. Only applies to Vimeo videos.',
+              'Off (default): plays as a silent, looping background clip with no chrome, like the other case videos. On: keeps autoplay + muted but shows the player controls, so visitors can pause, scrub and unmute. Works for both Vimeo and Bunny HLS videos.',
             hidden: ({parent}) => parent?.kind !== 'video',
           }),
         ]),
