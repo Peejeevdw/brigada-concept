@@ -222,20 +222,25 @@ const PressRelease = ({ data }: { data: PressReleaseData }) => {
   const sentaCard = data?.sidebarQuote?.text ? (
     <div className="rounded-[6px] bg-white p-[clamp(20px,2vw,36px)]">
       <div className="flex flex-col-reverse gap-[clamp(20px,2.5vw,40px)] sm:flex-row sm:items-start">
-        <div className="w-full sm:w-[46%]">
-          {/* Mobile: cropped to 4:5 (less tall). Desktop (md+): natural ratio. */}
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2px] md:aspect-auto">
+        {/* lg+: the column hugs the (fluidly-shrinking) photo instead of
+            reserving a fixed 46%, so the gap to the text stays constant. */}
+        <div className="w-full sm:w-[46%] lg:w-auto lg:shrink-0">
+          {/* Small/medium screens: cropped to 4:5 (less tall, keeps the photo
+              compact). Large screens (lg+): natural portrait ratio, with a
+              fluid height that scales the photo down with the viewport between
+              ~1000px and ~1728px (clamped flat outside that range). */}
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2px] lg:aspect-auto lg:w-auto">
             {/* Served from the Sanity CDN (cdn.sanity.io) so it isn't gated by
                 brigada.be's Cloudflare Access; falls back to the public file. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imgSrc(data?.sidebarImage ?? null, 1200) ?? "/Senta_Slingerland.jpg"}
               alt={data?.sidebarImage?.alt ?? "Senta Slingerland, Chief Strategy Officer of Brigada"}
-              className="absolute inset-0 h-full w-full object-cover object-[center_22%] md:static md:h-auto"
+              className="absolute inset-0 h-full w-full object-cover object-[center_22%] lg:static lg:h-[clamp(360px,36vw,620px)] lg:w-auto"
             />
           </div>
         </div>
-        <blockquote className="m-0 w-full sm:w-[44%]">
+        <blockquote className="m-0 w-full sm:w-[44%] lg:flex-1">
           <p
             className="text-[clamp(19px,1.3vw,21px)] leading-[1.5] text-brigada-black"
             // Hanging punctuation: pull the opening quote into the margin so the
