@@ -64,6 +64,30 @@ function caseMediaFields(notes: MediaNotes = {}): FieldDefinition[] {
         }),
       ],
     }),
+    defineField({
+      name: 'mobileImage',
+      title: 'Mobile image (optional)',
+      type: 'image',
+      options: {hotspot: true},
+      description: withNote(
+        'Optional mobile-specific image — used on small screens instead of the image above. Falls back to the image above when blank.',
+        notes.mobilePosterNote,
+      ),
+      hidden: ({parent}) => parent?.kind !== 'image',
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Alt text',
+          type: 'string',
+          validation: (Rule) =>
+            Rule.custom((value, ctx) => {
+              const parent = ctx.parent as {asset?: unknown} | undefined
+              if (!parent?.asset) return true
+              return value ? true : 'Add alt text whenever an image is set.'
+            }),
+        }),
+      ],
+    }),
 
     // ---- Video source (Vimeo OR Bunny — pick one) ----
     defineField({
@@ -158,8 +182,8 @@ export const caseHeroMedia = defineType({
     posterNote: 'Ratio 16:9 — 3840 × 2160 px.',
     mobileSourceNote: 'Use a 4:5 (portrait) video.',
     mobilePosterNote: 'Ratio 4:5 — 2000 × 2500 px.',
-    // The case hero always plays as a silent background loop — no toggle.
-    hideControlsToggle: true,
+    // The hero defaults to a silent background loop, but the controls toggle is
+    // available so an editor can opt into a playable hero (Vimeo or Bunny HLS).
   }),
   preview: caseMediaPreview,
 })

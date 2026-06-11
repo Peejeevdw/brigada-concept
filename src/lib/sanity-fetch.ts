@@ -199,8 +199,8 @@ const WORK_FULL_PROJECTION = `{
     }
   },
   // New case-layout fields with video URLs resolved (HLS wins over the upload).
-  "hero": hero{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
-  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
+  "hero": hero{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
+  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
 }`;
 
 const SERVICE_CATEGORY_PROJECTION = `{
@@ -303,18 +303,46 @@ async function vimeoMeta(id: string): Promise<VimeoMeta> {
   }
 }
 
-// Mutates every Vimeo video item in-place (hero + gallery), attaching
-// `vimeoAspect` (native ratio) and `vimeoThumb` (poster) for both the desktop
-// and the optional mobile Vimeo ID. Runs the lookups in parallel; a failed
-// lookup just leaves the item without them.
+// Read a video's native aspect ratio from its HLS master playlist — the
+// `RESOLUTION=WxH` tag on the stream variants. Lets Bunny/HLS gallery videos
+// render at the shape they were made in instead of being cropped to a default
+// 16:9. Cached for a day; a failed/odd playlist just leaves the item without it.
+async function hlsAspect(url: string): Promise<string | null> {
+  try {
+    const res = await globalThis.fetch(url, { next: { revalidate: 86400 } });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const matches = [...text.matchAll(/RESOLUTION=(\d+)x(\d+)/gi)];
+    if (!matches.length) return null;
+    // Highest-resolution variant (by width) — variants share the ratio, but the
+    // largest is the safest read.
+    const best = matches.reduce((b, m) => (Number(m[1]) > Number(b[1]) ? m : b));
+    const w = Number(best[1]);
+    const h = Number(best[2]);
+    return w && h ? `${w} / ${h}` : null;
+  } catch {
+    return null;
+  }
+}
+
+const isHlsUrl = (u?: string | null): u is string =>
+  typeof u === "string" && /\.m3u8(\?|#|$)/i.test(u);
+
+// Mutates every video item in-place (hero + gallery), attaching `vimeoAspect`
+// (native ratio) and, for Vimeo, `vimeoThumb` (poster) — for both the desktop
+// and the optional mobile source. Vimeo's ratio/thumb come from oEmbed; a
+// Bunny/HLS source's ratio is read from its .m3u8. Lookups run in parallel; a
+// failed lookup just leaves the item without them.
 type VimeoItem = {
   kind?: string;
   vimeoId?: string;
   vimeoAspect?: string | null;
   vimeoThumb?: string | null;
+  videoUrl?: string | null;
   mobileVimeoId?: string;
   mobileVimeoAspect?: string | null;
   mobileVimeoThumb?: string | null;
+  mobileVideoUrl?: string | null;
 };
 async function attachVimeoMeta(work: { hero?: unknown; mediaRows?: unknown } | null): Promise<void> {
   const rows = (work?.mediaRows ?? []) as { items?: VimeoItem[] }[];
@@ -323,7 +351,12 @@ async function attachVimeoMeta(work: { hero?: unknown; mediaRows?: unknown } | n
     ...rows.flatMap((row) => row?.items ?? []),
   ].filter(
     (item): item is VimeoItem =>
-      !!item && item.kind === "video" && (!!item.vimeoId || !!item.mobileVimeoId),
+      !!item &&
+      item.kind === "video" &&
+      (!!item.vimeoId ||
+        !!item.mobileVimeoId ||
+        isHlsUrl(item.videoUrl) ||
+        isHlsUrl(item.mobileVideoUrl)),
   );
   await Promise.all(
     items.map(async (item) => {
@@ -333,13 +366,21 @@ async function attachVimeoMeta(work: { hero?: unknown; mediaRows?: unknown } | n
               item.vimeoAspect = meta.aspect;
               item.vimeoThumb = meta.thumb;
             })
-          : null,
+          : isHlsUrl(item.videoUrl)
+            ? hlsAspect(item.videoUrl).then((aspect) => {
+                item.vimeoAspect = aspect;
+              })
+            : null,
         item.mobileVimeoId
           ? vimeoMeta(item.mobileVimeoId).then((meta) => {
               item.mobileVimeoAspect = meta.aspect;
               item.mobileVimeoThumb = meta.thumb;
             })
-          : null,
+          : isHlsUrl(item.mobileVideoUrl)
+            ? hlsAspect(item.mobileVideoUrl).then((aspect) => {
+                item.mobileVimeoAspect = aspect;
+              })
+            : null,
       ]);
     }),
   );
@@ -367,9 +408,9 @@ export function getWorkLayout(locale: string = DEFAULT_SANITY_LOCALE) {
       name,
       client,
       darkMode,
-      hero{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
+      hero{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
       projectInfo{sections[]{heading, body}, services},
-      mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
+      mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
     }`,
     { locale },
     ["work"],
@@ -537,7 +578,7 @@ export async function getPressRelease(slug: string) {
       publishDate,
       heroTitle,
       heroSound,
-      heroMedia{kind, image, "lqip": image.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
+      heroMedia{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
       heroImage{alt, asset->{_id, url, metadata{dimensions, lqip}}},
       body[]{
         ...,

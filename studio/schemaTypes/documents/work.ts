@@ -220,11 +220,11 @@ export const work = defineType({
     }),
   ],
   preview: {
-    select: {title: 'name', year: 'year', locale: 'locale', media: 'image'},
-    prepare({title, year, locale, media}) {
+    select: {title: 'name', client: 'client', locale: 'locale', media: 'image'},
+    prepare({title, client, locale, media}) {
       return {
         title: title || 'Untitled case',
-        subtitle: languageVersionSubtitle(locale, year ? String(year) : 'No year yet'),
+        subtitle: languageVersionSubtitle(locale, client || 'No client yet'),
         media,
       }
     },

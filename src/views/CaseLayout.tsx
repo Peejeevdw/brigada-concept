@@ -86,12 +86,11 @@ export function fromSanity(data: WorkLayoutData | null): CaseData | null {
     })
     .filter((r) => r.items.length > 0);
 
-  // Hero always plays as a silent background loop — no chrome — regardless
-  // of any legacy `showControls=true` on the doc. The Studio toggle for that
-  // is gone on hero now; this override keeps already-published data sane.
-  // Also request a large Sanity image for the hero poster so it lands sharp
-  // on retina hero-sized screens (LCP candidate).
-  const hero = toMedia(data.hero, 3840, {forceNoControls: true});
+  // Hero defaults to a silent background loop, but honours the doc's
+  // `showControls` toggle so an editor can opt into a playable hero (Vimeo or
+  // Bunny HLS). Also request a large Sanity image for the hero poster so it
+  // lands sharp on retina hero-sized screens (LCP candidate).
+  const hero = toMedia(data.hero, 3840);
 
   // Nothing meaningful filled in yet.
   if (!hero && sections.length === 0 && gallery.length === 0) return null;
@@ -114,8 +113,9 @@ const INK = "#181614";
 const PAGE_BG = "#f3f2ef";
 // Same gutters as the Brand page (full width, no centred max-width).
 const GUTTER = "px-[clamp(24px,5vw,72px)]";
-// Cancels the gutter so a row runs edge to edge — must mirror GUTTER's value.
-const BLEED = "-mx-[clamp(24px,5vw,72px)]";
+// Cancels the gallery's side padding so a fullBleed row runs edge to edge —
+// must mirror the gallery's px-3/md:px-5 (which matches the inter-row gap).
+const BLEED = "-mx-3 md:-mx-5";
 
 // Page palette. `line` is the hairline used for drawer borders/dividers; text
 // faintness elsewhere is plain currentColor opacity, so it works in both modes.
@@ -198,8 +198,10 @@ function GalleryMedia({
 
 function CaseGallery({ rows }: { rows: GalleryRow[] }) {
   const isMobile = useIsMobile();
+  // Side padding equals the inter-row/column gap (gap-3 / md:gap-5) so the
+  // margins around the gallery match the spacing between the media.
   return (
-    <div className={`flex flex-col gap-3 pb-24 md:gap-5 ${GUTTER}`}>
+    <div className="flex flex-col gap-3 pb-24 md:gap-5 px-3 md:px-5">
       {rows.map((row, i) => {
         const { fullBleed } = row;
         // Resolve each item to its mobile variant (if any) before deciding the

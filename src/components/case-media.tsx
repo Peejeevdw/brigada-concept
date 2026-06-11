@@ -39,6 +39,8 @@ export type SanityMedia = {
   kind?: string | null;
   image?: unknown;
   lqip?: string | null; // image's LQIP blur-up
+  mobileImage?: unknown; // optional mobile-only image (kind === "image")
+  mobileImageLqip?: string | null; // mobile image's LQIP blur-up
   vimeoAspect?: string | null; // "w / h" resolved server-side from Vimeo oEmbed
   vimeoId?: string | null;
   vimeoThumb?: string | null; // Vimeo oEmbed thumbnail, reused as a video poster
@@ -126,7 +128,18 @@ export function toMedia(
     // pick webp/avif via auto:format, so we don't ship 2000px images into a
     // small gallery cell.
     const url = urlFor(sm.image)?.width(width).fit("max").quality(72).auto("format").url();
-    if (url) return { type: "image", src: url, lqip: sm.lqip ?? undefined };
+    if (url) {
+      // Optional mobile-only image — swapped in by resolveMedia under the
+      // breakpoint. Falls back to the desktop image when blank.
+      const hasMobile = !!(sm.mobileImage as { asset?: unknown } | undefined)?.asset;
+      const mobileSrc = hasMobile
+        ? urlFor(sm.mobileImage)?.width(width).fit("max").quality(72).auto("format").url()
+        : undefined;
+      const mobile = mobileSrc
+        ? { src: mobileSrc, lqip: sm.mobileImageLqip ?? undefined }
+        : undefined;
+      return { type: "image", src: url, lqip: sm.lqip ?? undefined, mobile };
+    }
   }
   return null;
 }

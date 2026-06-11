@@ -148,11 +148,13 @@ const bodyComponents: PortableTextComponents = {
 
 const PressRelease = ({ data }: { data: PressReleaseData }) => {
   // Hero — prefer the video/image media (same pipeline as the case hero);
-  // fall back to the legacy still image. Hero always plays as a silent loop.
+  // fall back to the legacy still image. Defaults to a silent loop, but honours
+  // the `showControls` toggle. The custom sound button only applies when there
+  // are no native controls (which already carry volume), so the two don't clash.
+  const heroControls = !!data?.heroMedia?.showControls;
   const heroMedia = data?.heroMedia
     ? toMedia(data.heroMedia, 3840, {
-        forceNoControls: true,
-        soundToggle: !!data.heroSound,
+        soundToggle: !!data.heroSound && !heroControls,
       })
     : null;
   const heroSrc = imgSrc(data?.heroImage ?? null, 2400);
