@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import RevealText from "@/components/RevealText";
@@ -21,8 +22,46 @@ const fade = (delay: number) => ({
   transition: { duration: 0.6, ease: EASE_OUT, delay },
 });
 
+// "WAVE" goo reveal for the Brigada wordmark — same effect as the /concept hero:
+// the feGaussianBlur drives from blurred (GOO_BLUR_START) to sharp (0) while the
+// feColorMatrix thresholds the blurred alpha so the strokes coalesce out of
+// gooey blobs. Driven by a manual rAF (an animated motion value doesn't progress
+// reliably under Next 16 + React 19). Starts as the Brigada block fades in.
+const GOO_BLUR_START = 46;
+const GOO_ALPHA_MUL = 14;
+const GOO_ALPHA_OFF = -5;
+const GOO_REVEAL_MS = 1550;
+const GOO_DELAY_MS = 1000; // matches the Brigada wordmark's fade(1.0) delay
+
 const AgencyPoster = ({ slug }: { slug: string }) => {
   const transitionTo = usePageTransition();
+
+  // Drive the Brigada goo reveal (blur → sharp) once, cubic-out, matching the
+  // homepage feel.
+  useEffect(() => {
+    const feBlur = document.querySelector<SVGFEGaussianBlurElement>(
+      "#poster-goo feGaussianBlur"
+    );
+    if (!feBlur) return;
+    feBlur.setAttribute("stdDeviation", String(GOO_BLUR_START));
+    let raf = 0;
+    let startTs = 0;
+    const step = (ts: number) => {
+      if (!startTs) startTs = ts;
+      const k = Math.min(1, (ts - startTs) / GOO_REVEAL_MS);
+      const eased = 1 - Math.pow(1 - k, 3);
+      feBlur.setAttribute("stdDeviation", String(GOO_BLUR_START * (1 - eased)));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    const timer = window.setTimeout(() => {
+      raf = requestAnimationFrame(step);
+    }, GOO_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const agency = getOldAgency(slug);
   if (!agency) return null;
   const { Logo, name, body, brioPaletteId, cta } = agency;
@@ -44,6 +83,22 @@ const AgencyPoster = ({ slug }: { slug: string }) => {
           className="h-full w-full"
         />
       </div>
+
+      {/* goo filter def for the Brigada "WAVE" reveal (same as /concept). */}
+      <svg aria-hidden width="0" height="0" className="absolute">
+        <defs>
+          <filter id="poster-goo" x="-10%" y="-60%" width="120%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation={GOO_BLUR_START} result="blur" />
+            <feColorMatrix
+              in="blur"
+              mode="matrix"
+              values={`1 0 0 0 0  0 1 0 0 0  1 0 1 0 0  0 0 0 ${GOO_ALPHA_MUL} ${GOO_ALPHA_OFF}`}
+              result="goo"
+            />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+          </filter>
+        </defs>
+      </svg>
 
       {/* Today (top) · "is now" (centre) · Brigada (bottom) share one vertical
           centre axis; copy pins left, CTA pins right, both at mid-height. */}
@@ -94,9 +149,12 @@ const AgencyPoster = ({ slug }: { slug: string }) => {
           )}
         </div>
 
-        {/* Brigada — 20px off the bottom, centred. */}
+        {/* Brigada — 20px off the bottom, centred. The wrapper carries the goo
+            "WAVE" reveal filter (blur → sharp), like the /concept hero. */}
         <motion.div {...fade(1.0)} className="shrink-0">
-          <BrigadaWordmark className="block h-auto w-[clamp(300px,42vw,720px)]" />
+          <div className="will-change-[filter]" style={{ filter: "url(#poster-goo)" }}>
+            <BrigadaWordmark className="block h-auto w-[clamp(300px,42vw,720px)]" />
+          </div>
         </motion.div>
       </div>
     </main>
