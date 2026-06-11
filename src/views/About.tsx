@@ -10,6 +10,7 @@ import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
 import CareersCarousel, { type CarouselSlide } from "@/components/CareersCarousel";
 import { usePageTransition } from "@/components/PageTransition";
+import { onPreloaderReveal } from "@/lib/preloader-gate";
 import { BRIGADA_BLACK } from "@/lib/colors";
 
 export interface AboutData {
@@ -142,6 +143,8 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
   // niet ontregeld raken.
   const heroRef = useRef<HTMLElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const introRef = useRef<HTMLElement>(null);
 
   const transitionTo = usePageTransition();
 
@@ -193,6 +196,84 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
       window.removeEventListener("resize", updateProgress);
     };
   }, [scrollP]);
+
+  // Once the hero reel finishes its first play, gently scroll to the intro —
+  // but only if the visitor hasn't taken over scrolling themselves. The video
+  // keeps `loop`, so we read the first completion as currentTime jumping
+  // backward (end → 0). A real user scroll (wheel / touch / nav key / any
+  // scrollY) cancels it; the programmatic Lenis scroll doesn't.
+  //
+  // On a direct load the reel autoplays *behind* the intro Preloader, so we'd
+  // both miss its opening seconds and risk auto-scrolling under the overlay.
+  // We therefore reset the reel to frame 0 the moment the curtain lifts
+  // (onPreloaderReveal) and only arm the first-play detection from then.
+  // Skipped under reduced motion.
+  useEffect(() => {
+    const video = videoRef.current;
+    const intro = introRef.current;
+    if (!video || !intro) return;
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduce) return;
+
+    let userScrolled = window.scrollY > 4;
+    let armed = false;
+    let done = false;
+    let lastTime = 0;
+
+    const markScrolled = () => {
+      userScrolled = true;
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " ", "Spacebar"].includes(
+          e.key
+        )
+      )
+        userScrolled = true;
+    };
+    window.addEventListener("wheel", markScrolled, { passive: true });
+    window.addEventListener("touchmove", markScrolled, { passive: true });
+    window.addEventListener("keydown", onKey);
+
+    // Soft ease-in-out so the descent starts and lands gently.
+    const easeInOutCubic = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const onTime = () => {
+      if (!armed) return;
+      if (!done && lastTime > 0.5 && video.currentTime < lastTime - 0.5) {
+        done = true;
+        if (!userScrolled) {
+          const lenis = lenisRef.current;
+          if (lenis) lenis.scrollTo(intro, { duration: 1.2, easing: easeInOutCubic });
+          else intro.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+      lastTime = video.currentTime;
+    };
+    video.addEventListener("timeupdate", onTime);
+
+    const off = onPreloaderReveal(() => {
+      try {
+        video.currentTime = 0;
+      } catch {
+        /* metadata not ready yet — autoplay will start near 0 anyway */
+      }
+      video.play?.().catch(() => {});
+      lastTime = 0;
+      done = false;
+      armed = true;
+    });
+
+    return () => {
+      window.removeEventListener("wheel", markScrolled);
+      window.removeEventListener("touchmove", markScrolled);
+      window.removeEventListener("keydown", onKey);
+      video.removeEventListener("timeupdate", onTime);
+      off();
+    };
+  }, []);
   return (
     <motion.main className="min-h-screen w-full" style={{ fontFamily: SANS, backgroundColor: bgColor }}>
       <SiteNav textClassName="text-white" />
@@ -203,6 +284,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
         {/* Hero — baseline reel (looping). */}
         <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
           <video
+            ref={videoRef}
             className="relative z-10 aspect-[560/240] w-[min(780px,60vw)] object-contain mix-blend-screen"
             src={`/Website-Baseline-Cropped-XL.mp4`}
             autoPlay
@@ -216,7 +298,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
 
         {/* Intro — words fill from #424242 to #fff on scroll */}
         {narrativeText && (
-          <section className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
+          <section ref={introRef} className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
             <ScrollColorText
               className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em]"
               style={{ fontWeight: 400 }}
