@@ -22,6 +22,8 @@ const nextConfig = {
     return [
       { source: "/concept", destination: "/", permanent: true },
       { source: "/expertise", destination: "/services", permanent: true },
+      // /today_1 was the poster variant; it's now the canonical /today.
+      { source: "/today_1", destination: "/today", permanent: true },
     ];
   },
   async headers() {
