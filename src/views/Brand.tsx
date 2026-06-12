@@ -5,7 +5,6 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SiteNav from "@/components/site/SiteNav";
 import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
 import PillarWorkCTA from "@/components/PillarWorkCTA";
@@ -70,7 +69,6 @@ const Brand = ({ category }: PillarViewProps) => {
   const email = lead?.email ?? "";
   const leadInText = (category?.leadIn ?? "").replace("{name}", firstName);
   const brioPalette = category?.brioPaletteId ?? undefined;
-  const eyebrow = category?.eyebrow ?? "";
   const pillarName = category?.name ?? "Brand";
   const intro = category?.intro ?? "";
   const services = category?.services ?? [];
@@ -124,22 +122,12 @@ const Brand = ({ category }: PillarViewProps) => {
   }, [scrollP]);
   return (
     <motion.main className="min-h-screen w-full" style={{ fontFamily: SANS, backgroundColor: bgColor }}>
-      <SiteNav />
-
       {/* Content — full width (gutters only, no centred max-width), like /concept.
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
         {/* Intro (Figma 308:2631) */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p
-              className="text-[clamp(20px,2.5vw,36px)] uppercase leading-[0.9] tracking-[-0.02em] text-brigada-black"
-              style={{ fontWeight: 500, fontStretch: "125%" }}
-            >
-              {[eyebrow, pillarName.toLowerCase()].filter(Boolean).join(" ")}
-            </p>
-          </Reveal>
-          <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
             <h1
               className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-brigada-black"
               style={{ fontWeight: 400 }}

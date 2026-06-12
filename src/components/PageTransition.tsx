@@ -12,6 +12,7 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { registerPageTransition } from "@/lib/pageTransition";
 
 // Page transition — Osmo "Cross Fade Page Transition", default behaviour, adapted
 // for this React Router SPA (Barba.js doesn't fit React, so the *approach* is
@@ -68,6 +69,12 @@ const PageTransitionProvider = ({ children }: { children: ReactNode }) => {
     },
     [router]
   );
+
+  // Publish the crossfade trigger so persistent chrome rendered OUTSIDE the
+  // faded subtree (the service tab bar) can drive the same transition.
+  useEffect(() => {
+    registerPageTransition(transitionTo);
+  }, [transitionTo]);
 
   const clearFallback = () => {
     if (fallbackTimer.current !== null) {

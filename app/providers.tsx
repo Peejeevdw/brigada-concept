@@ -11,6 +11,7 @@ import ServicesTransitionOverlay from "@/components/ServicesTransitionOverlay";
 import SiteGridOverlay from "@/components/SiteGridOverlay";
 import ReviewComments from "@/components/review/ReviewComments";
 import PageTransitionProvider from "@/components/PageTransition";
+import PillarChrome from "@/components/site/PillarChrome";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -24,6 +25,11 @@ export function Providers({ children }: { children: ReactNode }) {
         <SiteGridOverlay />
         <ReviewComments />
         <PageTransitionProvider>{children}</PageTransitionProvider>
+        {/* Service-pillar chrome (SiteNav + tabs) — mounted OUTSIDE the crossfade
+            so the nav and tab bar stay steady while only the content beneath
+            fades between pillars. Self-gates to /brand · /marketing · /people ·
+            /product. */}
+        <PillarChrome />
         <Toaster />
         <Sonner />
       </TooltipProvider>

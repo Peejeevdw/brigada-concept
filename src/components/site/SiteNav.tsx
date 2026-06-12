@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
-import { usePageTransition } from "@/components/PageTransition";
+import { runPageTransition } from "@/lib/pageTransition";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
 import { useSiteChrome } from "@/lib/site-chrome";
 
@@ -50,6 +50,10 @@ const NavItem = ({
   alignRight,
   onSub,
   onPrefetch,
+  // When true the hover dropdown is suppressed (the label still navigates).
+  // Used on the service-pillar pages, where the tab bar already lists the
+  // Services sub-items, so the dropdown would be redundant.
+  disabled = false,
 }: {
   item: NavItemDef;
   openLabel: string | null;
@@ -58,14 +62,19 @@ const NavItem = ({
   alignRight: boolean;
   onSub: (sub: string) => void;
   onPrefetch: (key: string) => void;
+  disabled?: boolean;
 }) => (
   <div
     className="relative flex items-center px-5 -mx-5"
-    onMouseEnter={() => {
-      openMenu(item.label);
-      onPrefetch(item.label);
-    }}
-    onMouseLeave={scheduleClose}
+    onMouseEnter={
+      disabled
+        ? undefined
+        : () => {
+            openMenu(item.label);
+            onPrefetch(item.label);
+          }
+    }
+    onMouseLeave={disabled ? undefined : scheduleClose}
   >
     <span
       className="cursor-pointer text-[14px] uppercase tracking-[0.1em] opacity-90 transition-opacity hover:opacity-100"
@@ -75,7 +84,7 @@ const NavItem = ({
       {item.label}
     </span>
     <AnimatePresence>
-      {openLabel === item.label && item.items.length > 0 && (
+      {!disabled && openLabel === item.label && item.items.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -112,6 +121,7 @@ const SiteNav = ({
   homePath = "/concept",
   navTargets,
   blend = true,
+  lockedDropdowns = [],
 }: {
   textClassName?: string;
   homePath?: string;
@@ -120,10 +130,16 @@ const SiteNav = ({
   // it stays legible over any background (light/dark hero, photo, video). Set
   // false to fall back to the explicit `textClassName` colour.
   blend?: boolean;
+  // Top-level labels whose hover dropdown should NOT open (the label still
+  // navigates). Used on the service-pillar pages to suppress "Services", which
+  // the tab bar already covers.
+  lockedDropdowns?: string[];
 } = {}) => {
   const [openLabel, setOpenLabel] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const transitionTo = usePageTransition();
+  // Navigate via the page-transition store (not the React context) so SiteNav
+  // works both inside the crossfade and when mounted as persistent chrome
+  // OUTSIDE it (the steady service-pillar nav).
   const router = useRouter();
 
   // Lock body scroll while the full-screen mobile menu is open.
@@ -171,7 +187,7 @@ const SiteNav = ({
   const targets = { ...DEFAULT_NAV_TARGETS, ...sanityTargets, ...navTargets };
   const onSub = (sub: string) => {
     const to = targets[sub];
-    if (to) transitionTo(to);
+    if (to) runPageTransition(to);
     setMobileOpen(false);
   };
   // Warm the route (and its cached Sanity data) on hover, so the click commits
@@ -229,7 +245,7 @@ const SiteNav = ({
             transitions home. */}
         <button
           type="button"
-          onClick={() => transitionTo(homePath)}
+          onClick={() => runPageTransition(homePath)}
           aria-label="Brigada — home"
           className="flex items-center"
         >
@@ -248,6 +264,7 @@ const SiteNav = ({
               alignRight={false}
               onSub={onSub}
               onPrefetch={prefetch}
+              disabled={lockedDropdowns.includes(item.label)}
             />
           ))}
           {NAV_RIGHT.map((item) => (
@@ -260,6 +277,7 @@ const SiteNav = ({
               alignRight
               onSub={onSub}
               onPrefetch={prefetch}
+              disabled={lockedDropdowns.includes(item.label)}
             />
           ))}
         </div>

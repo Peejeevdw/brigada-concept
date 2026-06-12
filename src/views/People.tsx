@@ -4,7 +4,6 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useLenis } from "@/hooks/useLenis";
 import { usePageTransition } from "@/components/PageTransition";
-import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
@@ -64,16 +63,11 @@ const People = ({ category }: PillarViewProps) => {
 
   return (
     <motion.main className="min-h-screen w-full" style={{ backgroundColor: bgColor }}>
-      <SiteNav homePath="/concept" />
-
       {/* Content — full width (gutters only). Its height drives the bg tint. */}
       <div ref={contentRef} className="w-full">
         {/* Intro */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p className="font-eyebrow text-brigada-black">{pillarName}</p>
-          </Reveal>
-          <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
             <h1 className="font-display w-full text-brigada-black">{intro}</h1>
           </Reveal>
         </section>
