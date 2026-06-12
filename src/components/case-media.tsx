@@ -49,6 +49,7 @@ export type SanityMedia = {
   videoUrl?: string | null;
   poster?: unknown;
   posterLqip?: string | null; // poster image's LQIP blur-up
+  posterAspect?: number | null; // poster image's ratio — stands in for the (HLS) video's ratio
   showControls?: boolean | null;
   // Optional mobile overrides (resolved server-side like their desktop twins).
   mobileVimeoId?: string | null;
@@ -57,6 +58,7 @@ export type SanityMedia = {
   mobileVideoUrl?: string | null;
   mobilePoster?: unknown;
   mobilePosterLqip?: string | null;
+  mobilePosterAspect?: number | null; // mobile poster's ratio — stands in for the mobile video's ratio
 };
 
 export function toMedia(
@@ -99,19 +101,25 @@ export function toMedia(
         : undefined) ??
       sm.mobileVimeoThumb ??
       undefined;
+    // Ratio: prefer Vimeo's real aspect (oEmbed), else fall back to the poster
+    // image's ratio — which is the video frame, so HLS videos (no oEmbed) still
+    // size to their own shape in the gallery instead of a default box.
+    const mobileAspect =
+      sm.mobileVimeoAspect ??
+      (sm.mobilePosterAspect ? String(sm.mobilePosterAspect) : undefined);
     const mobile =
-      mobileSrc || mobilePoster || sm.mobilePosterLqip || sm.mobileVimeoAspect
+      mobileSrc || mobilePoster || sm.mobilePosterLqip || mobileAspect
         ? {
             src: mobileSrc,
             poster: mobilePoster,
             lqip: sm.mobilePosterLqip ?? undefined,
-            aspect: sm.mobileVimeoAspect ?? undefined,
+            aspect: mobileAspect,
           }
         : undefined;
     return {
       type: "video",
       src,
-      aspect: sm.vimeoAspect ?? undefined,
+      aspect: sm.vimeoAspect ?? (sm.posterAspect ? String(sm.posterAspect) : undefined),
       controls,
       soundToggle: !!opts.soundToggle,
       poster,
