@@ -6,10 +6,17 @@ import { useLenis } from "@/hooks/useLenis";
 import Reveal from "@/components/site/Reveal";
 import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
+import LogoWall from "@/components/LogoWall";
 import BrandFooter from "@/components/BrandFooter";
-import PillarWorkCTA from "@/components/PillarWorkCTA";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import type { PillarViewProps } from "./pillar-types";
+
+// Placeholder client logos for the "klanten" wall — swap these out for real
+// client SVGs in /public/assets/logos later.
+const CLIENT_LOGOS = [
+  "northwind", "lumen", "vertex", "atlas", "orbit", "pulse",
+  "nova", "forge", "halo", "quanta", "zenith", "drift",
+].map((name) => ({ src: `/assets/logos/${name}.svg`, alt: name }));
 
 // Marketing page — the Marketing service-category detail, built on the
 // shared site foundation with the same section rhythm as /product and
@@ -80,8 +87,22 @@ const Marketing = ({ category }: PillarViewProps) => {
           </Reveal>
         </section>
 
-        {/* CTA: deep-link to the work index pre-filtered on this pillar. */}
-        <PillarWorkCTA pillarSlug="marketing" pillarName={pillarName} />
+        {/* Clients — cycling logo wall (Osmo) of the brands we work with on this
+            expertise. Placeholder logos for now. */}
+        <section
+          className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`}
+          style={{ color: INK.dark }}
+        >
+          <Reveal>
+            <div className="border-t" style={{ borderColor: INK.dark }} />
+            <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+              <SectionLabel>Clients</SectionLabel>
+              <div className="w-full md:w-[49%]">
+                <LogoWall logos={CLIENT_LOGOS} />
+              </div>
+            </div>
+          </Reveal>
+        </section>
 
         {/* Marketing contact */}
         <section

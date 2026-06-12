@@ -7,7 +7,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
-import PillarWorkCTA from "@/components/PillarWorkCTA";
+import LogoWall from "@/components/LogoWall";
 import { usePageTransition } from "@/components/PageTransition";
 import type { PillarViewProps } from "./pillar-types";
 
@@ -25,6 +25,13 @@ const INK = "#2d2928";
 
 // Some discipline titles link to a detail page (keyed by title). Empty for now.
 const DISCIPLINE_LINKS: Record<string, string> = {};
+
+// Placeholder client logos for the "klanten" wall — swap these out for real
+// client SVGs in /public/assets/logos later.
+const CLIENT_LOGOS = [
+  "northwind", "lumen", "vertex", "atlas", "orbit", "pulse",
+  "nova", "forge", "halo", "quanta", "zenith", "drift",
+].map((name) => ({ src: `/assets/logos/${name}.svg`, alt: name }));
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
 // centred max-width), gutters only.
@@ -176,8 +183,19 @@ const Brand = ({ category }: PillarViewProps) => {
           </Reveal>
         </section>
 
-        {/* CTA: deep-link to the work index pre-filtered on this pillar. */}
-        <PillarWorkCTA pillarSlug="brand" pillarName={pillarName} />
+        {/* Clients — cycling logo wall (Osmo) of the brands we work with on this
+            expertise. Placeholder logos for now. */}
+        <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
+          <Reveal>
+            <div className="border-t" style={{ borderColor: INK }} />
+            <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+              <SectionLabel>Clients</SectionLabel>
+              <div className="w-full md:w-[49%]">
+                <LogoWall logos={CLIENT_LOGOS} />
+              </div>
+            </div>
+          </Reveal>
+        </section>
 
         {/* Brand contact (Figma 308:2437–2440) */}
         <section
