@@ -126,7 +126,7 @@ const Brand = ({ category }: PillarViewProps) => {
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
         {/* Intro (Figma 308:2631) */}
-        <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
+        <section className={`${GUTTER} pt-[clamp(160px,18vw,250px)]`}>
           <Reveal>
             <h1
               className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em] text-brigada-black"

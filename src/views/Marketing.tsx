@@ -45,7 +45,7 @@ const Marketing = ({ category }: PillarViewProps) => {
       {/* Content — full width (gutters only). Its height drives the bg tint. */}
       <div ref={contentRef} className="w-full">
         {/* Intro */}
-        <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
+        <section className={`${GUTTER} pt-[clamp(160px,18vw,250px)]`}>
           <Reveal>
             <h1 className="font-display w-full text-brigada-black">{intro}</h1>
           </Reveal>
