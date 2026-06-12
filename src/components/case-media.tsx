@@ -39,8 +39,10 @@ export type SanityMedia = {
   kind?: string | null;
   image?: unknown;
   lqip?: string | null; // image's LQIP blur-up
+  imageAspect?: number | null; // image's natural width/height ratio (Sanity metadata)
   mobileImage?: unknown; // optional mobile-only image (kind === "image")
   mobileImageLqip?: string | null; // mobile image's LQIP blur-up
+  mobileImageAspect?: number | null; // mobile image's natural width/height ratio
   vimeoAspect?: string | null; // "w / h" resolved server-side from Vimeo oEmbed
   vimeoId?: string | null;
   vimeoThumb?: string | null; // Vimeo oEmbed thumbnail, reused as a video poster
@@ -136,9 +138,21 @@ export function toMedia(
         ? urlFor(sm.mobileImage)?.width(width).fit("max").quality(72).auto("format").url()
         : undefined;
       const mobile = mobileSrc
-        ? { src: mobileSrc, lqip: sm.mobileImageLqip ?? undefined }
+        ? {
+            src: mobileSrc,
+            lqip: sm.mobileImageLqip ?? undefined,
+            aspect: sm.mobileImageAspect ? String(sm.mobileImageAspect) : undefined,
+          }
         : undefined;
-      return { type: "image", src: url, lqip: sm.lqip ?? undefined, mobile };
+      // `aspect` lets the gallery size the image to its own shape (justified
+      // multi-row) instead of cropping it to a fixed box.
+      return {
+        type: "image",
+        src: url,
+        aspect: sm.imageAspect ? String(sm.imageAspect) : undefined,
+        lqip: sm.lqip ?? undefined,
+        mobile,
+      };
     }
   }
   return null;

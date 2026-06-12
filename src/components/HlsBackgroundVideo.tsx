@@ -18,9 +18,9 @@ import { onPreloaderReveal } from "@/lib/preloader-gate";
  *
  * `controls`: opt-in — show the browser's native player chrome (play/pause/
  * scrub/volume/fullscreen). The clip still starts as a muted autoplay loop, so
- * a visitor can pause or unmute it. Mirrors the Vimeo `controls` path; when on,
- * the element is interactive (no `aria-hidden`) and the custom mute button is
- * skipped since the native controls already carry volume.
+ * a visitor can pause or unmute it. When `soundToggle` is also on, the custom
+ * volume cursor sits over the video while the native control bar stays clickable
+ * along the bottom (the overlay reserves that strip) — so a visitor gets both.
  */
 const HlsBackgroundVideo = ({
   src,
@@ -161,7 +161,9 @@ const HlsBackgroundVideo = ({
         // shouldn't be hidden from assistive tech; otherwise it's decorative.
         aria-hidden={controls ? undefined : true}
       />
-      {soundToggle && !controls && <SoundCursorOverlay muted={muted} onClick={toggleMute} />}
+      {soundToggle && (
+        <SoundCursorOverlay muted={muted} onClick={toggleMute} reserveControlBar={controls} />
+      )}
     </>
   );
 };

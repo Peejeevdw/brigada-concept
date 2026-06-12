@@ -28,12 +28,12 @@ export const galleryRow = defineType({
       title: 'Column split (2-item rows)',
       type: 'string',
       description:
-        'Only applies to a row with exactly two items: balance the two columns evenly or weight one wider.',
+        'Only applies to a row with exactly two items. Default keeps each visual at its own ratio (heights matched, widths follow the ratio); the weighted options crop the columns to a fixed 1/3 + 2/3 split instead.',
       options: {
         list: [
-          {title: 'Even (50 / 50)', value: 'even'},
-          {title: '1/3  +  2/3 (left narrow)', value: 'one-two'},
-          {title: '2/3  +  1/3 (right narrow)', value: 'two-one'},
+          {title: 'Natural — own ratio', value: 'even'},
+          {title: '1/3  +  2/3 (left narrow, cropped)', value: 'one-two'},
+          {title: '2/3  +  1/3 (right narrow, cropped)', value: 'two-one'},
         ],
         layout: 'radio',
       },

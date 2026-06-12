@@ -198,6 +198,20 @@ function GalleryMedia({
   );
 }
 
+// Numeric width/height ratio for a media item: parses a "w / h" string (video)
+// or a plain number string (an image's Sanity aspectRatio); falls back to 3:4
+// portrait when unknown, so a ratio-less item still lays out.
+function mediaAspect(m: Media): number {
+  const a = m.aspect;
+  if (!a) return 3 / 4;
+  if (a.includes("/")) {
+    const [w, h] = a.split("/").map((s) => parseFloat(s.trim()));
+    return w > 0 && h > 0 ? w / h : 3 / 4;
+  }
+  const n = parseFloat(a);
+  return n > 0 ? n : 3 / 4;
+}
+
 function CaseGallery({ rows }: { rows: GalleryRow[] }) {
   const isMobile = useIsMobile();
   // Side padding equals the inter-row/column gap (gap-3 / md:gap-5) so the
@@ -212,11 +226,11 @@ function CaseGallery({ rows }: { rows: GalleryRow[] }) {
         const bleed = fullBleed ? BLEED : "";
         if (items.length === 1) {
           const m = items[0];
-          // A solo video shows at its own ratio (full available width); images
-          // and ratio-less videos keep the 16:9 frame.
+          // A solo visual (image or video) shows at its own ratio across the full
+          // width; only a ratio-less item falls back to the 16:9 frame.
           return (
             <div key={i} className={bleed}>
-              {m.type === "video" && m.aspect ? (
+              {m.aspect ? (
                 <GalleryMedia media={m} aspectRatio={m.aspect} />
               ) : (
                 <GalleryMedia media={m} aspectClass="aspect-[16/9]" />
@@ -241,12 +255,24 @@ function CaseGallery({ rows }: { rows: GalleryRow[] }) {
             </div>
           );
         }
-        const cols = items.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3";
+        // Otherwise (even 2-up or 3-up): a justified row — every visual keeps its
+        // own ratio, all share one height, and the column widths scale with each
+        // ratio (flex-grow ∝ aspect, flex-basis 0 → equal heights). On mobile the
+        // row stacks and each visual keeps its own ratio at full width.
         return (
-          <div key={i} className={`grid grid-cols-1 gap-3 ${cols} md:gap-5 ${bleed}`}>
-            {items.map((m, j) => (
-              <GalleryMedia key={j} media={m} aspectClass="aspect-[3/4]" />
-            ))}
+          <div key={i} className={`flex flex-col gap-3 md:flex-row md:items-stretch md:gap-5 ${bleed}`}>
+            {items.map((m, j) => {
+              const ar = mediaAspect(m);
+              return (
+                <div
+                  key={j}
+                  className="min-w-0 md:basis-0 md:[flex-grow:var(--ar)]"
+                  style={{ "--ar": ar } as CSSProperties}
+                >
+                  <GalleryMedia media={m} aspectRatio={String(ar)} />
+                </div>
+              );
+            })}
           </div>
         );
       })}
@@ -563,6 +589,21 @@ export default function CaseLayout({
   mock?: CaseData;
 }) {
   const [infoOpen, setInfoOpen] = useState(false);
+  const isMobile = useIsMobile();
+  // Case hero with native controls (a playable, autoplay hero): on desktop keep
+  // the native control bar (play/pause/scrub) AND add the custom volume cursor on
+  // top (the same control as the press page) — the overlay reserves the bottom
+  // strip so the native bar stays clickable. On mobile the custom cursor is
+  // dropped; the native controls there already carry volume, so the two never
+  // clash. A silent background hero (showControls off) is untouched. Built
+  // reactively because the sound-cursor only applies on desktop; falls back to
+  // the mock hero when there's no Sanity doc.
+  const heroMedia = useMemo(() => {
+    const raw = data?.hero;
+    if (!raw) return null;
+    const soundCursor = !!raw.showControls && !isMobile;
+    return toMedia(raw, 3840, soundCursor ? { soundToggle: true } : {});
+  }, [data?.hero, isMobile]);
   // Related cases → slider slides. Memoised so toggling the drawer doesn't
   // hand CascadingSlider a new array and force it to re-init.
   const relatedSlides = useMemo<CascadingSlide[]>(
@@ -593,6 +634,9 @@ export default function CaseLayout({
   const c = fromSanity(data) ?? (mockFallback ? mock ?? null : null);
   if (!c) return null;
 
+  // Prefer the viewport-aware hero (real case); fall back to the mock hero.
+  const renderHero = heroMedia ?? c.hero;
+
   const theme = data?.darkMode ? THEME.dark : THEME.light;
   // TEST: the related-cases section uses the *opposite* theme so it reads as a
   // distinct band off the case (dark under a light case, light under a dark one).
@@ -615,7 +659,7 @@ export default function CaseLayout({
         shouldScaleBackground={false}
       >
         <SiteNav textClassName={data?.darkMode ? "text-white" : "text-brigada-black"} />
-        {c.hero && <HeroMedia media={c.hero} />}
+        {renderHero && <HeroMedia media={renderHero} />}
         <CaseTitleBar title={c.title} client={c.client} />
         <CaseInfoTabs info={c.projectInfo} theme={theme} />
         {c.gallery.length > 0 && <CaseGallery rows={c.gallery} />}

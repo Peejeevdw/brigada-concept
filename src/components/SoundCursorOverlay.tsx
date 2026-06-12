@@ -42,9 +42,13 @@ const SpeakerIcon = ({ muted, size = 15 }: { muted: boolean; size?: number }) =>
 const SoundCursorOverlay = ({
   muted,
   onClick,
+  // When the video also shows its native control bar (play/pause/scrub), reserve
+  // the bottom strip so those controls stay clickable underneath this overlay.
+  reserveControlBar = false,
 }: {
   muted: boolean;
   onClick: () => void;
+  reserveControlBar?: boolean;
 }) => {
   const pillRef = useRef<HTMLSpanElement>(null);
   const [hover, setHover] = useState(false);
@@ -71,7 +75,9 @@ const SoundCursorOverlay = ({
       onMouseLeave={() => setHover(false)}
       aria-label={muted ? "Play sound" : "Stop sound"}
       aria-pressed={!muted}
-      className="absolute inset-0 block h-full w-full bg-transparent md:cursor-none"
+      className={`absolute left-0 right-0 top-0 block bg-transparent md:cursor-none ${
+        reserveControlBar ? "bottom-16" : "bottom-0"
+      }`}
     >
       {/* Desktop: labelled pill following the mouse. */}
       <span
