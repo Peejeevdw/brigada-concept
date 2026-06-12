@@ -22,6 +22,23 @@ export const blockContent = defineType({
           {title: 'Bold', value: 'strong'},
           {title: 'Italic', value: 'em'},
         ],
+        annotations: [
+          {
+            name: 'link',
+            type: 'object',
+            title: 'Link',
+            fields: [
+              {
+                name: 'href',
+                type: 'url',
+                title: 'URL',
+                description: 'Externe link, of mailto:adres / tel:nummer.',
+                validation: (Rule) =>
+                  Rule.uri({scheme: ['http', 'https', 'mailto', 'tel']}),
+              },
+            ],
+          },
+        ],
       },
     }),
     defineArrayMember({

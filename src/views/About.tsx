@@ -322,7 +322,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
                   <SectionLabel>{section.label ?? ""}</SectionLabel>
                   <div
                     className="w-full text-[clamp(15px,1.25vw,18px)] md:w-[49%] [&_p+p]:mt-[clamp(20px,2vw,32px)]"
-                    style={{ lineHeight: "40px" }}
+                    style={{ lineHeight: 1.6 }}
                   >
                     {section.body && <PortableText value={section.body} />}
                   </div>
