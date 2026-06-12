@@ -200,7 +200,7 @@ const WORK_FULL_PROJECTION = `{
   },
   // New case-layout fields with video URLs resolved (HLS wins over the upload).
   "hero": hero{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
-  "mediaRows": mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
+  "mediaRows": mediaRows[]{fullBleed, split, items[]{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
 }`;
 
 const SERVICE_CATEGORY_PROJECTION = `{
@@ -410,7 +410,7 @@ export function getWorkLayout(locale: string = DEFAULT_SANITY_LOCALE) {
       darkMode,
       hero{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip},
       projectInfo{sections[]{heading, body}, services},
-      mediaRows[]{fullBleed, items[]{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
+      mediaRows[]{fullBleed, split, items[]{kind, image, "lqip": image.asset->metadata.lqip, mobileImage, "mobileImageLqip": mobileImage.asset->metadata.lqip, vimeoId, showControls, "videoUrl": coalesce(hlsUrl, file.asset->url), poster, "posterLqip": poster.asset->metadata.lqip, mobileVimeoId, "mobileVideoUrl": coalesce(mobileHlsUrl, mobileFile.asset->url), mobilePoster, "mobilePosterLqip": mobilePoster.asset->metadata.lqip}}
     }`,
     { locale },
     ["work"],

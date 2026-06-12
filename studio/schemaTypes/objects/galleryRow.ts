@@ -24,6 +24,23 @@ export const galleryRow = defineType({
           .error('A row holds at most three items.'),
     }),
     defineField({
+      name: 'split',
+      title: 'Column split (2-item rows)',
+      type: 'string',
+      description:
+        'Only applies to a row with exactly two items: balance the two columns evenly or weight one wider.',
+      options: {
+        list: [
+          {title: 'Even (50 / 50)', value: 'even'},
+          {title: '1/3  +  2/3 (left narrow)', value: 'one-two'},
+          {title: '2/3  +  1/3 (right narrow)', value: 'two-one'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'even',
+      hidden: ({parent}) => (Array.isArray(parent?.items) ? parent.items.length : 0) !== 2,
+    }),
+    defineField({
       name: 'fullBleed',
       title: 'Full-bleed (edge to edge)',
       type: 'boolean',
@@ -32,10 +49,12 @@ export const galleryRow = defineType({
     }),
   ],
   preview: {
-    select: {items: 'items', fullBleed: 'fullBleed'},
-    prepare({items, fullBleed}) {
+    select: {items: 'items', fullBleed: 'fullBleed', split: 'split'},
+    prepare({items, fullBleed, split}) {
       const n = Array.isArray(items) ? items.length : 0
-      const layout = n === 1 ? 'Full width' : n === 2 ? '2 per row' : n === 3 ? '3 per row' : 'Empty'
+      let layout = n === 1 ? 'Full width' : n === 2 ? '2 per row' : n === 3 ? '3 per row' : 'Empty'
+      if (n === 2 && split === 'one-two') layout = '1/3 + 2/3'
+      else if (n === 2 && split === 'two-one') layout = '2/3 + 1/3'
       return {
         title: `Row — ${n} item${n === 1 ? '' : 's'}`,
         subtitle: fullBleed ? `${layout} · edge to edge` : layout,

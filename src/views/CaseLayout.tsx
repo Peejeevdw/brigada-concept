@@ -38,7 +38,10 @@ import {
 // Normalised shape the layout renders. Both Sanity data and the mock map onto
 // this, so the components below stay source-agnostic.
 // ---------------------------------------------------------------------------
-type GalleryRow = { items: Media[]; fullBleed: boolean }; // 1–3 visuals, optionally edge to edge
+// `split` only matters for 2-item rows: "even" (50/50), "one-two" (1/3 + 2/3)
+// or "two-one" (2/3 + 1/3).
+type RowSplit = "even" | "one-two" | "two-one";
+type GalleryRow = { items: Media[]; fullBleed: boolean; split?: RowSplit }; // 1–3 visuals, optionally edge to edge
 type Section = { id: string; title: string; body: string[] };
 type ProjectInfo = { sections: Section[]; services: string[] };
 export type CaseData = {
@@ -61,7 +64,7 @@ export type WorkLayoutData = {
     sections?: ({ heading?: string | null; body?: string | null } | null)[] | null;
     services?: (string | null)[] | null;
   } | null;
-  mediaRows?: ({ items?: (SanityMedia | null)[] | null; fullBleed?: boolean | null } | null)[] | null;
+  mediaRows?: ({ items?: (SanityMedia | null)[] | null; fullBleed?: boolean | null; split?: string | null } | null)[] | null;
   // Other cases with a thumbnail, for the "Related cases" slider (WORK_LIST_PROJECTION).
   relatedCases?: ({ _id?: string; name?: string | null; slug?: string | null; image?: unknown; lqip?: string | null; thumbVimeoId?: string | null; thumbVideoUrl?: string | null } | null)[] | null;
 };
@@ -84,14 +87,19 @@ export function fromSanity(data: WorkLayoutData | null): CaseData | null {
     .map((row) => {
       const items = row?.items ?? [];
       const fullBleed = !!row?.fullBleed;
+      const split: RowSplit =
+        items.length === 2 && (row?.split === "one-two" || row?.split === "two-one")
+          ? row.split
+          : "even";
       // Request a width that matches how wide the cell actually renders; bump it
-      // for full-bleed rows since they span the whole viewport.
-      const base = items.length >= 3 ? 760 : items.length === 2 ? 1040 : 1600;
+      // for full-bleed rows since they span the whole viewport. A split row has a
+      // 2/3-wide cell, so ask for more pixels than the even two-up.
+      const base = items.length >= 3 ? 760 : items.length === 2 ? (split === "even" ? 1040 : 1400) : 1600;
       const width = fullBleed ? Math.max(base, 2400) : base;
       const media = items
         .map((m) => toMedia(m, width))
         .filter((m): m is Media => m !== null);
-      return { items: media, fullBleed };
+      return { items: media, fullBleed, split };
     })
     .filter((r) => r.items.length > 0);
 
@@ -213,6 +221,23 @@ function CaseGallery({ rows }: { rows: GalleryRow[] }) {
               ) : (
                 <GalleryMedia media={m} aspectClass="aspect-[16/9]" />
               )}
+            </div>
+          );
+        }
+        // A 2-item row can be weighted 1/3 + 2/3 (or the reverse). On desktop the
+        // row gets a fixed aspect and the cells stretch to fill it (so the narrow
+        // and wide cell share one height); on mobile both splits collapse to the
+        // same stacked column as an even row.
+        if (items.length === 2 && (row.split === "one-two" || row.split === "two-one")) {
+          const colClass =
+            row.split === "one-two"
+              ? "md:[grid-template-columns:1fr_2fr]"
+              : "md:[grid-template-columns:2fr_1fr]";
+          return (
+            <div key={i} className={`grid grid-cols-1 gap-3 md:gap-5 md:aspect-[3/2] ${colClass} ${bleed}`}>
+              {items.map((m, j) => (
+                <GalleryMedia key={j} media={m} aspectClass="aspect-[3/4] md:aspect-auto md:h-full" />
+              ))}
             </div>
           );
         }
@@ -396,7 +421,7 @@ function CaseInfoTabs({ info, theme }: { info: ProjectInfo; theme: Theme }) {
             className="pt-8 focus-visible:outline-none"
           >
             <div
-              className="flex max-w-[68ch] flex-col gap-4 text-[clamp(14px,1.1vw,16px)] leading-[1.6]"
+              className="flex max-w-[68ch] flex-col gap-4 text-[clamp(14px,1.1vw,16px)] leading-[1.6] md:text-[18px] md:leading-[2.1]"
               style={{ fontFamily: SANS }}
             >
               {s.body.map((p, i) => (
