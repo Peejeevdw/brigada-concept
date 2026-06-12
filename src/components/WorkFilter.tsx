@@ -258,7 +258,6 @@ const WorkFilter = ({
               </div>
               <div className="work-card__meta">
                 <h3 className="work-card__title">{it.client}</h3>
-                <p className="work-card__tags">{it.tags.join(", ")}</p>
               </div>
             </a>
           </div>
