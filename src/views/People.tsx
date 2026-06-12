@@ -22,10 +22,11 @@ const peopleCase4 = "/assets/people-case-4.png";
 // foundation with the same section rhythm as /brand: intro → services →
 // contact → orbit → parallax footer. Content from src/data/pillars.ts.
 
-// Some services link to a detail page (keyed by title).
-const SERVICE_LINKS: Record<string, string> = {
-  "Employer branding": "/employer-branding",
-};
+// Some services link to a detail page (keyed by title). Employer branding's
+// link is parked for now — its page is drafted (route taken offline). To bring
+// it back, re-add "Employer branding": "/employer-branding" here and restore
+// app/employer-branding/page.tsx.
+const SERVICE_LINKS: Record<string, string> = {};
 
 // People case placeholders (swap for real cases later — these are visual
 // stand-ins, not editorial copy).
