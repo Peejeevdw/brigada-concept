@@ -260,7 +260,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
         {/* Hero — baseline reel (looping). */}
-        <section ref={heroRef} className="relative flex h-[100svh] max-md:h-[30svh] max-md:pt-[72px] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
+        <section ref={heroRef} className="relative flex h-[100svh] max-md:h-[48svh] max-md:pt-[72px] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
           <video
             ref={videoRef}
             className="relative z-10 aspect-[560/240] w-[min(780px,60vw)] object-contain mix-blend-screen"
