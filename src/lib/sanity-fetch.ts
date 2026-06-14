@@ -11,6 +11,7 @@ import {
   SANITY_VIEWER_TOKEN,
   sanityClient,
 } from "./sanity";
+import type { ServiceCategoryDoc, WorkListItem } from "@/views/pillar-types";
 
 /**
  * Stega-enabled client used when Next.js Draft Mode is active. Reads the
@@ -432,7 +433,7 @@ export function getServicesIndex(locale: string = DEFAULT_SANITY_LOCALE) {
 }
 
 export function getServiceCategory(slug: string, locale: string = DEFAULT_SANITY_LOCALE) {
-  return fetch(
+  return fetch<{ category: ServiceCategoryDoc | null; cases: WorkListItem[] | null }>(
     groq`{
       "category": *[_type == "serviceCategory" && slug.current == $slug && (locale == $locale || locale == null)] | order(locale desc)[0]${SERVICE_CATEGORY_PROJECTION},
       "cases": *[_type == "work" && $slug in serviceCategories[]->slug.current && (locale == $locale || locale == null)] | order(featured desc, year desc)[0...12]${WORK_LIST_PROJECTION}

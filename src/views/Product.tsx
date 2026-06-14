@@ -9,6 +9,7 @@ import CascadingSlider from "@/components/CascadingSlider";
 import LogoWall from "@/components/LogoWall";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
+import { casesToSlides } from "./pillar-cases";
 import type { PillarViewProps } from "./pillar-types";
 
 // Placeholder client logos for the "klanten" wall — swap these out for real
@@ -24,7 +25,10 @@ const CLIENT_LOGOS = [
 // contact → orbit → parallax footer. All content read from the matching
 // `serviceCategory` doc.
 
-const Product = ({ category }: PillarViewProps) => {
+const Product = ({ category, cases }: PillarViewProps) => {
+  // Real cases linked to this category → slider slides; falls back to the
+  // built-in placeholder slides when none are linked yet.
+  const slides = casesToSlides(cases);
   const lead = category?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
@@ -132,9 +136,9 @@ const Product = ({ category }: PillarViewProps) => {
       </div>
 
       {/* Cases — Osmo "Cascading Slider" (clip-path carousel), replacing the
-          orbit section. Placeholder product cases for now. */}
+          orbit section. Real linked cases when available, else placeholders. */}
       <section className="px-[clamp(24px,5vw,72px)] pt-[clamp(24px,4vw,64px)] pb-[clamp(80px,12vw,160px)]">
-        <CascadingSlider />
+        <CascadingSlider slides={slides.length ? slides : undefined} ariaLabel="Related cases" />
       </section>
 
       {/* Parallax footer — brio "Green & Blue" (brio-03) backdrop + wordmark. */}

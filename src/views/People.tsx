@@ -10,6 +10,7 @@ import CascadingSlider from "@/components/CascadingSlider";
 import LogoWall from "@/components/LogoWall";
 import BrandFooter from "@/components/BrandFooter";
 import { GUTTER, INK } from "@/lib/siteTokens";
+import { casesToSlides } from "./pillar-cases";
 import type { CascadingSlide } from "@/components/CascadingSlider";
 import type { PillarViewProps } from "./pillar-types";
 const peopleCase1 = "/assets/people-case-1.png";
@@ -43,7 +44,10 @@ const PEOPLE_CASES: CascadingSlide[] = [
   { img: peopleCase4, title: "Placeholder" },
 ];
 
-const People = ({ category }: PillarViewProps) => {
+const People = ({ category, cases }: PillarViewProps) => {
+  // Real cases linked to this category → slider slides; falls back to the
+  // placeholder people cases when none are linked yet.
+  const slides = casesToSlides(cases);
   const lead = category?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
@@ -163,9 +167,9 @@ const People = ({ category }: PillarViewProps) => {
       </div>
 
       {/* Cases — Osmo "Cascading Slider" (clip-path carousel), same as /product.
-          Placeholder people cases for now. */}
+          Real linked cases when available, else placeholder people cases. */}
       <section className="px-[clamp(24px,5vw,72px)] pt-[clamp(24px,4vw,64px)] pb-[clamp(80px,12vw,160px)]">
-        <CascadingSlider slides={PEOPLE_CASES} />
+        <CascadingSlider slides={slides.length ? slides : PEOPLE_CASES} ariaLabel="Related cases" />
       </section>
 
       {/* Parallax footer — brio "Orange & Purple" (brio-02) backdrop + wordmark. */}

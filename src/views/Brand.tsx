@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -9,6 +9,7 @@ import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
 import LogoWall from "@/components/LogoWall";
 import { usePageTransition } from "@/components/PageTransition";
+import { casesToOrbit } from "./pillar-cases";
 import type { PillarViewProps } from "./pillar-types";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -72,7 +73,11 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
   </h2>
 );
 
-const Brand = ({ category }: PillarViewProps) => {
+const Brand = ({ category, cases }: PillarViewProps) => {
+  // Real cases linked to this category → orbit tiles. Memoised so the orbit
+  // doesn't re-init on every render. Empty (none linked) → BrandOrbit falls
+  // back to its placeholder tiles.
+  const orbitCases = useMemo(() => casesToOrbit(cases), [cases]);
   const lead = category?.lead;
   const firstName = lead?.name ? lead.name.split(" ")[0] : "";
   const fullName = lead?.name ?? "";
@@ -226,7 +231,7 @@ const Brand = ({ category }: PillarViewProps) => {
       </div>
 
       {/* Branding cases — Osmo "Orbit Tiles Infinite Loop" (full-viewport). */}
-      <BrandOrbit />
+      <BrandOrbit cases={orbitCases} />
 
       {/* Footer — parallax reveal, ported from /concept; brio "Red & Pink"
           (palette brio-06) backdrop instead of the HLS video */}

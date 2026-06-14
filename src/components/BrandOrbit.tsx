@@ -3,28 +3,27 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CustomEase } from "gsap/CustomEase";
 import { BRIGADA_BLACK } from "@/lib/colors";
+import { usePageTransition } from "@/components/PageTransition";
+import type { OrbitCase } from "@/views/pillar-cases";
 
 // Osmo Supply — "Orbit Tiles Infinite Loop". Faithful port: the data-attributes,
 // class names and animation math are unchanged from the resource. Only adaptation
 // is React lifecycle (useEffect + cleanup) instead of DOMContentLoaded, plus each
-// tile is wrapped in a click-ready element (cursor + data-case-slug) so it can
-// later link to /brand/:slug — navigation is intentionally NOT wired yet.
+// tile is a click-ready element that navigates to /work/:slug (in-app crossfade)
+// when the case carries a slug.
 
 gsap.registerPlugin(ScrollTrigger, CustomEase);
 CustomEase.create("osmo", "M0,0 C0.625,0.05 0,1 1,1");
 
-// Placeholder cases — swap for real branding cases (+ real slugs) later. A tile
-// renders a looping `video` (from /public via BASE_URL) when present, otherwise
-// an `img`. To enable navigation: wrap the media in <Link to={`/brand/${c.slug}`}>
-// (react-router) or add an onClick → navigate.
+// Placeholder tiles — shown only when no real cases are linked to /brand yet.
 // Self-hosted from /public/orbit (was an external Webflow CDN — moved local to
 // kill the cold-load stall when the orbit scrolls into view on first visit).
-const ORBIT_CASES: { slug: string; img?: string; video?: string }[] = [
-  { slug: "case-1", img: `/orbit/case-1.avif` },
-  { slug: "case-2", img: `/orbit/case-2.avif` },
-  { slug: "case-3", img: `/orbit/case-3.avif` },
-  { slug: "case-4", img: `/orbit/case-4.avif` },
-  { slug: "case-5", img: `/orbit/case-5.avif` },
+const PLACEHOLDER_CASES: OrbitCase[] = [
+  { img: `/orbit/case-1.avif` },
+  { img: `/orbit/case-2.avif` },
+  { img: `/orbit/case-3.avif` },
+  { img: `/orbit/case-4.avif` },
+  { img: `/orbit/case-5.avif` },
 ];
 
 // Tunable orbit parameters (Osmo's config, lifted to state so the dev panel can
@@ -52,9 +51,15 @@ const ORBIT_SLIDERS: { key: keyof OrbitParams; label: string; min: number; max: 
   { key: "linearRotateDuration", label: "Spin (0 = off)", min: 0, max: 40, step: 1 },
 ];
 
-const BrandOrbit = () => {
+const BrandOrbit = ({ cases }: { cases?: OrbitCase[] } = {}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [params, setParams] = useState<OrbitParams>(DEFAULT_PARAMS);
+  const transitionTo = usePageTransition();
+  // Real linked cases when available, else the placeholder tiles. Decided at
+  // first render (server data is stable), so the orbit init reads the right
+  // tile count synchronously. The orbit needs ≥2 tiles to animate (a single
+  // tile parks statically), so a lone linked case also falls back.
+  const orbitCases = cases && cases.length >= 2 ? cases : PLACEHOLDER_CASES;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -219,40 +224,51 @@ const BrandOrbit = () => {
         .demo-card { aspect-ratio: 4 / 3; width: clamp(16em, 25vw, 32em); position: relative; cursor: pointer; }
         .cover-image { object-fit: cover; border-radius: inherit; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .demo-card__label { position: absolute; left: 1em; bottom: 0.85em; z-index: 2; color: #fff; font-size: 0.9em; letter-spacing: -0.01em; pointer-events: none; }
+        @media screen and (max-width: 767px) {
+          .orbit-tiles { height: clamp(360px, 56vh, 520px); padding-bottom: clamp(32px, 8vw, 64px); }
+        }
       `}</style>
       <div data-orbit-tiles-collection className="orbit-tiles__collection">
         <div data-orbit-tiles-list className="orbit-tiles__list">
-          {ORBIT_CASES.map((c, i) => (
-            <div key={c.slug} data-orbit-tiles-item className="orbit-tiles__item">
-              {/* Click-ready: data-case-slug + cursor. To navigate later, wrap the
-                  <img> in <Link to={`/brand/${c.slug}`}> or add onClick → navigate. */}
-              <div className="demo-card" data-case-slug={c.slug} role="link" tabIndex={0}>
-                {c.video ? (
-                  <video
-                    src={c.video}
-                    className="cover-image"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    aria-hidden
-                  />
-                ) : (
+          {orbitCases.map((c, i) => {
+            // Cases with a slug navigate to /work/:slug via the in-app crossfade
+            // (a full-page <a> would remount the intro preloader). Placeholder
+            // tiles have no slug, so they stay non-interactive.
+            const go = c.slug ? () => transitionTo(`/work/${c.slug}`) : undefined;
+            return (
+              <div key={`${c.slug ?? "tile"}-${i}`} data-orbit-tiles-item className="orbit-tiles__item">
+                <div
+                  className="demo-card"
+                  data-case-slug={c.slug}
+                  role={c.slug ? "link" : undefined}
+                  tabIndex={c.slug ? 0 : undefined}
+                  onClick={go}
+                  onKeyDown={
+                    go
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            go();
+                          }
+                        }
+                      : undefined
+                  }
+                  style={c.slug ? undefined : { cursor: "default" }}
+                >
                   <img
                     src={c.img}
                     loading="eager"
                     decoding="async"
                     fetchPriority={i === 0 ? "high" : "auto"}
-                    alt=""
+                    alt={c.client ?? ""}
                     className="cover-image"
                   />
-                )}
-                {/* Client label — bottom-left under the visual */}
-                <span className="demo-card__label">Client name comes here</span>
+                  {/* Client label — bottom-left under the visual */}
+                  {c.client && <span className="demo-card__label">{c.client}</span>}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
