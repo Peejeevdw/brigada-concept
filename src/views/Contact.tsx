@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLenis } from "@/hooks/useLenis";
 import { pushFormSubmission } from "@/lib/dataLayer";
 import SiteNav from "@/components/site/SiteNav";
@@ -88,6 +88,20 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
   const [error, setError] = useState<string | null>(null);
   const [gdpr, setGdpr] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  // On success the (tall) form is swapped for a short confirmation, which
+  // collapses the page — on mobile that leaves the visitor looking at the
+  // footer instead of the message. Bring the confirmation into view once the
+  // swap has painted so the feedback lands where they're looking.
+  const formAreaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!sent) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const id = requestAnimationFrame(() =>
+      formAreaRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" }),
+    );
+    return () => cancelAnimationFrame(id);
+  }, [sent]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -252,9 +266,15 @@ const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | 
                   ))}
                 </div>
               </div>
-              <div className="order-first w-full md:order-none md:w-[36%]">
+              <div ref={formAreaRef} className="order-first w-full md:order-none md:w-[36%]">
                 {sent ? (
-                  <p className="text-[clamp(18px,1.6vw,24px)] leading-[1.5]">{successMessage}</p>
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className="text-[clamp(18px,1.6vw,24px)] leading-[1.5]"
+                  >
+                    {successMessage}
+                  </p>
                 ) : (
                   <form
                     onSubmit={onSubmit}
