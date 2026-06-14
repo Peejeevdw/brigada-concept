@@ -229,9 +229,19 @@ const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
                         {v.title}
                       </span>
                     </SectionLabel>
-                    <p className="w-full text-[clamp(15px,1.25vw,18px)] leading-[1.6] transition-opacity group-hover:opacity-60 md:w-[49%]">
-                      {v.description}
-                    </p>
+                    <div className="w-full md:w-[49%]">
+                      <p className="text-[clamp(15px,1.25vw,18px)] leading-[1.6] transition-opacity group-hover:opacity-60">
+                        {v.description}
+                      </p>
+                      {clickable && (
+                        // Mobile-only affordance — the row is tappable but has no
+                        // hover cue on touch, so spell out the action.
+                        <span className="mt-4 inline-flex items-center gap-2 text-[clamp(15px,1.25vw,18px)] md:hidden">
+                          <span className="link-underline">Read more</span>
+                          <span aria-hidden>&rarr;</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </Reveal>
               );

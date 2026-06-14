@@ -448,6 +448,19 @@ html.lenis body { height: auto; }
 }
 .filter-btn[data-filter-status="active"] { background-color: #181614; color: #efeeec; }
 
+/* Mobile: keep the filters on a single row and let them scroll horizontally
+   when they don't fit, instead of wrapping to a second line. */
+@media screen and (max-width: 767px) {
+  .filter-buttons {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-buttons::-webkit-scrollbar { display: none; }
+  .filter-btn { flex: 0 0 auto; }
+}
+
 .filter-list { display: flex; flex-flow: wrap; width: 100%; margin: -0.6em; }
 .filter-list__item { width: 50%; padding: 0.6em 0.6em 1.75em; }
 .filter-list__item[data-filter-status="active"] {

@@ -152,7 +152,7 @@ const CareersCarousel = ({
           : []
       }
     >
-      <CarouselContent className="flex h-[clamp(440px,72vh,760px)] w-full">
+      <CarouselContent className="flex h-[clamp(440px,72vh,760px)] max-md:h-[clamp(280px,42vh,420px)] w-full">
         {SLIDES.map((img, index) => (
           <CarouselItem
             key={index}
