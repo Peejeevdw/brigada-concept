@@ -1490,14 +1490,14 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                 {thumbVideo ? (
                   <div
                     data-stacking-cards-img
-                    className="relative aspect-[1342/813] w-full overflow-hidden"
+                    className="relative aspect-[9/16] w-full overflow-hidden md:aspect-[1342/813]"
                   >
                     <MediaFill media={thumbVideo} />
                   </div>
                 ) : (
                   <img
                     data-stacking-cards-img
-                    className="block aspect-[1342/813] w-full object-cover"
+                    className="block aspect-[9/16] w-full object-cover md:aspect-[1342/813]"
                     src={img}
                     alt={`${name} — ${tags}`}
                   />
@@ -1529,8 +1529,9 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
       {SHOW_AWARDS && (
       <section className="relative z-10 w-full bg-white text-brigada-black">
         <div className="grid w-full grid-cols-1 gap-x-12 gap-y-12 px-[clamp(24px,5vw,72px)] py-[clamp(112px,20vh,280px)] md:grid-cols-2">
-          {/* Left — intro (sticky; offset below the nav + its progressive blur) */}
-          <div className="max-w-[420px] sticky self-start top-[150px]">
+          {/* Left — intro (sticky on desktop only; offset below the nav + its
+              progressive blur). On mobile it scrolls normally with the list. */}
+          <div className="max-w-[420px] self-start top-[150px] md:sticky">
             <h2
               className="text-[clamp(18px,2vw,26px)] uppercase leading-[1.1] tracking-[-0.02em]"
               style={{ fontFamily: SANS, fontStretch: "125%", fontWeight: 500 }}
