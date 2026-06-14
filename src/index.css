@@ -499,7 +499,13 @@ html.lenis body { height: auto; }
   font-size: clamp(13px, 1vw, 15px);
 }
 
-@media screen and (max-width: 767px) { .filter-list__item { width: 100%; } }
+/* Mobile: one column. Drop the 2-column gutter trick (the list's negative
+   side-margins + each item's side-padding) so a card sits flush between the
+   section gutters — equal padding left and right instead of overhanging. */
+@media screen and (max-width: 767px) {
+  .filter-list { margin-left: 0; margin-right: 0; }
+  .filter-list__item { width: 100%; padding-left: 0; padding-right: 0; }
+}
 
 
 @layer utilities {
