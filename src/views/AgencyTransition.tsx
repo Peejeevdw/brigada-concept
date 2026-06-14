@@ -9,8 +9,10 @@ import BrandFooter from "@/components/BrandFooter";
 import BrigadaWordmark from "@/components/BrigadaWordmark";
 import { BrioEffect } from "@/brio-effect";
 import { useLenis } from "@/hooks/useLenis";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { getOldAgency } from "@/data/oldAgencies";
 import { SANS, EASE_OUT } from "@/lib/siteTokens";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -82,6 +84,8 @@ const ScrollColorText = ({
 // catch-all without serialising the agency's Logo component across the
 // server/client boundary — it resolves the full record itself.
 const AgencyTransition = ({ slug }: { slug: string }) => {
+  // Match the document canvas to the page's top colour so the iOS status-bar safe area (viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor(BRIGADA_BLACK);
   // Smooth scroll + ScrollTrigger sync (shared new-style setup).
   useLenis();
 

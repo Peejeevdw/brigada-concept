@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useLenis } from "@/hooks/useLenis";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { pushFormSubmission } from "@/lib/dataLayer";
 import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
@@ -55,6 +56,8 @@ export interface ContactData {
 }
 
 const ContactV2 = ({ data, generalEmail, generalPhone }: { data?: ContactData | null; generalEmail?: string; generalPhone?: string } = {}) => {
+  // Match the document canvas to the page's white top so the iOS status-bar safe area (exposed by viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor("#FFFFFF");
   const hero = data?.hero;
   const eyebrow = hero?.eyebrow ?? "";
   const title = hero?.title ?? "";

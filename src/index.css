@@ -345,10 +345,12 @@ html.lenis body { height: auto; }
 .progressive-blur.is--open { height: var(--blur-depth, 48em); }
 /* On mobile the nav collapses to a hamburger and the tall 20em backdrop would
    blur the content just below the bar. Shrink it to roughly the nav height so
-   only the bar itself sits on a soft fade. */
+   only the bar itself sits on a soft fade. The safe-area inset extends the
+   strip up behind the iOS status bar so the frosted bar runs edge-to-edge
+   (needs viewport-fit=cover; the inset is 0 elsewhere). */
 @media (max-width: 767.98px) {
   .progressive-blur,
-  .progressive-blur.is--open { height: 6em; }
+  .progressive-blur.is--open { height: calc(6em + env(safe-area-inset-top, 0px)); }
 }
 .progressive-blur__layer { width: 100%; height: 100%; position: absolute; }
 .progressive-blur__layer.is--1 { -webkit-backdrop-filter: blur(.09375em); backdrop-filter: blur(.09375em); -webkit-mask: linear-gradient(to top, #0000 50%, #000 62.5% 75%, #0000 87.5%); mask: linear-gradient(to top, #0000 50%, #000 62.5% 75%, #0000 87.5%); }

@@ -9,6 +9,7 @@ import BrandOrbit from "@/components/BrandOrbit";
 import BrandFooter from "@/components/BrandFooter";
 import LogoWall from "@/components/LogoWall";
 import { usePageTransition } from "@/components/PageTransition";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { casesToOrbit } from "./pillar-cases";
 import type { PillarViewProps } from "./pillar-types";
 
@@ -96,6 +97,8 @@ const Brand = ({ category, cases }: PillarViewProps) => {
   // slides over. framer-motion interpolates the hex colour for us.
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollP = useMotionValue(0);
+  // Match the document canvas to the white hero top so the iOS status-bar safe area (viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor("#FFFFFF");
   const bgColor = useTransform(scrollP, [0, 1], ["#FFFFFF", "#FEECF2"]);
 
   // Smooth scroll — same Lenis setup as /concept, so the orbit + parallax footer

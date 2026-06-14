@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { draftMode } from "next/headers";
 import Script from "next/script";
 import { Providers } from "./providers";
@@ -10,6 +10,15 @@ import { getChrome } from "@/lib/sanity-fetch";
 import "@/index.css";
 
 const GTM_ID = "GTM-59KTNVKX";
+
+// viewport-fit=cover lets the page draw into the iOS safe areas so the nav's
+// progressive-blur runs behind the native status bar (see SiteNav). Resolves
+// env(safe-area-inset-*) to nonzero on notched devices; 0 everywhere else.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "Brigada",

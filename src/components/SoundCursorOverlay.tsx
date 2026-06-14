@@ -94,7 +94,7 @@ const SoundCursorOverlay = ({
       {/* Mobile/touch: visible icon button in the bottom-right corner. */}
       <span
         aria-hidden
-        className="absolute bottom-[clamp(14px,4vw,22px)] right-[clamp(14px,4vw,22px)] flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md md:hidden"
+        className="absolute bottom-[calc(clamp(14px,4vw,22px)+env(safe-area-inset-bottom,0px))] right-[clamp(14px,4vw,22px)] flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md md:hidden"
       >
         <SpeakerIcon muted={muted} size={19} />
       </span>

@@ -6,11 +6,15 @@ import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import { BrioEffect } from "@/brio-effect";
 import { GUTTER } from "@/lib/siteTokens";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
+import { BRIGADA_BLACK } from "@/lib/colors";
 
 // 404 — built on the shared site foundation (SiteNav + Reveal + Brio hero) so a
 // missing route still feels like part of the site, not a system error. No
 // in-page links: the main navigation already covers wayfinding.
 const NotFound = () => {
+  // Match the document canvas to the page's top colour so the iOS status-bar safe area (viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor(BRIGADA_BLACK);
   const pathname = usePathname();
 
   useEffect(() => {

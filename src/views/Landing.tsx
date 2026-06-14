@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useLenis } from "@/hooks/useLenis";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import BrandFooter from "@/components/BrandFooter";
@@ -38,6 +39,8 @@ export type LandingData = {
 } | null;
 
 const Landing = ({ data }: { data: LandingData }) => {
+  // Match the document canvas to the page's white top so the iOS status-bar safe area (exposed by viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor("#FFFFFF");
   const hero = data?.hero ?? null;
   const blocks = data?.body ?? [];
   const heroImageSrc = hero?.image?.asset
