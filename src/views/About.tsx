@@ -78,39 +78,13 @@ const ScrollColorText = ({
   from?: string;
   to?: string;
 }) => {
-  const ref = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const words = el.querySelectorAll<HTMLElement>("[data-word]");
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        words,
-        { color: from },
-        {
-          color: to,
-          ease: "none",
-          duration: 1,
-          stagger: 0.4,
-          scrollTrigger: {
-            trigger: el,
-            start: "top 85%",
-            end: "top 5%",
-            scrub: 1.2,
-          },
-        }
-      );
-    }, el);
-    return () => ctx.revert();
-  }, [from, to]);
-
+  // The scroll-driven word-by-word colour fill was removed — the copy now
+  // renders fully in its end colour. (`from` is kept in the signature so the
+  // call site stays unchanged.)
+  void from;
   return (
-    <h1 ref={ref} className={className} style={style}>
-      {text.split(" ").map((word, i) => (
-        <span key={i} data-word style={{ color: from }}>
-          {word}{" "}
-        </span>
-      ))}
+    <h1 className={className} style={{ ...style, color: to }}>
+      {text}
     </h1>
   );
 };
@@ -215,6 +189,10 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
     const reduce =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     if (reduce) return;
+    // On mobile the hero is shorter and the auto-descent feels like the page
+    // scrolling on its own, so skip the programmatic scroll there.
+    const isMobile =
+      window.matchMedia?.("(max-width: 767px)").matches ?? false;
 
     let userScrolled = window.scrollY > 4;
     let armed = false;
@@ -244,7 +222,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
       if (!armed) return;
       if (!done && lastTime > 0.5 && video.currentTime < lastTime - 0.5) {
         done = true;
-        if (!userScrolled) {
+        if (!userScrolled && !isMobile) {
           const lenis = lenisRef.current;
           if (lenis) lenis.scrollTo(intro, { duration: 1.2, easing: easeInOutCubic });
           else intro.scrollIntoView({ behavior: "smooth" });
@@ -282,7 +260,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
           Its height drives the white→#FEECF2 background progress. */}
       <div ref={contentRef} className="w-full">
         {/* Hero — baseline reel (looping). */}
-        <section ref={heroRef} className="relative flex h-[100svh] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
+        <section ref={heroRef} className="relative flex h-[100svh] max-md:h-[30svh] max-md:pt-[72px] w-full items-center justify-center overflow-hidden bg-brigada-black px-[6vw]">
           <video
             ref={videoRef}
             className="relative z-10 aspect-[560/240] w-[min(780px,60vw)] object-contain mix-blend-screen"
@@ -298,7 +276,7 @@ const AboutV2 = ({ data }: { data?: AboutData | null } = {}) => {
 
         {/* Intro — words fill from #424242 to #fff on scroll */}
         {narrativeText && (
-          <section ref={introRef} className={`${GUTTER} pt-[clamp(80px,10vw,140px)]`}>
+          <section ref={introRef} className={`${GUTTER} pt-[clamp(80px,10vw,140px)] max-md:pt-0`}>
             <ScrollColorText
               className="w-full text-[clamp(32px,5.56vw,80px)] leading-[1.06] tracking-[-0.01em]"
               style={{ fontWeight: 400 }}
