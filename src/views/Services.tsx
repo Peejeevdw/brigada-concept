@@ -107,7 +107,7 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
                         transitionTo(href);
                       }
                     }}
-                    className="group relative block w-full cursor-pointer overflow-hidden border-t py-[clamp(36px,4.5vw,64px)] mt-[clamp(28px,3vw,42px)] first:mt-0 text-left transition-colors duration-500 hover:text-white"
+                    className="group relative block w-full cursor-pointer overflow-hidden border-t py-[clamp(36px,4.5vw,64px)] mt-[clamp(28px,3vw,42px)] first:mt-0 text-left transition-colors duration-500 [@media(hover:hover)]:hover:text-white"
                     style={{
                       borderColor: INK.dark,
                       paddingLeft: "calc(clamp(24px,5vw,72px) + clamp(8px,1.2vw,18px))",

@@ -34,6 +34,16 @@ export function useDirectionalHover(ref: RefObject<HTMLElement>) {
   useEffect(() => {
     const container = ref.current;
     if (!container) return;
+    // Pointer affordance only — skip on touch devices. A tap there fires a
+    // synthetic mouseenter (no matching mouseleave) and leaves the `:hover`
+    // tile/text state stuck, which renders a section white-on-light (unreadable).
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      !window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    ) {
+      return;
+    }
     const type = container.getAttribute("data-type") || "all";
 
     const cleanups: Array<() => void> = [];
