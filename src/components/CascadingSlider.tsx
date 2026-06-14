@@ -253,6 +253,64 @@ const CascadingSlider = ({
     if (prevButton) prevButton.addEventListener("click", onPrev);
     if (nextButton) nextButton.addEventListener("click", onNext);
 
+    // Touch/pointer swipe — drag horizontally to advance. We only read the
+    // start/end delta (no preventDefault on move) so vertical page scroll keeps
+    // working; a horizontal-dominant drag past the threshold flips the slide and
+    // suppresses the click it would otherwise fire (tap-to-center / link nav).
+    const SWIPE_THRESHOLD = 40;
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let pointerTracking = false;
+    let didSwipe = false;
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      pointerStartX = event.clientX;
+      pointerStartY = event.clientY;
+      pointerTracking = true;
+      didSwipe = false;
+    };
+    const onPointerUp = (event: PointerEvent) => {
+      if (!pointerTracking) return;
+      pointerTracking = false;
+      const dx = event.clientX - pointerStartX;
+      const dy = event.clientY - pointerStartY;
+      if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+        didSwipe = true;
+        if (dx < 0) onNext();
+        else onPrev();
+      }
+    };
+    const onPointerCancel = () => {
+      pointerTracking = false;
+    };
+    // Capture phase: kill the click born from a swipe before it reaches the
+    // slide handlers / stretched <a>.
+    const onClickCapture = (event: MouseEvent) => {
+      if (didSwipe) {
+        event.preventDefault();
+        event.stopPropagation();
+        didSwipe = false;
+        return;
+      }
+      // Tapping a side (non-active) slide centers it instead of navigating to
+      // the case; only a tap on the already-centered slide follows its link.
+      const slideEl = (event.target as HTMLElement).closest(
+        "[data-cascading-slide]"
+      ) as HTMLElement | null;
+      if (slideEl) {
+        const idx = slideEls.indexOf(slideEl);
+        if (idx !== -1 && idx !== activeIndex) {
+          event.preventDefault();
+          event.stopPropagation();
+          goTo(idx);
+        }
+      }
+    };
+    viewport.addEventListener("pointerdown", onPointerDown);
+    viewport.addEventListener("pointerup", onPointerUp);
+    viewport.addEventListener("pointercancel", onPointerCancel);
+    viewport.addEventListener("click", onClickCapture, true);
+
     const slideHoverCleanups = slideEls.map((slide, index) => {
       const handler = () => {
         if (index !== activeIndex) goTo(index);
@@ -289,6 +347,10 @@ const CascadingSlider = ({
     return () => {
       if (prevButton) prevButton.removeEventListener("click", onPrev);
       if (nextButton) nextButton.removeEventListener("click", onNext);
+      viewport.removeEventListener("pointerdown", onPointerDown);
+      viewport.removeEventListener("pointerup", onPointerUp);
+      viewport.removeEventListener("pointercancel", onPointerCancel);
+      viewport.removeEventListener("click", onClickCapture, true);
       slideHoverCleanups.forEach((fn) => fn());
       document.removeEventListener("keydown", onKeydown);
       window.removeEventListener("resize", onResize);

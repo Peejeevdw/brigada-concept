@@ -173,21 +173,29 @@ const BrandFooter = ({
   useEffect(() => {
     const el = footerRef.current;
     if (!el) return;
-    const ctx = gsap.context(() => {
-      const inner = el.querySelector("[data-footer-parallax-inner]");
-      const dark = el.querySelector("[data-footer-parallax-dark]");
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: el,
-          start: "clamp(top bottom)",
-          end: "clamp(top top)",
-          scrub: true,
-        },
-      });
-      if (inner) tl.from(inner, { yPercent: -25, ease: "none" });
-      if (dark) tl.from(dark, { opacity: 0.5, ease: "none" }, "<");
-    }, footerRef);
-    return () => ctx.revert();
+    // Desktop-only: the scrubbed yPercent parallax judders on mobile when the
+    // footer scrolls into view because the browser URL bar collapsing changes
+    // the viewport height, forcing ScrollTrigger to recalc mid-scroll. We skip
+    // it below md; the footer simply renders in its natural (final) state.
+    const mm = gsap.matchMedia();
+    mm.add("(min-width: 768px)", () => {
+      const ctx = gsap.context(() => {
+        const inner = el.querySelector("[data-footer-parallax-inner]");
+        const dark = el.querySelector("[data-footer-parallax-dark]");
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: el,
+            start: "clamp(top bottom)",
+            end: "clamp(top top)",
+            scrub: true,
+          },
+        });
+        if (inner) tl.from(inner, { yPercent: -25, ease: "none" });
+        if (dark) tl.from(dark, { opacity: 0.5, ease: "none" }, "<");
+      }, footerRef);
+      return () => ctx.revert();
+    });
+    return () => mm.revert();
   }, []);
 
   // Optional codrops gooey-blur reveal on the wordmark (feGaussianBlur 50→0 +
@@ -256,7 +264,7 @@ const BrandFooter = ({
       <footer
         ref={footerInnerRef}
         data-footer-parallax-inner
-        className={`relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] ${dark || lightText ? "text-white" : "text-brigada-black"}`}
+        className={`relative flex min-h-screen flex-col justify-between gap-[clamp(48px,8vw,120px)] overflow-hidden px-[clamp(24px,5vw,40px)] pt-[clamp(112px,16vh,180px)] max-md:pt-[56px] ${dark || lightText ? "text-white" : "text-brigada-black"}`}
         style={{ fontFamily: SANS }}
       >
         {/* Full-bleed backdrop — the footer's background. Content above it uses
@@ -299,7 +307,7 @@ const BrandFooter = ({
               if (SOCIALS.length === 0) return <Fragment key={col.label} />;
               return (
                 <Fragment key={col.label}>
-                  <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
+                  <div className={`flex w-full flex-col gap-6 max-md:gap-2 ${colWidth}`}>
                     <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
                       {col.label}
                     </p>
@@ -323,7 +331,7 @@ const BrandFooter = ({
               );
             }
             const column = (
-              <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
+              <div className={`flex w-full flex-col gap-6 max-md:gap-2 ${colWidth}`}>
                 <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
                   {col.label}
                 </p>
@@ -386,7 +394,7 @@ const BrandFooter = ({
             if (col.label === "Contact") {
               return (
                 <Fragment key={col.label}>
-                  <div className={`flex w-full flex-col gap-6 ${colWidth}`}>
+                  <div className={`flex w-full flex-col gap-6 max-md:gap-2 ${colWidth}`}>
                     <p className="text-[clamp(12px,1vw,15px)] font-normal opacity-50">
                       Locations
                     </p>

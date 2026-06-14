@@ -68,14 +68,14 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
         {/* Intro */}
         <section className={`${GUTTER} pt-[clamp(120px,18vw,250px)]`}>
           <Reveal>
-            <p className="font-eyebrow text-brigada-black">{eyebrow}</p>
+            <p className="font-eyebrow text-brigada-black max-md:text-[16px]">{eyebrow}</p>
           </Reveal>
           <Reveal delay={0.08} className="mt-[clamp(18px,1.7vw,25px)]">
-            <h1 className="font-display w-full text-brigada-black">{title}</h1>
+            <h1 className="font-display w-full text-brigada-black max-md:text-[40px] max-md:leading-[1.05]">{title}</h1>
           </Reveal>
           {intro && (
             <Reveal delay={0.16} className="mt-[clamp(20px,2vw,32px)] max-w-[60ch]">
-              <p className="font-body text-[clamp(18px,1.5vw,22px)] leading-[1.4] text-brigada-black">
+              <p className="font-body text-[clamp(18px,1.5vw,22px)] leading-[1.4] max-md:leading-[1.6] text-brigada-black">
                 {intro}
               </p>
             </Reveal>
@@ -122,7 +122,7 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
                     <div className="relative z-10 flex flex-col gap-6 md:flex-row md:justify-between">
                       <SectionLabel>{label}</SectionLabel>
                       <div className="w-full md:w-[49%]">
-                        <p className="font-body">{p.intro ?? ""}</p>
+                        <p className="font-body max-md:leading-[1.5]">{p.intro ?? ""}</p>
                         <span className="mt-6 inline-flex items-center gap-2 text-[clamp(15px,1.25vw,18px)] md:hidden">
                           <span className="link-underline">(More)</span>
                           <span>&rarr;</span>

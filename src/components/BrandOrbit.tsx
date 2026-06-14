@@ -200,6 +200,80 @@ const BrandOrbit = ({ cases }: { cases?: OrbitCase[] } = {}) => {
       onToggle: (self) => (self.isActive ? playOrbit() : pauseOrbit()),
     });
 
+    // Touch/pointer control (mobile): press to hold the orbit still, drag
+    // horizontally to spin it by hand (the drag delta maps onto each tile's
+    // progress so the ring follows the finger live). Vertical drags fall through
+    // to page scroll via touch-action: pan-y. A drag suppresses the click it
+    // would otherwise fire so a tile isn't accidentally opened.
+    const pxPerTile = Math.max(90, tiles[0].offsetWidth * 0.5);
+    let pressing = false;
+    let didDrag = false;
+    let dragIntent: "h" | "v" | null = null;
+    let startX = 0;
+    let startY = 0;
+    let dragBaseline: number[] = [];
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      pressing = true;
+      didDrag = false;
+      dragIntent = null;
+      startX = event.clientX;
+      startY = event.clientY;
+      dragBaseline = tileStates.map((s) => s.progress);
+      try {
+        container.setPointerCapture(event.pointerId);
+      } catch {
+        /* capture unsupported — fall back to plain listeners */
+      }
+      // Freeze the auto loop while the finger is down. Kill (not just pause) the
+      // current step so resume starts a fresh goToNextTile from where the drag
+      // left the tiles.
+      pauseOrbit();
+      if (stepTimeline) {
+        stepTimeline.kill();
+        stepTimeline = undefined;
+      }
+      if (delayedCall) {
+        delayedCall.kill();
+        delayedCall = undefined;
+      }
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!pressing) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (!dragIntent) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        dragIntent = Math.abs(dx) >= Math.abs(dy) ? "h" : "v";
+      }
+      if (dragIntent !== "h") return;
+      didDrag = true;
+      const delta = -dx / pxPerTile;
+      tileStates.forEach((s, i) => {
+        s.progress = dragBaseline[i] + delta;
+      });
+      renderOrbit();
+    };
+    const endPress = () => {
+      if (!pressing) return;
+      pressing = false;
+      dragIntent = null;
+      // Resume the auto loop only when the orbit is in view (scroll trigger may
+      // have paused it underneath us).
+      if (scrollTrigger.isActive) playOrbit();
+    };
+    const onClickCapture = (event: MouseEvent) => {
+      if (didDrag) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    container.addEventListener("pointerdown", onPointerDown);
+    container.addEventListener("pointermove", onPointerMove);
+    container.addEventListener("pointerup", endPress);
+    container.addEventListener("pointercancel", endPress);
+    container.addEventListener("click", onClickCapture, true);
+
     // React cleanup — kill everything the Osmo init created and clear the
     // rotation transform so re-init (e.g. dev-panel changes) starts clean.
     return () => {
@@ -209,6 +283,11 @@ const BrandOrbit = ({ cases }: { cases?: OrbitCase[] } = {}) => {
       if (stepTimeline) stepTimeline.kill();
       if (delayedCall) delayedCall.kill();
       resizeObserver?.disconnect();
+      container.removeEventListener("pointerdown", onPointerDown);
+      container.removeEventListener("pointermove", onPointerMove);
+      container.removeEventListener("pointerup", endPress);
+      container.removeEventListener("pointercancel", endPress);
+      container.removeEventListener("click", onClickCapture, true);
       if (list) gsap.set(list, { rotate: 0 });
       gsap.set(tiles, { rotate: 0 });
     };
@@ -217,7 +296,7 @@ const BrandOrbit = ({ cases }: { cases?: OrbitCase[] } = {}) => {
   return (
     <section ref={containerRef} data-orbit-tiles-init className="orbit-tiles">
       <style>{`
-        .orbit-tiles { justify-content: center; align-items: center; width: 100%; height: clamp(480px, 70vh, 900px); padding-bottom: clamp(48px, 12vw, 120px); display: flex; position: relative; overflow: clip; background-color: ${BRIGADA_BLACK}; }
+        .orbit-tiles { justify-content: center; align-items: center; width: 100%; height: clamp(480px, 70vh, 900px); padding-bottom: clamp(48px, 12vw, 120px); display: flex; position: relative; overflow: clip; background-color: ${BRIGADA_BLACK}; touch-action: pan-y; }
         .orbit-tiles__collection { justify-content: center; align-items: center; display: flex; position: relative; }
         .orbit-tiles__list { place-items: center; display: grid; }
         .orbit-tiles__item { will-change: transform, opacity, filter; grid-area: 1 / 1; justify-content: center; align-items: center; width: max-content; height: max-content; display: flex; }
