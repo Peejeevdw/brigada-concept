@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useLenis } from "@/hooks/useLenis";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { useDirectionalHover } from "@/hooks/useDirectionalHover";
 import { usePageTransition } from "@/components/PageTransition";
 import SiteNav from "@/components/site/SiteNav";
@@ -33,6 +34,8 @@ export interface ServicesOverviewPillar {
 // + pillar order all come from the serviceIndexPage Sanity doc.
 
 const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
+  // Match the document canvas to the page's white top so the iOS status-bar safe area (exposed by viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor("#FFFFFF");
   const transitionTo = usePageTransition();
   const eyebrow = data?.page?.hero?.eyebrow ?? "";
   const title = data?.page?.hero?.title ?? "";

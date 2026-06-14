@@ -8,6 +8,7 @@ import SectionLabel from "@/components/site/SectionLabel";
 import CascadingSlider from "@/components/CascadingSlider";
 import LogoWall from "@/components/LogoWall";
 import BrandFooter from "@/components/BrandFooter";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { GUTTER, INK } from "@/lib/siteTokens";
 import { casesToSlides } from "./pillar-cases";
 import type { PillarViewProps } from "./pillar-types";
@@ -43,6 +44,8 @@ const Marketing = ({ category, cases }: PillarViewProps) => {
   // across the content block, reaching full tint as the dark cases slide over.
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollP = useMotionValue(0);
+  // Match the document canvas to the white hero top so the iOS status-bar safe area (viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor("#FFFFFF");
   const bgColor = useTransform(scrollP, [0, 1], ["#FFFFFF", "#F3F2E4"]);
 
   useLenis(() => {

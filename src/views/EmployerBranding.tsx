@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
 import { usePageTransition } from "@/components/PageTransition";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { BRIGADA_BLACK } from "@/lib/colors";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -65,6 +66,8 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
 );
 
 const EmployerBranding = () => {
+  // Match the document canvas to the page's top colour so the iOS status-bar safe area (viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor("#E7FFE5");
   const transitionTo = usePageTransition();
 
   // Scroll-driven background — the page warms from white to #FEECF2 as you scroll

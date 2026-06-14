@@ -142,6 +142,11 @@ const SiteNav = ({
   // OUTSIDE it (the steady service-pillar nav).
   const router = useRouter();
 
+  // The progressive-blur backdrop and the nav extend up into the iOS status-bar
+  // safe area so the frosted bar "runs behind" the native top bar. Relies on
+  // `viewport-fit=cover` (set in app/layout.tsx) for env(safe-area-inset-top) to
+  // resolve nonzero; it's 0 on desktop, so the calc()s collapse to the base.
+
   // Lock body scroll while the full-screen mobile menu is open.
   useEffect(() => {
     if (!mobileOpen) return;
@@ -234,9 +239,9 @@ const SiteNav = ({
         entrance slides via `top` rather than transform, so the blended element
         itself carries no transform that could re-isolate it. */}
     <motion.nav
-        className={`fixed inset-x-0 z-50 flex h-[72px] items-stretch justify-between px-[clamp(24px,5vw,72px)] ${useBlend ? "text-white" : textClassName} ${mobileOpen ? "max-md:!text-white" : ""}`}
+        className={`fixed inset-x-0 z-50 flex h-[calc(72px+env(safe-area-inset-top,0px))] max-md:h-[calc(86px+env(safe-area-inset-top,0px))] items-stretch justify-between px-[clamp(24px,5vw,72px)] pt-[env(safe-area-inset-top,0px)] max-md:pt-[calc(14px+env(safe-area-inset-top,0px))] ${useBlend ? "text-white" : textClassName} ${mobileOpen ? "max-md:!text-white" : ""}`}
         style={useBlend ? { mixBlendMode: "difference" } : undefined}
-        initial={{ top: "-72px" }}
+        initial={{ top: "-120px" }}
         animate={{ top: "0px" }}
         transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.1 }}
       >
@@ -318,7 +323,7 @@ const SiteNav = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: EASE_OUT }}
-            className="fixed inset-0 z-[45] flex flex-col bg-brigada-black px-[clamp(24px,5vw,72px)] pt-[88px] pb-12 text-white md:hidden"
+            className="fixed inset-0 z-[45] flex flex-col bg-brigada-black px-[clamp(24px,5vw,72px)] pt-[calc(88px+env(safe-area-inset-top,0px))] pb-[calc(48px+env(safe-area-inset-bottom,0px))] text-white md:hidden"
             style={{ fontFamily: SANS }}
           >
             <ul className="mt-6 flex flex-1 flex-col gap-7 overflow-y-auto">

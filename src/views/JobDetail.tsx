@@ -9,6 +9,7 @@ import { pushFormSubmission } from "@/lib/dataLayer";
 import { PortableText, type PortableTextBlock } from "@portabletext/react";
 import SiteNav from "@/components/site/SiteNav";
 import BrandFooter from "@/components/BrandFooter";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { usePageTransition } from "@/components/PageTransition";
 
@@ -166,6 +167,8 @@ const LabelledSection = ({
 );
 
 const JobDetail = ({ job }: { job: JobData | null }) => {
+  // Match the document canvas to the page's top colour so the iOS status-bar safe area (viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor(BG);
   const transitionTo = usePageTransition();
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);

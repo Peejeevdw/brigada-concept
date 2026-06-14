@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useLenis } from "@/hooks/useLenis";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import WorkFilter, { type WorkItem } from "@/components/WorkFilter";
@@ -54,6 +55,11 @@ const WorkV2 = ({ data }: { data?: WorkIndexData | null } = {}) => {
       slug: w.slug ?? undefined,
     };
   });
+  // Match the document canvas to the intro section's white, so the area behind
+  // the iOS status bar (where viewport-fit=cover exposes the <html> canvas)
+  // reads the same colour as the first section instead of the cream default.
+  useCanvasColor("#FFFFFF");
+
   // Scroll-driven background — warms from white to a soft paper tint across the
   // content block, the way the sibling pages warm toward the footer.
   const contentRef = useRef<HTMLDivElement>(null);

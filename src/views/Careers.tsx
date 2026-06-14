@@ -6,6 +6,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SiteNav from "@/components/site/SiteNav";
+import { useCanvasColor } from "@/hooks/useCanvasColor";
 import CareersCarousel, { type CarouselSlide } from "@/components/CareersCarousel";
 import BrandFooter from "@/components/BrandFooter";
 import HlsBackgroundVideo from "@/components/HlsBackgroundVideo";
@@ -97,6 +98,8 @@ const CAROUSEL_SLIDES: CarouselSlide[] = [
 ];
 
 const CareersV2 = ({ data }: { data?: CareersData | null } = {}) => {
+  // Match the document canvas to the page's white top so the iOS status-bar safe area (exposed by viewport-fit=cover) reads the same colour, not the cream default.
+  useCanvasColor("#FFFFFF");
   const transitionTo = usePageTransition();
 
   const hero = data?.page?.hero;
