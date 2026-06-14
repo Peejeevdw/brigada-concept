@@ -380,7 +380,7 @@ html.lenis body { height: auto; }
   position: relative;
 }
 .cascading-slider__collection { width: 100%; }
-.cascading-slider__list { width: 100%; height: clamp(22rem, 60vw, 35em); position: relative; overflow: hidden; }
+.cascading-slider__list { width: 100%; height: clamp(22rem, 60vw, 35em); position: relative; overflow: hidden; touch-action: pan-y; }
 .cascading-slider__item {
   color: #fff; cursor: pointer; will-change: transform, clip-path;
   clip-path: inset(0px calc(var(--clip) * 1px) round var(--radius));
@@ -416,6 +416,14 @@ html.lenis body { height: auto; }
   padding: .75em; display: flex;
 }
 .cascading-slider__button-arrow.is--prev { transform: rotate(-180deg); }
+
+/* Mobile: full-bleed to the viewport edges (break out of the page gutters via
+   the 100vw centering trick), smaller title tucked into the bottom-left. */
+@media screen and (max-width: 767px) {
+  .cascading-slider { width: 100vw; margin-left: 50%; transform: translateX(-50%); }
+  .cascading-slider__item-content { padding: 1.25em 1.25em 1.25em 1.25em; text-align: left; }
+  .cascading-slider__h { font-size: 1.4em; }
+}
 
 
 /* Osmo "Basic Filter Setup (Multi Match)" — button filter; items toggle via
@@ -559,6 +567,16 @@ html.lenis body { height: auto; }
 @media screen and (max-width: 991px) {
   .logo-wall--osmo .logo-wall__item { width: 33.333%; }
   .logo-wall--osmo [data-logo-wall-list] [data-logo-wall-item]:nth-child(n+7) { display: none; }
+}
+
+/* Mobile: clients/brand walls drop from 3 to 2 columns (the more specific
+   --osmo rule above keeps that variant on its own column count). Wider 2-col
+   cells make the same padding-top yield taller rows, so shrink it to tighten
+   the vertical gap between rows. */
+@media screen and (max-width: 767px) {
+  .logo-wall__item { width: 50%; }
+  .logo-wall__logo-before { padding-top: 16%; }
+  .logo-wall--brand .logo-wall__logo-before { padding-top: 30%; }
 }
 
 /* Looping Words (Osmo) — auto-cycling vertical word list with an elastic snap.
