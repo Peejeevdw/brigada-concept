@@ -526,3 +526,57 @@ html.lenis body { height: auto; }
   width: 100%; height: 100%; max-height: 100%;
   object-fit: contain;
 }
+
+/* Osmo-look variant (homepage): 4-up / 8 visible, taller cells, centred logos
+   forced to white for a dark background. Scoped to .logo-wall--osmo so the
+   service-detail pages keep their 3-up, light-bg version. */
+.logo-wall--osmo .logo-wall__item { width: 25%; }
+.logo-wall--osmo [data-logo-wall-list] [data-logo-wall-item]:nth-child(n+7) { display: block; }
+.logo-wall--osmo [data-logo-wall-list] [data-logo-wall-item]:nth-child(n+9) { display: none; }
+.logo-wall--osmo .logo-wall__logo-before { padding-top: 60%; }
+.logo-wall--osmo .logo-wall__logo-target { left: 16.67%; justify-content: center; }
+.logo-wall--osmo .logo-wall__logo-img { filter: brightness(0) invert(1); }
+/* Zwarte logo's (op een witte achtergrond) i.p.v. de witte default. */
+.logo-wall--ink .logo-wall__logo-img { filter: brightness(0); }
+/* Gelijke hoogte: het logo krijgt een vaste hoogte, breedte naar verhouding,
+   gecentreerd in de cel. Breedte gecapt zodat brede wordmarks niet overlopen. */
+.logo-wall--ink .logo-wall__logo-target {
+  inset: 0;
+  width: 100%;
+  justify-content: center; /* logo's gecentreerd in de cel (vaste midden-lijn per kolom) */
+}
+.logo-wall--ink .logo-wall__logo-img {
+  width: auto;
+  height: 24%;
+  max-width: 60%;
+  object-fit: contain;
+}
+
+/* /brand: meer verticale ruimte tussen de logo-rijen. Hogere cel = meer lucht
+   rond elk logo; de logo's zelf blijven even groot (breedte-gestuurd). */
+.logo-wall--brand .logo-wall__logo-before { padding-top: 44%; }
+
+@media screen and (max-width: 991px) {
+  .logo-wall--osmo .logo-wall__item { width: 33.333%; }
+  .logo-wall--osmo [data-logo-wall-list] [data-logo-wall-item]:nth-child(n+7) { display: none; }
+}
+
+/* Looping Words (Osmo) — auto-cycling vertical word list with an elastic snap.
+   Selector removed; fade is a mask to transparent so it works over any
+   background (the red brio). Inherits font-size/colour from the parent. */
+.looping-words { position: relative; line-height: 1.5; }
+.looping-words__viewport {
+  position: relative;
+  height: 1.5em; /* exact één slot — enkel de actieve naam zichtbaar, buren weggeclipt */
+  overflow: hidden;
+}
+.looping-words__list {
+  display: flex;
+  flex-flow: column;
+  align-items: center; /* woorden gecentreerd (verticale scène-layout) */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
+}
+.looping-words__p { margin: 0; }

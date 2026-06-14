@@ -26,12 +26,17 @@ const INK = "#2d2928";
 // Some discipline titles link to a detail page (keyed by title). Empty for now.
 const DISCIPLINE_LINKS: Record<string, string> = {};
 
-// Placeholder client logos for the "klanten" wall — swap these out for real
-// client SVGs in /public/assets/logos later.
-const CLIENT_LOGOS = [
-  "northwind", "lumen", "vertex", "atlas", "orbit", "pulse",
-  "nova", "forge", "halo", "quanta", "zenith", "drift",
-].map((name) => ({ src: `/assets/logos/${name}.svg`, alt: name }));
+// Real client logos for the "klanten" wall — left-aligned brand SVGs.
+// Verdubbeld zodat de cycling-wall (6 cellen) genoeg logo's heeft om te roteren.
+const CLIENT_LOGOS_BASE = [
+  { name: "ag-left", alt: "AG" },
+  { name: "nmbs-left", alt: "NMBS" },
+  { name: "telenet-left", alt: "Telenet" },
+  { name: "visit-flanders-left", alt: "Visit Flanders" },
+  { name: "whats-cooking-left", alt: "What's Cooking" },
+  { name: "bpostgroup-left", alt: "bpost group" },
+].map(({ name, alt }) => ({ src: `/assets/logos/${name}.svg`, alt }));
+const CLIENT_LOGOS = [...CLIENT_LOGOS_BASE, ...CLIENT_LOGOS_BASE];
 
 // Shared gutter — same as the /concept page so content runs full-bleed (no
 // centred max-width), gutters only.
@@ -184,13 +189,13 @@ const Brand = ({ category }: PillarViewProps) => {
         </section>
 
         {/* Clients — cycling logo wall (Osmo) of the brands we work with on this
-            expertise. Placeholder logos for now. */}
+            expertise. */}
         <section className={`${GUTTER} pt-[clamp(48px,7vw,96px)]`} style={{ color: INK }}>
           <Reveal>
             <div className="border-t" style={{ borderColor: INK }} />
             <div className="mt-[clamp(28px,3vw,42px)] flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
               <SectionLabel>Clients</SectionLabel>
-              <div className="w-full md:w-[49%]">
+              <div className="logo-wall--brand w-full md:w-[49%]">
                 <LogoWall logos={CLIENT_LOGOS} />
               </div>
             </div>

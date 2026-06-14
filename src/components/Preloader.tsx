@@ -43,11 +43,19 @@ function themeForPath(pathname: string | null): LoaderTheme {
 
 export default function Preloader() {
   // Covers from first paint; the session gate may switch it off on mount.
-  const [show, setShow] = useState(true);
+  const pathname = usePathname();
+  // De v5-homepage heeft een eigen intro-video; sla de site-brede preloader
+  // daar volledig over (geen dubbel wordmark-moment).
+  const skipForRoute = pathname === "/homepage-v5";
+  const [show, setShow] = useState(!skipForRoute);
   const feRef = useRef<SVGFEGaussianBlurElement>(null);
-  const isDark = themeForPath(usePathname()) === "dark";
+  const isDark = themeForPath(pathname) === "dark";
 
   useEffect(() => {
+    if (skipForRoute) {
+      setShow(false);
+      return;
+    }
     // Skip entirely on an "X is now Brigada" agency page (e.g. /today,
     // /today_1): there the old logo must appear first, so the Brigada intro
     // never plays. We deliberately don't touch the session key, so the intro
