@@ -1445,7 +1445,7 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
 
             {/* Full-width content row (same gutters as the paragraph above) */}
             <div className="relative z-10 flex w-full flex-col gap-8 px-[clamp(24px,5vw,72px)] py-[clamp(56px,12vh,140px)] md:flex-row md:items-center md:gap-[clamp(40px,10vw,221px)]">
-              {/* Meta — client (large) + project title (small) + service categories */}
+              {/* Meta — client (large) + project title (small) */}
               <div className="flex shrink-0 flex-col gap-[clamp(16px,2vw,24px)] md:w-[171px]">
                 <div className="flex flex-col gap-1">
                   <span
@@ -1463,22 +1463,6 @@ const Concept = ({ data }: { data?: ConceptData | null } = {}) => {
                     </span>
                   )}
                 </div>
-                {categories.length > 0 && (
-                  <ul
-                    className="flex flex-col gap-[clamp(6px,0.6vw,10px)]"
-                    style={{ fontFamily: SANS }}
-                  >
-                    {categories.map((cat) => (
-                      <li
-                        key={cat?._id ?? cat?.name}
-                        className="text-[clamp(11px,0.85vw,13px)] uppercase tracking-[0.08em] leading-none opacity-90"
-                        style={{ fontWeight: 500 }}
-                      >
-                        {cat?.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
               </div>
 
               {/* Media — large landscape visual; "Watch case" pill on hover. */}
