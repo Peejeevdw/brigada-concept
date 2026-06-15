@@ -10,6 +10,7 @@ import SiteNav from "@/components/site/SiteNav";
 import Reveal from "@/components/site/Reveal";
 import SectionLabel from "@/components/site/SectionLabel";
 import BrandFooter from "@/components/BrandFooter";
+import { BrioEffect } from "@/brio-effect";
 import { EASE_OUT, GUTTER, INK } from "@/lib/siteTokens";
 
 export interface ServicesOverviewData {
@@ -86,8 +87,9 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
         </section>
 
         {/* The four domains — one row per pillar. On desktop the whole row is a
-            link with an Osmo directional-hover fill (black tile from the cursor
-            edge, text → white); the "(More)" affordance shows on touch only. */}
+            link with an Osmo directional-hover fill — a pink Brio backdrop
+            ("brio-06") sweeps in from the cursor edge; the text stays black over
+            it. The "(More)" affordance shows on touch only. */}
         <section
           className="pt-[clamp(56px,8vw,112px)]"
           style={{ color: INK.dark }}
@@ -110,7 +112,7 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
                         transitionTo(href);
                       }
                     }}
-                    className="group relative block w-full cursor-pointer overflow-hidden border-t py-[clamp(36px,4.5vw,64px)] mt-[clamp(28px,3vw,42px)] first:mt-0 text-left transition-colors duration-500 [@media(hover:hover)]:hover:text-white"
+                    className="group relative block w-full cursor-pointer overflow-hidden border-t py-[clamp(36px,4.5vw,64px)] mt-[clamp(28px,3vw,42px)] first:mt-0 text-left"
                     style={{
                       borderColor: INK.dark,
                       paddingLeft: "calc(clamp(24px,5vw,72px) + clamp(8px,1.2vw,18px))",
@@ -120,8 +122,19 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
                     <div
                       data-directional-hover-tile
                       aria-hidden
-                      className="pointer-events-none absolute inset-0 bg-brigada-black"
-                    />
+                      className="pointer-events-none absolute inset-0"
+                    >
+                      {/* Brio backdrop fills the hover tile — the pink "brio-06"
+                          recipe. No solid base behind it: the text reads black
+                          over the brio, so a dark base would swallow it during
+                          the brief WebGL paint. */}
+                      <BrioEffect
+                        src="/concept-hero.jpg"
+                        mode="palette"
+                        paletteId="brio-06"
+                        className="h-full w-full"
+                      />
+                    </div>
                     <div className="relative z-10 flex flex-col gap-6 md:flex-row md:justify-between">
                       <SectionLabel>{label}</SectionLabel>
                       <div className="w-full md:w-[49%]">
@@ -139,6 +152,35 @@ const Services = ({ data }: { data?: ServicesOverviewData | null } = {}) => {
           </div>
         </section>
       </div>
+
+      {/* Contact CTA — solid black band, white text, no hover. Mirrors the
+          pillar rows' two-column rhythm: heading left, contact right (aligned
+          with the disciplines column above). */}
+      <section className="bg-brigada-black text-white">
+        <Reveal>
+          <div
+            className="flex flex-col gap-8 py-[clamp(72px,12vw,160px)] md:flex-row md:justify-between"
+            style={{
+              paddingLeft: "calc(clamp(24px,5vw,72px) + clamp(8px,1.2vw,18px))",
+              paddingRight: "calc(clamp(24px,5vw,72px) + clamp(8px,1.2vw,18px))",
+            }}
+          >
+            <h2
+              className="text-[clamp(18px,1.5vw,22px)] uppercase leading-[1.15] md:max-w-[24ch]"
+              style={{ fontWeight: 500 }}
+            >
+              Interested in our integrated approach?
+            </h2>
+            <div className="w-full md:w-[49%]">
+              <p className="font-body max-md:leading-[1.5]">
+                Evert Vermeire
+                <br />
+                <a href="mailto:evert.vermeire@brigada.be">evert.vermeire@brigada.be</a>
+              </p>
+            </div>
+          </div>
+        </Reveal>
+      </section>
 
       {/* Parallax footer — brio "Pink & Yellow" (brio-01) backdrop + wordmark. */}
       <BrandFooter brioPaletteId="brio-01" />
