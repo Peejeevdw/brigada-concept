@@ -16,6 +16,7 @@ const LINKABLE_TYPES = [
   'work',
   'serviceCategory',
   'job',
+  'pressRelease',
 ] as const
 
 export const submenuItem = defineType({

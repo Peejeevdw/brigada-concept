@@ -15,31 +15,38 @@ import { useSiteChrome } from "@/lib/site-chrome";
 //
 // The progressive-blur CSS lives globally in index.css.
 
-type NavItemDef = { label: string; items: string[] };
-
-const NAV_LEFT: NavItemDef[] = [
-  { label: "Services", items: ["Brand", "Marketing", "People", "Product"] },
-  { label: "Work", items: [] },
-  { label: "About", items: [] },
-];
-const NAV_RIGHT: NavItemDef[] = [
-  { label: "Careers", items: [] },
-  { label: "Contact", items: [] },
-];
-
-// Where each label / sub-item navigates. Only the new-style destinations are
-// wired; unknown labels are no-ops (placeholders) until their page exists.
-const DEFAULT_NAV_TARGETS: Record<string, string> = {
-  Services: "/services",
-  Work: "/work",
-  Brand: "/brand",
-  Product: "/product",
-  People: "/people",
-  Marketing: "/marketing",
-  About: "/about",
-  Careers: "/careers",
-  Contact: "/contact",
+// A resolved nav entry. Built from the Sanity `main` menu (label, url,
+// internal/external, optional one-level submenu). Falls back to FALLBACK_NAV
+// below when the menu is empty/unreachable.
+type NavLink = {
+  label: string;
+  url?: string;
+  external?: boolean;
+  openInNewTab?: boolean;
+  submenu?: NavLink[];
 };
+
+// Transitional dropdowns: if a Sanity top-level item points here but has no
+// submenu of its own yet, fall back to these so the dropdown doesn't vanish
+// before the editor fills it in. A Sanity-authored submenu always wins.
+const DEFAULT_SUBMENUS: Record<string, NavLink[]> = {
+  "/services": [
+    { label: "Brand", url: "/brand" },
+    { label: "Marketing", url: "/marketing" },
+    { label: "People", url: "/people" },
+    { label: "Product", url: "/product" },
+  ],
+};
+
+// Used only when the Sanity `main` menu is empty/unreachable, so the chrome
+// never renders an empty nav in production.
+const FALLBACK_NAV: NavLink[] = [
+  { label: "Services", url: "/services", submenu: DEFAULT_SUBMENUS["/services"] },
+  { label: "Work", url: "/work" },
+  { label: "About", url: "/about" },
+  { label: "Careers", url: "/careers" },
+  { label: "Contact", url: "/contact" },
+];
 
 // One nav entry (label + optional hover dropdown).
 const NavItem = ({
@@ -48,70 +55,73 @@ const NavItem = ({
   openMenu,
   scheduleClose,
   alignRight,
-  onSub,
+  onNavigate,
   onPrefetch,
   // When true the hover dropdown is suppressed (the label still navigates).
   // Used on the service-pillar pages, where the tab bar already lists the
   // Services sub-items, so the dropdown would be redundant.
   disabled = false,
 }: {
-  item: NavItemDef;
+  item: NavLink;
   openLabel: string | null;
   openMenu: (label: string) => void;
   scheduleClose: () => void;
   alignRight: boolean;
-  onSub: (sub: string) => void;
-  onPrefetch: (key: string) => void;
+  onNavigate: (link: NavLink) => void;
+  onPrefetch: (link: NavLink) => void;
   disabled?: boolean;
-}) => (
-  <div
-    className="relative flex items-center px-5 -mx-5"
-    onMouseEnter={
-      disabled
-        ? undefined
-        : () => {
-            openMenu(item.label);
-            onPrefetch(item.label);
-          }
-    }
-    onMouseLeave={disabled ? undefined : scheduleClose}
-  >
-    <span
-      className="cursor-pointer text-[14px] uppercase tracking-[0.1em] opacity-90 transition-opacity hover:opacity-100"
-      style={{ fontFamily: SANS }}
-      onClick={() => onSub(item.label)}
+}) => {
+  const submenu = item.submenu ?? [];
+  return (
+    <div
+      className="relative flex items-center px-5 -mx-5"
+      onMouseEnter={
+        disabled
+          ? undefined
+          : () => {
+              openMenu(item.label);
+              onPrefetch(item);
+            }
+      }
+      onMouseLeave={disabled ? undefined : scheduleClose}
     >
-      {item.label}
-    </span>
-    <AnimatePresence>
-      {!disabled && openLabel === item.label && item.items.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 6 }}
-          transition={{ duration: 0.28, ease: EASE_OUT }}
-          className={`absolute top-full pt-2 ${alignRight ? "right-5" : "left-5"}`}
-        >
-          <ul className="flex flex-row items-center gap-[clamp(32px,4vw,80px)] whitespace-nowrap">
-            {item.items.map((sub) => (
-              <li key={sub}>
-                <button
-                  type="button"
-                  onClick={() => onSub(sub)}
-                  onMouseEnter={() => onPrefetch(sub)}
-                  className="block text-[14px] uppercase leading-[20px] tracking-[1.4px] opacity-90 transition-opacity hover:opacity-60"
-                  style={{ fontFamily: SANS }}
-                >
-                  {sub}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </div>
-);
+      <span
+        className="cursor-pointer text-[14px] uppercase tracking-[0.1em] opacity-90 transition-opacity hover:opacity-100"
+        style={{ fontFamily: SANS }}
+        onClick={() => onNavigate(item)}
+      >
+        {item.label}
+      </span>
+      <AnimatePresence>
+        {!disabled && openLabel === item.label && submenu.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.28, ease: EASE_OUT }}
+            className={`absolute top-full pt-2 ${alignRight ? "right-5" : "left-5"}`}
+          >
+            <ul className="flex flex-row items-center gap-[clamp(32px,4vw,80px)] whitespace-nowrap">
+              {submenu.map((sub) => (
+                <li key={sub.label}>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate(sub)}
+                    onMouseEnter={() => onPrefetch(sub)}
+                    className="block text-[14px] uppercase leading-[20px] tracking-[1.4px] opacity-90 transition-opacity hover:opacity-60"
+                    style={{ fontFamily: SANS }}
+                  >
+                    {sub.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 // textClassName — tailwind colour for the nav (most pages: dark text on a light
 // page; AboutV2 uses white). homePath — where the centred wordmark goes.
@@ -176,38 +186,66 @@ const SiteNav = ({
     }, 180);
   };
 
-  // Pick URLs from the Sanity `main` menu when available. Falls back to the
-  // hardcoded `DEFAULT_NAV_TARGETS` map for items the editor hasn't curated
-  // yet (e.g. the Expertise submenu, which doesn't live in Sanity yet).
+  // The nav is driven by the Sanity `main` menu: labels, order, destinations
+  // (internal page or external URL) and an optional one-level dropdown all come
+  // from there. FALLBACK_NAV only kicks in when the menu is empty/unreachable.
+  // `navTargets` (legacy per-page override map) still overrides a label's URL.
   const chrome = useSiteChrome();
-  const sanityTargets = useMemo<Record<string, string>>(() => {
+  const navItems = useMemo<NavLink[]>(() => {
     const items = chrome?.mainMenu?.items ?? [];
-    const map: Record<string, string> = {};
-    for (const item of items) {
-      if (item?.label && item?.url) map[item.label] = item.url;
-    }
-    return map;
-  }, [chrome?.mainMenu?.items]);
+    const source: NavLink[] =
+      items.length > 0
+        ? items
+            .filter((it) => it?.label)
+            .map((it) => {
+              const authored = (it.submenu ?? [])
+                .filter((s) => s?.label && s?.url)
+                .map((s) => ({
+                  label: s.label,
+                  url: s.url ?? undefined,
+                  external: s.external,
+                  openInNewTab: s.openInNewTab,
+                }));
+              const fallbackSub = it.url ? DEFAULT_SUBMENUS[it.url] : undefined;
+              return {
+                label: it.label,
+                url: it.url ?? undefined,
+                external: it.external,
+                openInNewTab: it.openInNewTab,
+                submenu: authored.length > 0 ? authored : fallbackSub,
+              };
+            })
+        : FALLBACK_NAV;
+    // Apply legacy per-page URL overrides (matched by label) as internal routes.
+    if (!navTargets) return source;
+    return source.map((item) =>
+      navTargets[item.label]
+        ? { ...item, url: navTargets[item.label], external: false, openInNewTab: false }
+        : item
+    );
+  }, [chrome?.mainMenu?.items, navTargets]);
 
-  const targets = { ...DEFAULT_NAV_TARGETS, ...sanityTargets, ...navTargets };
-  const onSub = (sub: string) => {
-    const to = targets[sub];
-    if (to) runPageTransition(to);
+  // Route an internal app path through the crossfade; send external links (or
+  // "open in new tab", mailto/tel/anchor) out via a normal navigation.
+  const isAppRoute = (link: NavLink) =>
+    !!link.url && link.url.startsWith("/") && !link.external;
+  const navigate = (link: NavLink) => {
     setMobileOpen(false);
+    if (!link.url) return;
+    if (link.openInNewTab) {
+      window.open(link.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (isAppRoute(link)) runPageTransition(link.url!);
+    else window.location.href = link.url;
   };
-  // Warm the route (and its cached Sanity data) on hover, so the click commits
-  // near-instantly and the crossfade gap stays tiny.
-  const prefetch = (key: string) => {
-    const to = targets[key];
-    if (to) router.prefetch(to);
+  // Warm internal routes on hover so the click commits near-instantly.
+  const prefetch = (link: NavLink) => {
+    if (isAppRoute(link) && !link.openInNewTab) router.prefetch(link.url!);
   };
 
-  // Flat list for the mobile menu: top-level labels with their sub-items
-  // expanded inline (no hover dropdowns on touch).
-  const MOBILE_ITEMS = [...NAV_LEFT, ...NAV_RIGHT];
-
-  const blurOpen = [...NAV_LEFT, ...NAV_RIGHT].some(
-    (i) => i.label === openLabel && i.items.length > 0
+  const blurOpen = navItems.some(
+    (i) => i.label === openLabel && (i.submenu?.length ?? 0) > 0
   );
 
   // Blend keeps the nav legible over any background, but we drop it while the
@@ -259,28 +297,16 @@ const SiteNav = ({
         {/* Desktop nav items — collapsed into the hamburger below md.
             `md:contents` lets the children keep spreading via justify-between. */}
         <div className="hidden md:contents">
-          {NAV_LEFT.map((item) => (
+          {navItems.map((item, i) => (
             <NavItem
               key={item.label}
               item={item}
               openLabel={openLabel}
               openMenu={openMenu}
               scheduleClose={scheduleMenuClose}
-              alignRight={false}
-              onSub={onSub}
-              onPrefetch={prefetch}
-              disabled={lockedDropdowns.includes(item.label)}
-            />
-          ))}
-          {NAV_RIGHT.map((item) => (
-            <NavItem
-              key={item.label}
-              item={item}
-              openLabel={openLabel}
-              openMenu={openMenu}
-              scheduleClose={scheduleMenuClose}
-              alignRight
-              onSub={onSub}
+              // Open dropdowns of items in the right half towards the right edge.
+              alignRight={i >= Math.ceil(navItems.length / 2)}
+              onNavigate={navigate}
               onPrefetch={prefetch}
               disabled={lockedDropdowns.includes(item.label)}
             />
@@ -327,7 +353,7 @@ const SiteNav = ({
             style={{ fontFamily: SANS }}
           >
             <ul className="mt-6 flex flex-1 flex-col gap-7 overflow-y-auto">
-              {MOBILE_ITEMS.map((item, i) => (
+              {navItems.map((item, i) => (
                 <motion.li
                   key={item.label}
                   initial={{ opacity: 0, y: 16 }}
@@ -336,21 +362,21 @@ const SiteNav = ({
                 >
                   <button
                     type="button"
-                    onClick={() => onSub(item.label)}
+                    onClick={() => navigate(item)}
                     className="text-[28px] uppercase leading-none tracking-[0.02em]"
                   >
                     {item.label}
                   </button>
-                  {item.items.length > 0 && (
+                  {(item.submenu?.length ?? 0) > 0 && (
                     <ul className="mt-4 flex flex-col gap-3 pl-1">
-                      {item.items.map((sub) => (
-                        <li key={sub}>
+                      {item.submenu!.map((sub) => (
+                        <li key={sub.label}>
                           <button
                             type="button"
-                            onClick={() => onSub(sub)}
+                            onClick={() => navigate(sub)}
                             className="text-[15px] uppercase tracking-[0.1em] text-white/60 transition-colors hover:text-white"
                           >
-                            {sub}
+                            {sub.label}
                           </button>
                         </li>
                       ))}
