@@ -20,9 +20,10 @@ export default function PillarChrome() {
 
   return (
     <>
-      {/* Suppress the "Services" hover dropdown here — the tab bar below already
-          lists Brand/Marketing/People/Product, so it would be redundant. */}
-      <SiteNav homePath="/concept" lockedDropdowns={["Services"]} />
+      {/* Suppress the Services/Expertise hover dropdown here — the tab bar below
+          already lists Brand/Marketing/People/Product, so it would be redundant.
+          Both labels are covered since the menu label is editor-controlled. */}
+      <SiteNav homePath="/concept" lockedDropdowns={["Services", "Expertise"]} />
       <PillarTabs />
     </>
   );

@@ -117,7 +117,8 @@ const INTERNAL_URL = `select(
   internal->_type == "legalPage" && internal->kind == "imprint" => "/imprint",
   internal->_type == "work" => "/work/" + internal->slug.current,
   internal->_type == "serviceCategory" => "/" + internal->slug.current,
-  internal->_type == "job" => "/careers/jobs/" + internal->slug.current
+  internal->_type == "job" => "/careers/jobs/" + internal->slug.current,
+  internal->_type == "pressRelease" => "/press/" + internal->slug.current
 )`;
 
 /**
@@ -136,7 +137,41 @@ const LINK_PROJECTION = `{
     target == "anchor" => "#" + anchor,
     null
   ),
+  "external": target == "external",
   openInNewTab
+}`;
+
+// A nested `submenuItem` (one level deep). Same shape as a link minus the
+// email/phone targets it doesn't support.
+const SUBLINK_PROJECTION = `{
+  _key,
+  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),
+  "url": select(
+    target == "internal" => ${INTERNAL_URL},
+    target == "external" => url,
+    target == "anchor" => "#" + anchor,
+    null
+  ),
+  "external": target == "external",
+  openInNewTab
+}`;
+
+// Main-nav links carry an optional one-level `submenu` (e.g. the Services
+// dropdown). Footer/legal menus keep the flat LINK_PROJECTION.
+const MENU_LINK_PROJECTION = `{
+  _key,
+  "label": coalesce(label[_key == $locale][0].value, label[_key == "en"][0].value, label[0].value),
+  "url": select(
+    target == "internal" => ${INTERNAL_URL},
+    target == "external" => url,
+    target == "email" => "mailto:" + email,
+    target == "phone" => "tel:" + phone,
+    target == "anchor" => "#" + anchor,
+    null
+  ),
+  "external": target == "external",
+  openInNewTab,
+  "submenu": submenu[]${SUBLINK_PROJECTION}
 }`;
 
 const PERSON_PROJECTION = `{
@@ -237,7 +272,7 @@ const settingsAndChromeQuery = groq`{
     "legalLinks": legalLinks[]${LINK_PROJECTION}
   },
   "footerMenu": *[_type == "menu" && identifier == "footer"][0]{items[]${LINK_PROJECTION}},
-  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]${LINK_PROJECTION}},
+  "mainMenu": *[_type == "menu" && identifier == "main"][0]{items[]${MENU_LINK_PROJECTION}},
   "locations": *[_type == "location"] | order(_createdAt asc)${LOCATION_PROJECTION}
 }`;
 
@@ -622,6 +657,21 @@ export type SocialPlatform =
   | "github"
   | "other";
 
+export interface MainMenuLink {
+  _key: string;
+  label: string;
+  url?: string | null;
+  // True when the link points at an external URL (full page load) rather than
+  // an internal app route (client-side crossfade).
+  external?: boolean;
+  openInNewTab?: boolean;
+}
+
+export interface MainMenuItem extends MainMenuLink {
+  // Optional one-level dropdown (e.g. Services → Brand / Marketing / …).
+  submenu?: MainMenuLink[] | null;
+}
+
 export interface ChromeData {
   settings: {
     title?: string;
@@ -633,7 +683,7 @@ export interface ChromeData {
     legalLinks?: Array<{ _key: string; label: string; url: string; openInNewTab?: boolean }>;
   } | null;
   footerMenu: { items?: Array<{ _key: string; label: string; url: string; openInNewTab?: boolean }> } | null;
-  mainMenu: { items?: Array<{ _key: string; label: string; url: string; openInNewTab?: boolean }> } | null;
+  mainMenu: { items?: Array<MainMenuItem> } | null;
   locations: Array<{
     _id: string;
     title: string;
