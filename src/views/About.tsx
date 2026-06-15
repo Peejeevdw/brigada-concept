@@ -79,13 +79,47 @@ const ScrollColorText = ({
   from?: string;
   to?: string;
 }) => {
-  // The scroll-driven word-by-word colour fill was removed — the copy now
-  // renders fully in its end colour. (`from` is kept in the signature so the
-  // call site stays unchanged.)
-  void from;
+  const ref = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const words = el.querySelectorAll<HTMLElement>("[data-word]");
+    // Op mobile laten we het scroll-kleureffect achterwege: de woorden tonen
+    // meteen in hun eindkleur. Op desktop loopt de GSAP-scrub gewoon.
+    const isMobile =
+      window.matchMedia?.("(max-width: 767px)").matches ?? false;
+    if (isMobile) {
+      gsap.set(words, { color: to });
+      return;
+    }
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        words,
+        { color: from },
+        {
+          color: to,
+          ease: "none",
+          duration: 1,
+          stagger: 0.4,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+            end: "top 5%",
+            scrub: 1.2,
+          },
+        }
+      );
+    }, el);
+    return () => ctx.revert();
+  }, [from, to]);
+
   return (
-    <h1 className={className} style={{ ...style, color: to }}>
-      {text}
+    <h1 ref={ref} className={className} style={style}>
+      {text.split(" ").map((word, i) => (
+        <span key={i} data-word style={{ color: from }}>
+          {word}{" "}
+        </span>
+      ))}
     </h1>
   );
 };
